@@ -11,6 +11,11 @@
 </head>
 <body>
   <canvas id="gameCanvas" width="800" height="450"></canvas>
+  <div style="position:fixed; left:0; right:0; bottom:80px; text-align:center; color:#aaa; font-size:14px; z-index:20; pointer-events:none;">
+    <span style="background:rgba(34,34,34,0.7); padding:4px 12px; border-radius:8px; pointer-events:auto;">
+      © 2024 Jeroen Willemsen · <a href="https://github.com/commjoen/generated-game-experiment" target="_blank" style="color:#0cf; text-decoration:underline; pointer-events:auto;">Source code</a>
+    </span>
+  </div>
   <div id="mobile-controls" style="display:none; position:fixed; left:0; right:0; bottom:20px; z-index:10; justify-content:center; gap:20px; pointer-events:none;">
     <button id="btn-left" style="width:60px;height:60px;font-size:2em;opacity:0.8;pointer-events:auto;">◀️</button>
     <button id="btn-jump" style="width:60px;height:60px;font-size:2em;opacity:0.8;pointer-events:auto;">⏫</button>

@@ -26,6 +26,7 @@
     "jsdom": "^26.1.0",
     "typescript": "^5.8.3",
     "vite": "^7.0.3",
+    "vite-plugin-sri": "^0.0.2",
     "vitest": "^3.2.4"
   }
 }

@@ -1,0 +1,27 @@
+{
+  "name": "generated-game-experiment",
+  "version": "1.0.0",
+  "description": "Private experiment to create a game with cursor",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/commjoen/generated-game-experiment.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/commjoen/generated-game-experiment/issues"
+  },
+  "homepage": "https://github.com/commjoen/generated-game-experiment#readme",
+  "devDependencies": {
+    "@types/node": "^24.0.12",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.3"
+  }
+}

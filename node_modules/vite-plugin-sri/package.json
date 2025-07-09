@@ -1,0 +1,54 @@
+{
+  "name": "vite-plugin-sri",
+  "version": "0.0.2",
+  "description": "A Vite plugin that adds subresource integrity hashes to your index.html file at build time.",
+  "type": "module",
+  "main": "lib/index.cjs",
+  "module": "lib/index.js",
+  "exports": {
+    "import": "./lib/index.js",
+    "require": "./lib/index.cjs"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "test": "node test/index.js",
+    "coverage": "c8 node test/index.js"
+  },
+  "homepage": "https://github.com/JonathanLee-LX/vite-plugin-sri#readme",
+  "bugs": {
+    "url": "https://github.com/JonathanLee-LX/vite-plugin-sri/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JonathanLee-LX/vite-plugin-sri.git"
+  },
+  "files": [
+    "lib"
+  ],
+  "keywords": [
+    "Vite",
+    "Subresource",
+    "Integrity",
+    "SRI",
+    "plugin"
+  ],
+  "author": {
+    "name": "JonathanLee",
+    "email": "jonathanleelx@gmail.com"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@types/node": "^18.14.6",
+    "c8": "^7.7.0",
+    "rollup": "^2.79.1",
+    "tape": "^5.2.2",
+    "tslib": "^2.5.0",
+    "typescript": "^4.9.5",
+    "vite": "^4.1.4"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.5",
+    "node-fetch": "^2.6.1"
+  }
+}

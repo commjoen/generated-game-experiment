@@ -13,7 +13,7 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-      - run: VITE_BASE_PATH=/platformer-game-1/ npm run build
+      - run: VITE_BASE_PATH=/generated-game-experiment/ npm run build
       - run: ls -l
       - run: ls -l dist
       - run: touch dist/.keep

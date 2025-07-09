@@ -26,3 +26,7 @@
 - GitHub Actions workflow was set up to run tests on every push and pull request.
 - Respawn logic improved: player respawns at the start after falling offscreen or hitting a spike, with a brief flashing effect.
 - Test for gravity was fixed to ensure correct assertion when the player is above the ground. 
+
+## Security & Production
+- Added a custom nginx configuration with minimal security headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Content-Security-Policy, and optional Strict-Transport-Security).
+- Updated the Dockerfile to use this nginx config for production deployments. 

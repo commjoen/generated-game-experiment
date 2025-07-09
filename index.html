@@ -6,7 +6,8 @@
   <title>Side-Scrolling Platformer</title>
   <style>
     body { margin: 0; background: #222; }
-    canvas { display: block; margin: 0 auto; background: #87ceeb; }
+    html, body { height: 100%; width: 100%; }
+    canvas { display: block; margin: 0 auto; background: #87ceeb; width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh; }
   </style>
 </head>
 <body>
@@ -17,6 +18,16 @@
     <button id="btn-right" style="width:60px;height:60px;font-size:2em;opacity:0.8;pointer-events:auto;">▶️</button>
   </div>
   <script type="module" src="src/main.ts"></script>
+  <script>
+    // Responsive canvas sizing
+    function resizeCanvas() {
+      const canvas = document.getElementById('gameCanvas');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+  </script>
   <script>
     // Show mobile controls only on mobile devices
     function isMobile() {

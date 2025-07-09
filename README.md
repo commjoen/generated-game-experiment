@@ -37,7 +37,7 @@ To build and run the game in a Docker container:
 
 ```sh
 # Build and push for multiple platforms (replace with your Docker Hub username/image)
-docker buildx build --platform linux/amd64,linux/arm64 -t jeroenwillemsen/platformer-game-1:0.1.0 --loadgi .
+docker buildx build --platform linux/amd64,linux/arm64 -t jeroenwillemsen/platformer-game-1:0.1.0 --load .
 ```
 
 ### Local run (after pulling or building for your platform)
@@ -63,3 +63,18 @@ This game is automatically deployed to GitHub Pages on every push to `main` usin
 - The Vite config uses `base: '/platformer-game-1/'` to ensure correct asset paths. If you rename the repository, update this value in `vite.config.ts`.
 
 To manually trigger a deployment, push to the `main` branch.
+
+## Building for Different Environments
+
+This project uses the `VITE_BASE_PATH` environment variable to set the base path for assets at build time.
+
+- For Docker/nginx (root path):
+  ```sh
+  VITE_BASE_PATH=/ npm run build
+  ```
+- For GitHub Pages (repo subpath):
+  ```sh
+  VITE_BASE_PATH=/platformer-game-1/ npm run build
+  ```
+
+If you change your repository name or deploy to a different subpath, update the value accordingly.

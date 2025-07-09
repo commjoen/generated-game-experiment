@@ -5,7 +5,6 @@ COPY package*.json ./
 COPY tsconfig.json ./
 COPY vite.config.ts ./
 COPY src ./src
-COPY index.html ./
 RUN npm install && npm run build
 
 # Stage 2: Serve with nginx

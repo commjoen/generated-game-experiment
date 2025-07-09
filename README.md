@@ -34,7 +34,7 @@ To build and run the game in a Docker container:
 
 ```sh
 # Build and push for multiple platforms (replace with your Docker Hub username/image)
-docker buildx build --platform linux/amd64,linux/arm64 -t jeroenwillemsen/platformer-game-1:0.1.0 --load .
+docker buildx build --platform linux/amd64,linux/arm64 -t jeroenwillemsen/platformer-game-1:0.1.0 --loadgi .
 ```
 
 ### Local run (after pulling or building for your platform)
@@ -50,3 +50,13 @@ docker run -p 8080:80 jeroenwillemsen/platformer-game-1:0.1.0
 - A transcript of the assistant-user conversation and implementation steps is available in `.cursor/rules/conversation.md`.
 
 These files document the requirements, design decisions, and development history of the project.
+
+## GitHub Pages Deployment
+
+This game is automatically deployed to GitHub Pages on every push to `main` using a GitHub Actions workflow.
+
+- **Live URL:** https://jeroenwillemsen.github.io/platformer-game-1/
+- The workflow builds the project and publishes the `dist` folder to the `gh-pages` branch.
+- The Vite config uses `base: '/platformer-game-1/'` to ensure correct asset paths. If you rename the repository, update this value in `vite.config.ts`.
+
+To manually trigger a deployment, push to the `main` branch.

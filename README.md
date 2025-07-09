@@ -25,3 +25,22 @@ Private experiment to create a game with cursor
    ```sh
    npm run preview
    ```
+
+## Docker Deployment
+
+To build and run the game in a Docker container:
+
+```sh
+# Build the Docker image
+docker build -t platformer-game .
+
+# Run the container (serves on http://localhost:8080)
+docker run -p 8080:80 platformer-game
+```
+
+## Project Documentation
+
+- The full project specification is available in `.cursor/rules/project-spec.md`.
+- A transcript of the assistant-user conversation and implementation steps is available in `.cursor/rules/conversation.md`.
+
+These files document the requirements, design decisions, and development history of the project.

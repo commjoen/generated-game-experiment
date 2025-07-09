@@ -45,3 +45,7 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
 - Player can move left, right, and jump using keyboard controls.
 - Static platform for the player to stand and jump on.
 - Instructions for running the game locally are included in the README. 
+
+## Conversation
+
+See `.cursor/rules/conversation.md` for a transcript of the assistant-user conversation and implementation steps. 

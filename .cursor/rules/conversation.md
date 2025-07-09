@@ -30,3 +30,6 @@
 ## Security & Production
 - Added a custom nginx configuration with minimal security headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Content-Security-Policy, and optional Strict-Transport-Security).
 - Updated the Dockerfile to use this nginx config for production deployments. 
+
+## UI & Attribution
+- Added a copyright and source code link, fixed to the bottom center of the viewport for visibility on all devices. 

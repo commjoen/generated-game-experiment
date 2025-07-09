@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Side-Scrolling Platformer</title>
+  <style>
+    body { margin: 0; background: #222; }
+    canvas { display: block; margin: 0 auto; background: #87ceeb; }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="450"></canvas>
+  <div id="mobile-controls" style="display:none; position:fixed; left:0; right:0; bottom:20px; z-index:10; justify-content:center; gap:20px; pointer-events:none;">
+    <button id="btn-left" style="width:60px;height:60px;font-size:2em;opacity:0.8;pointer-events:auto;">◀️</button>
+    <button id="btn-jump" style="width:60px;height:60px;font-size:2em;opacity:0.8;pointer-events:auto;">⏫</button>
+    <button id="btn-right" style="width:60px;height:60px;font-size:2em;opacity:0.8;pointer-events:auto;">▶️</button>
+  </div>
+  <script type="module" src="src/main.ts"></script>
+  <script>
+    // Show mobile controls only on mobile devices
+    function isMobile() {
+      return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+    }
+    if (isMobile()) {
+      document.getElementById('mobile-controls').style.display = 'flex';
+    }
+  </script>
+</body>
+</html> 

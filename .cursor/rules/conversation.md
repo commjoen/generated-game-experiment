@@ -19,3 +19,10 @@
 
 ## Status
 - The game is now a replayable, containerized, browser-based platformer with dynamic levels, obstacles, collectibles, and scoring. 
+
+## Mobile Controls & Testing
+- Onscreen mobile controls (left, right, jump) were added, visible only on mobile devices.
+- Basic tests for player movement, gravity, jump, and collision were added using Vitest.
+- GitHub Actions workflow was set up to run tests on every push and pull request.
+- Respawn logic improved: player respawns at the start after falling offscreen or hitting a spike, with a brief flashing effect.
+- Test for gravity was fixed to ensure correct assertion when the player is above the ground. 

@@ -60,7 +60,7 @@ This game is automatically deployed to GitHub Pages on every push to `main` usin
 
 - **Live URL:** https://commjoen.github.io/generated-game-experiment/
 - The workflow builds the project and publishes the `dist` folder to the `gh-pages` branch.
-- The Vite config uses `base: '/platformer-game-1/'` to ensure correct asset paths. If you rename the repository, update this value in `vite.config.ts`.
+- The Vite config uses `base: process.env.VITE_BASE_PATH || '/'` to ensure correct asset paths. If you rename the repository, update this value in `vite.config.ts` and the workflow.
 
 To manually trigger a deployment, push to the `main` branch.
 
@@ -74,7 +74,7 @@ This project uses the `VITE_BASE_PATH` environment variable to set the base path
   ```
 - For GitHub Pages (repo subpath):
   ```sh
-  VITE_BASE_PATH=/platformer-game-1/ npm run build
+  VITE_BASE_PATH=/generated-game-experiment/ npm run build
   ```
 
 If you change your repository name or deploy to a different subpath, update the value accordingly.

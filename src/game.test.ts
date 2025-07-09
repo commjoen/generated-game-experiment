@@ -56,6 +56,8 @@ describe('Game basics', () => {
   beforeEach(() => resetPlayer());
 
   it('player falls due to gravity', () => {
+    player.y = GROUND_Y - player.height - 100; // Start above the ground
+    player.onGround = false;
     const y0 = player.y;
     updatePlayer({});
     expect(player.y).toBeGreaterThan(y0);

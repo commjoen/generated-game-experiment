@@ -106,12 +106,18 @@ function rectsCollide(a: Rect, b: Rect) {
 let score = 0;
 let level = 1;
 let levelEndX = LEVEL_WIDTH - 100;
+let respawnTimer = 0;
 
 function resetPlayer() {
   player.x = 100;
   player.y = GROUND_Y - 50;
   player.vx = 0;
   player.vy = 0;
+}
+
+function respawnPlayer() {
+  resetPlayer();
+  respawnTimer = 30; // frames to pause/flash
 }
 
 function generateNewLevel() {
@@ -127,6 +133,10 @@ function generateNewLevel() {
 }
 
 function update() {
+  if (respawnTimer > 0) {
+    respawnTimer--;
+    return;
+  }
   // Horizontal movement
   player.vx = 0;
   if (keys['ArrowLeft'] || keys['KeyA']) player.vx = -MOVE_SPEED;
@@ -219,13 +229,13 @@ function update() {
   // Spike collision (game over logic placeholder)
   for (const spike of spikes) {
     if (rectsCollide(player, spike)) {
-      // Reset player to start
-      player.x = 100;
-      player.y = GROUND_Y - 50;
-      player.vx = 0;
-      player.vy = 0;
+      respawnPlayer();
       break;
     }
+  }
+  // Offscreen (falling)
+  if (player.y > canvas.height + 100) {
+    respawnPlayer();
   }
   // End of level
   if (player.x + player.width >= levelEndX) {
@@ -274,10 +284,16 @@ function draw() {
     ctx.closePath();
     ctx.fill();
   }
-  // Draw player
-  ctx.fillStyle = '#ff0';
-  ctx.fillRect(player.x, player.y, player.width, player.height);
+  // Draw player (flash if respawning)
   ctx.restore();
+  if (respawnTimer > 0 && Math.floor(respawnTimer / 5) % 2 === 0) {
+    ctx.globalAlpha = 0.3;
+  } else {
+    ctx.globalAlpha = 1;
+  }
+  ctx.fillStyle = '#ff0';
+  ctx.fillRect(player.x - cameraX, player.y, player.width, player.height);
+  ctx.globalAlpha = 1;
   // Draw score and level (UI overlay)
   ctx.fillStyle = '#fff';
   ctx.font = '20px sans-serif';

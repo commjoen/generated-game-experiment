@@ -30,12 +30,18 @@ Private experiment to create a game with cursor
 
 To build and run the game in a Docker container:
 
-```sh
-# Build the Docker image
-docker build -t platformer-game .
+### Cross-platform build and push (amd64 & arm64)
 
+```sh
+# Build and push for multiple platforms (replace with your Docker Hub username/image)
+docker buildx build --platform linux/amd64,linux/arm64 -t jeroenwillemsen/platformer-game-1:0.1.0 --load .
+```
+
+### Local run (after pulling or building for your platform)
+
+```sh
 # Run the container (serves on http://localhost:8080)
-docker run -p 8080:80 platformer-game
+docker run -p 8080:80 jeroenwillemsen/platformer-game-1:0.1.0
 ```
 
 ## Project Documentation

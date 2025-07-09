@@ -58,7 +58,7 @@ These files document the requirements, design decisions, and development history
 
 This game is automatically deployed to GitHub Pages on every push to `main` using a GitHub Actions workflow.
 
-- **Live URL:** https://jeroenwillemsen.github.io/platformer-game-1/
+- **Live URL:** https://commjoen.github.io/generated-game-experiment/
 - The workflow builds the project and publishes the `dist` folder to the `gh-pages` branch.
 - The Vite config uses `base: '/platformer-game-1/'` to ensure correct asset paths. If you rename the repository, update this value in `vite.config.ts`.
 

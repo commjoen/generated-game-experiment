@@ -328,6 +328,42 @@ let fixedGradient = localStorage.getItem('fixedGradient') === 'true';
 let scrollGradient = localStorage.getItem('scrollGradient') === 'true';
 let fixedGradientColors: [string, string] = JSON.parse(localStorage.getItem('fixedGradientColors') || 'null') || randomGradientColors();
 let scrollGradientColors: [string, string] = JSON.parse(localStorage.getItem('scrollGradientColors') || 'null') || randomGradientColors();
+let imageBg = localStorage.getItem('imageBg') === 'true';
+let imageBgUrl: string | null = localStorage.getItem('imageBgUrl') || null;
+let imageBgObj: HTMLImageElement | null = null;
+let imageBgLoaded = false;
+
+function fetchRandomLandscapeImage() {
+  // Pixabay example (replace with your API key)
+  const API_KEY = '51252753-0f1aa9c83b326091b3ad96f88';
+  const url = `https://pixabay.com/api/?key=${API_KEY}&q=landscape&image_type=photo&orientation=horizontal&safesearch=true&per_page=50`;
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      if (data.hits && data.hits.length > 0) {
+        const random = Math.floor(Math.random() * data.hits.length);
+        imageBgUrl = data.hits[random].largeImageURL;
+        if (imageBgUrl) {
+          localStorage.setItem('imageBgUrl', imageBgUrl);
+          loadImageBg();
+        }
+      }
+    })
+    .catch(() => {
+      imageBgUrl = null;
+      imageBgLoaded = false;
+    });
+}
+
+function loadImageBg() {
+  if (!imageBgUrl) return;
+  imageBgObj = new window.Image();
+  imageBgObj.crossOrigin = 'anonymous';
+  imageBgObj.onload = () => { imageBgLoaded = true; };
+  imageBgObj.onerror = () => { imageBgLoaded = false; };
+  imageBgObj.src = imageBgUrl!;
+}
+if (imageBgUrl) loadImageBg();
 
 function randomGradientColors(): [string, string] {
   function pastel() {
@@ -340,8 +376,15 @@ function randomGradientColors(): [string, string] {
 function applyBackgroundSettings() {
   localStorage.setItem('fixedGradient', String(fixedGradient));
   localStorage.setItem('scrollGradient', String(scrollGradient));
+  localStorage.setItem('imageBg', String(imageBg));
   localStorage.setItem('fixedGradientColors', JSON.stringify(fixedGradientColors));
   localStorage.setItem('scrollGradientColors', JSON.stringify(scrollGradientColors));
+  if (!imageBg) {
+    localStorage.removeItem('imageBgUrl');
+    imageBgUrl = null;
+    imageBgObj = null;
+    imageBgLoaded = false;
+  }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -350,38 +393,53 @@ window.addEventListener('DOMContentLoaded', () => {
   const closeSettings = document.getElementById('close-settings');
   const fixedGradientToggle = document.getElementById('fixed-gradient-toggle') as HTMLInputElement;
   const scrollGradientToggle = document.getElementById('scroll-gradient-toggle') as HTMLInputElement;
-  if (settingsBtn && settingsModal && closeSettings && fixedGradientToggle && scrollGradientToggle) {
+  const imageBgToggle = document.getElementById('image-bg-toggle') as HTMLInputElement;
+  if (settingsBtn && settingsModal && closeSettings && fixedGradientToggle && scrollGradientToggle && imageBgToggle) {
     settingsBtn.addEventListener('click', () => {
       settingsModal.style.display = 'flex';
       fixedGradientToggle.checked = fixedGradient;
       scrollGradientToggle.checked = scrollGradient;
-      scrollGradientToggle.disabled = fixedGradient;
-      fixedGradientToggle.disabled = scrollGradient;
+      imageBgToggle.checked = imageBg;
     });
     closeSettings.addEventListener('click', () => {
       settingsModal.style.display = 'none';
     });
     fixedGradientToggle.addEventListener('change', () => {
-      fixedGradient = fixedGradientToggle.checked;
-      if (fixedGradient) {
-        fixedGradientColors = randomGradientColors();
+      if (fixedGradientToggle.checked) {
+        fixedGradient = true;
         scrollGradient = false;
+        imageBg = false;
         scrollGradientToggle.checked = false;
-        scrollGradientToggle.disabled = true;
+        imageBgToggle.checked = false;
+        fixedGradientColors = randomGradientColors();
       } else {
-        scrollGradientToggle.disabled = false;
+        fixedGradient = false;
       }
       applyBackgroundSettings();
     });
     scrollGradientToggle.addEventListener('change', () => {
-      scrollGradient = scrollGradientToggle.checked;
-      if (scrollGradient) {
-        scrollGradientColors = randomGradientColors();
+      if (scrollGradientToggle.checked) {
+        scrollGradient = true;
         fixedGradient = false;
+        imageBg = false;
         fixedGradientToggle.checked = false;
-        fixedGradientToggle.disabled = true;
+        imageBgToggle.checked = false;
+        scrollGradientColors = randomGradientColors();
       } else {
-        fixedGradientToggle.disabled = false;
+        scrollGradient = false;
+      }
+      applyBackgroundSettings();
+    });
+    imageBgToggle.addEventListener('change', () => {
+      if (imageBgToggle.checked) {
+        imageBg = true;
+        fixedGradient = false;
+        scrollGradient = false;
+        fixedGradientToggle.checked = false;
+        scrollGradientToggle.checked = false;
+        fetchRandomLandscapeImage();
+      } else {
+        imageBg = false;
       }
       applyBackgroundSettings();
     });
@@ -390,7 +448,19 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function draw() {
   // Draw background
-  if (fixedGradient) {
+  if (imageBg && imageBgLoaded && imageBgObj) {
+    // Parallax/scrolling background
+    const img = imageBgObj;
+    const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
+    const bgWidth = img.width * scale;
+    const bgHeight = img.height * scale;
+    // Scroll image with cameraX, wrap if needed
+    let bgX = -cameraX % bgWidth;
+    if (bgX > 0) bgX -= bgWidth;
+    for (let x = bgX; x < canvas.width; x += bgWidth) {
+      ctx.drawImage(img, x, 0, bgWidth, bgHeight);
+    }
+  } else if (fixedGradient) {
     // Fixed gradient (does not scroll)
     const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
     grad.addColorStop(0, fixedGradientColors[0]);

@@ -8,7 +8,7 @@ const JUMP_POWER = 12;
 const GROUND_Y = 400;
 
 // --- Camera and Level Dimensions ---
-const LEVEL_WIDTH = 2400; // 3x screen width
+const LEVEL_WIDTH = 3200; // longer level
 let cameraX = 0;
 
 // --- Collectibles and Obstacles ---
@@ -70,7 +70,8 @@ const boxes: Rect[] = [];
 function generateLevel() {
   let x = 0;
   while (x < LEVEL_WIDTH) {
-    const platformWidth = Math.random() < 0.2 ? 80 : 160;
+    // Make blocks longer: 160-320, with some extra long
+    const platformWidth = Math.random() < 0.2 ? 320 : 160 + Math.random() * 160;
     platforms.push({ x, y: GROUND_Y, width: platformWidth, height: 50 });
     // Add collectibles on some platforms
     if (Math.random() < 0.5) {
@@ -322,8 +323,91 @@ function update() {
   if (player.x + player.width > LEVEL_WIDTH) player.x = LEVEL_WIDTH - player.width;
 }
 
+// --- Settings Menu Logic ---
+let fixedGradient = localStorage.getItem('fixedGradient') === 'true';
+let scrollGradient = localStorage.getItem('scrollGradient') === 'true';
+let fixedGradientColors: [string, string] = JSON.parse(localStorage.getItem('fixedGradientColors') || 'null') || randomGradientColors();
+let scrollGradientColors: [string, string] = JSON.parse(localStorage.getItem('scrollGradientColors') || 'null') || randomGradientColors();
+
+function randomGradientColors(): [string, string] {
+  function pastel() {
+    const hue = Math.floor(Math.random() * 360);
+    return `hsl(${hue}, 70%, 75%)`;
+  }
+  return [pastel(), pastel()];
+}
+
+function applyBackgroundSettings() {
+  localStorage.setItem('fixedGradient', String(fixedGradient));
+  localStorage.setItem('scrollGradient', String(scrollGradient));
+  localStorage.setItem('fixedGradientColors', JSON.stringify(fixedGradientColors));
+  localStorage.setItem('scrollGradientColors', JSON.stringify(scrollGradientColors));
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const settingsBtn = document.getElementById('settings-btn');
+  const settingsModal = document.getElementById('settings-modal');
+  const closeSettings = document.getElementById('close-settings');
+  const fixedGradientToggle = document.getElementById('fixed-gradient-toggle') as HTMLInputElement;
+  const scrollGradientToggle = document.getElementById('scroll-gradient-toggle') as HTMLInputElement;
+  if (settingsBtn && settingsModal && closeSettings && fixedGradientToggle && scrollGradientToggle) {
+    settingsBtn.addEventListener('click', () => {
+      settingsModal.style.display = 'flex';
+      fixedGradientToggle.checked = fixedGradient;
+      scrollGradientToggle.checked = scrollGradient;
+      scrollGradientToggle.disabled = fixedGradient;
+      fixedGradientToggle.disabled = scrollGradient;
+    });
+    closeSettings.addEventListener('click', () => {
+      settingsModal.style.display = 'none';
+    });
+    fixedGradientToggle.addEventListener('change', () => {
+      fixedGradient = fixedGradientToggle.checked;
+      if (fixedGradient) {
+        fixedGradientColors = randomGradientColors();
+        scrollGradient = false;
+        scrollGradientToggle.checked = false;
+        scrollGradientToggle.disabled = true;
+      } else {
+        scrollGradientToggle.disabled = false;
+      }
+      applyBackgroundSettings();
+    });
+    scrollGradientToggle.addEventListener('change', () => {
+      scrollGradient = scrollGradientToggle.checked;
+      if (scrollGradient) {
+        scrollGradientColors = randomGradientColors();
+        fixedGradient = false;
+        fixedGradientToggle.checked = false;
+        fixedGradientToggle.disabled = true;
+      } else {
+        fixedGradientToggle.disabled = false;
+      }
+      applyBackgroundSettings();
+    });
+  }
+});
+
 function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // Draw background
+  if (fixedGradient) {
+    // Fixed gradient (does not scroll)
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, fixedGradientColors[0]);
+    grad.addColorStop(1, fixedGradientColors[1]);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else if (scrollGradient) {
+    // Scrolling diagonal gradient (moves with camera)
+    const grad = ctx.createLinearGradient(-cameraX, 0, LEVEL_WIDTH - cameraX, canvas.height);
+    grad.addColorStop(0, scrollGradientColors[0]);
+    grad.addColorStop(1, scrollGradientColors[1]);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else {
+    ctx.fillStyle = '#87ceeb';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
   ctx.save();
   ctx.translate(-cameraX, 0);
   // Draw platforms

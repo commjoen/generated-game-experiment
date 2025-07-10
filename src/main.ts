@@ -12,7 +12,7 @@ const LEVEL_WIDTH = 3200; // longer level
 let cameraX = 0;
 
 // --- Collectibles and Obstacles ---
-interface Collectible extends Rect { collected: boolean; }
+interface Collectible extends Rect { collected: boolean; type: 'coin' | 'heart'; }
 interface MovingPlatform extends Rect { dx: number; range: number; startX: number; }
 
 const collectibles: Collectible[] = [];
@@ -30,52 +30,49 @@ const player = {
   onGround: false,
 };
 
-// Platform
-const platform = {
-  x: 0,
-  y: GROUND_Y,
-  width: 800,
-  height: 50,
-};
-
-// Input state
-const keys: Record<string, boolean> = {};
-window.addEventListener('keydown', (e) => { keys[e.code] = true; });
-window.addEventListener('keyup', (e) => { keys[e.code] = false; });
-
-// --- Mobile Controls ---
-function setupMobileControls() {
-  const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
-  if (!isMobile) return;
-  const btnLeft = document.getElementById('btn-left');
-  const btnRight = document.getElementById('btn-right');
-  const btnJump = document.getElementById('btn-jump');
-  if (btnLeft && btnRight && btnJump) {
-    btnLeft.addEventListener('touchstart', e => { e.preventDefault(); keys['ArrowLeft'] = true; });
-    btnLeft.addEventListener('touchend', e => { e.preventDefault(); keys['ArrowLeft'] = false; });
-    btnRight.addEventListener('touchstart', e => { e.preventDefault(); keys['ArrowRight'] = true; });
-    btnRight.addEventListener('touchend', e => { e.preventDefault(); keys['ArrowRight'] = false; });
-    btnJump.addEventListener('touchstart', e => { e.preventDefault(); keys['Space'] = true; });
-    btnJump.addEventListener('touchend', e => { e.preventDefault(); keys['Space'] = false; });
-  }
-}
-setupMobileControls();
-
-// Level generation
+// Platform types
 interface Rect { x: number; y: number; width: number; height: number; }
+interface SlopePlatform {
+  x: number;
+  y: number; // left Y
+  width: number;
+  height: number;
+  endY: number; // right Y
+  isSlope: true;
+}
+type Platform = Rect | SlopePlatform;
 
-const platforms: Rect[] = [];
+const platforms: Platform[] = [];
 const boxes: Rect[] = [];
 
 function generateLevel() {
   let x = 0;
+  let heartPlaced = false;
+  const platformCenters: { x: number, y: number }[] = [];
   while (x < LEVEL_WIDTH) {
     // Make blocks longer: 160-320, with some extra long
     const platformWidth = Math.random() < 0.2 ? 320 : 160 + Math.random() * 160;
-    platforms.push({ x, y: GROUND_Y, width: platformWidth, height: 50 });
-    // Add collectibles on some platforms
+    let plat: Platform;
+    if (Math.random() < 0.25) { // 25% chance for a slope
+      // Slope up or down, max ±40px over the width
+      const slopeDelta = (Math.random() < 0.5 ? 1 : -1) * (20 + Math.random() * 20);
+      plat = {
+        x,
+        y: GROUND_Y,
+        width: platformWidth,
+        height: 50,
+        endY: GROUND_Y + slopeDelta,
+        isSlope: true
+      };
+    } else {
+      plat = { x, y: GROUND_Y, width: platformWidth, height: 50 };
+    }
+    platforms.push(plat);
+    // Save platform center for possible heart placement
+    platformCenters.push({ x: x + platformWidth / 2, y: GROUND_Y - 30 });
+    // Add coin collectibles on some platforms
     if (Math.random() < 0.5) {
-      collectibles.push({ x: x + platformWidth / 2 - 10, y: GROUND_Y - 30, width: 20, height: 20, collected: false });
+      collectibles.push({ x: x + platformWidth / 2 - 10, y: GROUND_Y - 30, width: 20, height: 20, collected: false, type: 'coin' });
     }
     // Add spikes in some gaps
     if (Math.random() < 0.3 && x > 0) {
@@ -91,6 +88,12 @@ function generateLevel() {
     if (Math.random() < 0.5 && x < LEVEL_WIDTH - 50) {
       boxes.push({ x: x + 10, y: GROUND_Y - 40, width: 40, height: 40 });
     }
+  }
+  // Place a heart collectible on a random platform (at most 1 per level)
+  if (platformCenters.length > 0) {
+    const idx = Math.floor(Math.random() * platformCenters.length);
+    const pos = platformCenters[idx];
+    collectibles.push({ x: pos.x - 10, y: pos.y, width: 20, height: 20, collected: false, type: 'heart' });
   }
   // Ensure a platform at the player spawn point (x=100)
   const spawnX = 100;
@@ -230,16 +233,34 @@ function update() {
   // Platform collision (check all platforms)
   player.onGround = false;
   for (const plat of platforms) {
-    if (
-      player.y + player.height > plat.y &&
-      player.y + player.height < plat.y + plat.height &&
-      player.x + player.width > plat.x &&
-      player.x < plat.x + plat.width &&
-      player.vy >= 0
-    ) {
-      player.y = plat.y - player.height;
-      player.vy = 0;
-      player.onGround = true;
+    if ('isSlope' in plat && plat.isSlope) {
+      // Slope: calculate y at player's x
+      if (player.x + player.width > plat.x && player.x < plat.x + plat.width) {
+        const t = (player.x + player.width / 2 - plat.x) / plat.width;
+        const yAtX = plat.y + (plat.endY - plat.y) * t;
+        if (
+          player.y + player.height > yAtX &&
+          player.y + player.height < yAtX + plat.height &&
+          player.vy >= 0
+        ) {
+          player.y = yAtX - player.height;
+          player.vy = 0;
+          player.onGround = true;
+        }
+      }
+    } else {
+      // Flat platform
+      if (
+        player.y + player.height > plat.y &&
+        player.y + player.height < plat.y + plat.height &&
+        player.x + player.width > plat.x &&
+        player.x < plat.x + plat.width &&
+        player.vy >= 0
+      ) {
+        player.y = plat.y - player.height;
+        player.vy = 0;
+        player.onGround = true;
+      }
     }
   }
 
@@ -295,8 +316,12 @@ function update() {
   for (const c of collectibles) {
     if (!c.collected && rectsCollide(player, c)) {
       c.collected = true;
-      score++;
-      setTopScore(score);
+      if (c.type === 'coin') {
+        score++;
+        setTopScore(score);
+      } else if (c.type === 'heart') {
+        if (lives < 5) lives++;
+      }
     }
   }
   // Spike collision (game over logic placeholder)
@@ -483,7 +508,17 @@ function draw() {
   // Draw platforms
   ctx.fillStyle = '#654321';
   for (const plat of platforms) {
-    ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
+    if ('isSlope' in plat && plat.isSlope) {
+      ctx.beginPath();
+      ctx.moveTo(plat.x, plat.y);
+      ctx.lineTo(plat.x + plat.width, plat.endY);
+      ctx.lineTo(plat.x + plat.width, plat.endY + plat.height);
+      ctx.lineTo(plat.x, plat.y + plat.height);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
+    }
   }
   // Draw moving platforms
   ctx.fillStyle = '#888';
@@ -496,9 +531,30 @@ function draw() {
     ctx.fillRect(box.x, box.y, box.width, box.height);
   }
   // Draw collectibles
-  ctx.fillStyle = '#0cf';
   for (const c of collectibles) {
-    if (!c.collected) ctx.beginPath(), ctx.arc(c.x + c.width/2, c.y + c.height/2, 10, 0, 2 * Math.PI), ctx.fill();
+    if (!c.collected) {
+      if (c.type === 'coin') {
+        ctx.fillStyle = '#0cf';
+        ctx.beginPath();
+        ctx.arc(c.x + c.width/2, c.y + c.height/2, 10, 0, 2 * Math.PI);
+        ctx.fill();
+      } else if (c.type === 'heart') {
+        // Draw a heart shape
+        ctx.save();
+        ctx.translate(c.x + c.width/2, c.y + c.height/2);
+        ctx.scale(1.2, 1.2);
+        ctx.beginPath();
+        ctx.moveTo(0, 6);
+        ctx.bezierCurveTo(0, 0, -10, 0, -10, 6);
+        ctx.bezierCurveTo(-10, 12, 0, 16, 0, 20);
+        ctx.bezierCurveTo(0, 16, 10, 12, 10, 6);
+        ctx.bezierCurveTo(10, 0, 0, 0, 0, 6);
+        ctx.closePath();
+        ctx.fillStyle = '#e33';
+        ctx.fill();
+        ctx.restore();
+      }
+    }
   }
   // Draw spikes
   ctx.fillStyle = '#e33';
@@ -528,7 +584,22 @@ function draw() {
   ctx.fillText(`Score: ${score}`, 20, 30);
   ctx.fillText(`Top Score: ${topScore}`, 20, 60);
   ctx.fillText(`Level: ${level}`, 20, 90);
-  ctx.fillText(`Lives: ${lives}`, 20, 120);
+  // Draw hearts for lives
+  for (let i = 0; i < lives; i++) {
+    ctx.save();
+    ctx.translate(20 + i * 28, 120);
+    ctx.scale(1.2, 1.2);
+    ctx.beginPath();
+    ctx.moveTo(0, 6);
+    ctx.bezierCurveTo(0, 0, -10, 0, -10, 6);
+    ctx.bezierCurveTo(-10, 12, 0, 16, 0, 20);
+    ctx.bezierCurveTo(0, 16, 10, 12, 10, 6);
+    ctx.bezierCurveTo(10, 0, 0, 0, 0, 6);
+    ctx.closePath();
+    ctx.fillStyle = '#e33';
+    ctx.fill();
+    ctx.restore();
+  }
   ctx.restore();
   if (gameOver) {
     ctx.save();
@@ -536,6 +607,15 @@ function draw() {
     ctx.fillStyle = '#e33';
     ctx.textAlign = 'center';
     ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 60);
+    ctx.font = '32px sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2 - 10);
+    ctx.fillText(`Top Score: ${topScore}`, canvas.width / 2, canvas.height / 2 + 40);
+    if (score > (Number(localStorage.getItem('topScore') || '0'))) {
+      ctx.font = 'bold 28px sans-serif';
+      ctx.fillStyle = '#0cf';
+      ctx.fillText('You beat your own top score!', canvas.width / 2, canvas.height / 2 + 90);
+    }
     ctx.restore();
     showRestartButton();
   } else {
@@ -548,5 +628,28 @@ function gameLoop() {
   draw();
   requestAnimationFrame(gameLoop);
 }
+
+// Input state
+const keys: Record<string, boolean> = {};
+window.addEventListener('keydown', (e) => { keys[e.code] = true; });
+window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+// --- Mobile Controls ---
+function setupMobileControls() {
+  const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+  if (!isMobile) return;
+  const btnLeft = document.getElementById('btn-left');
+  const btnRight = document.getElementById('btn-right');
+  const btnJump = document.getElementById('btn-jump');
+  if (btnLeft && btnRight && btnJump) {
+    btnLeft.addEventListener('touchstart', e => { e.preventDefault(); keys['ArrowLeft'] = true; });
+    btnLeft.addEventListener('touchend', e => { e.preventDefault(); keys['ArrowLeft'] = false; });
+    btnRight.addEventListener('touchstart', e => { e.preventDefault(); keys['ArrowRight'] = true; });
+    btnRight.addEventListener('touchend', e => { e.preventDefault(); keys['ArrowRight'] = false; });
+    btnJump.addEventListener('touchstart', e => { e.preventDefault(); keys['Space'] = true; });
+    btnJump.addEventListener('touchend', e => { e.preventDefault(); keys['Space'] = false; });
+  }
+}
+setupMobileControls();
 
 gameLoop(); 

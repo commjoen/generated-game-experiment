@@ -107,6 +107,30 @@ let score = 0;
 let level = 1;
 let levelEndX = LEVEL_WIDTH - 100;
 let respawnTimer = 0;
+let lives = 3;
+let gameOver = false;
+let topScore = Number(localStorage.getItem('topScore') || '0');
+
+function setTopScore(newScore: number) {
+  if (newScore > topScore) {
+    topScore = newScore;
+    localStorage.setItem('topScore', String(topScore));
+  }
+}
+
+function resetGame() {
+  score = 0;
+  level = 1;
+  lives = 3;
+  gameOver = false;
+  platforms.length = 0;
+  boxes.length = 0;
+  collectibles.length = 0;
+  spikes.length = 0;
+  movingPlatforms.length = 0;
+  generateLevel();
+  resetPlayer();
+}
 
 function resetPlayer() {
   player.x = 100;
@@ -116,8 +140,48 @@ function resetPlayer() {
 }
 
 function respawnPlayer() {
+  lives--;
+  if (lives <= 0) {
+    setTopScore(score);
+    gameOver = true;
+    showRestartButton();
+    return;
+  }
   resetPlayer();
   respawnTimer = 30; // frames to pause/flash
+}
+
+function showRestartButton() {
+  let btn = document.getElementById('restart-btn');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'restart-btn';
+    btn.textContent = 'Restart';
+    btn.style.position = 'fixed';
+    btn.style.left = '50%';
+    btn.style.top = '50%';
+    btn.style.transform = 'translate(-50%, -50%)';
+    btn.style.fontSize = '2em';
+    btn.style.padding = '16px 32px';
+    btn.style.zIndex = '100';
+    btn.style.background = '#222';
+    btn.style.color = '#fff';
+    btn.style.border = '2px solid #0cf';
+    btn.style.borderRadius = '12px';
+    btn.style.cursor = 'pointer';
+    btn.onclick = () => {
+      btn?.remove();
+      resetGame();
+    };
+    document.body.appendChild(btn);
+  } else if (btn) {
+    btn.style.display = 'block';
+  }
+}
+
+function hideRestartButton() {
+  const btn = document.getElementById('restart-btn');
+  if (btn) btn.style.display = 'none';
 }
 
 function generateNewLevel() {
@@ -133,6 +197,7 @@ function generateNewLevel() {
 }
 
 function update() {
+  if (gameOver) return;
   if (respawnTimer > 0) {
     respawnTimer--;
     return;
@@ -224,6 +289,7 @@ function update() {
     if (!c.collected && rectsCollide(player, c)) {
       c.collected = true;
       score++;
+      setTopScore(score);
     }
   }
   // Spike collision (game over logic placeholder)
@@ -294,11 +360,27 @@ function draw() {
   ctx.fillStyle = '#ff0';
   ctx.fillRect(player.x - cameraX, player.y, player.width, player.height);
   ctx.globalAlpha = 1;
-  // Draw score and level (UI overlay)
+  // Draw UI overlay
+  ctx.save();
   ctx.fillStyle = '#fff';
   ctx.font = '20px sans-serif';
+  ctx.textAlign = 'left';
   ctx.fillText(`Score: ${score}`, 20, 30);
-  ctx.fillText(`Level: ${level}`, 20, 60);
+  ctx.fillText(`Top Score: ${topScore}`, 20, 60);
+  ctx.fillText(`Level: ${level}`, 20, 90);
+  ctx.fillText(`Lives: ${lives}`, 20, 120);
+  ctx.restore();
+  if (gameOver) {
+    ctx.save();
+    ctx.font = 'bold 48px sans-serif';
+    ctx.fillStyle = '#e33';
+    ctx.textAlign = 'center';
+    ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 60);
+    ctx.restore();
+    showRestartButton();
+  } else {
+    hideRestartButton();
+  }
 }
 
 function gameLoop() {

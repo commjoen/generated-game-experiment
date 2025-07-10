@@ -44,7 +44,9 @@ docker buildx build --platform linux/amd64,linux/arm64 -t jeroenwillemsen/platfo
 
 ```sh
 # Run the container (serves on http://localhost:8080)
-docker run -p 8080:80 jeroenwillemsen/platformer-game-1:0.1.0
+docker run -p 8080:80 jeroenwillemsen/platformer-game-1:local
+# Run the container from latest:
+docker run -p 8080:80 jeroenwillemsen/platformer-game-1:latest
 ```
 
 ## Project Documentation

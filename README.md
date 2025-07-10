@@ -37,7 +37,7 @@ To build and run the game in a Docker container:
 
 ```sh
 # Build and push for multiple platforms (replace with your Docker Hub username/image)
-docker buildx build --platform linux/amd64,linux/arm64 -t jeroenwillemsen/platformer-game-1:0.1.0 --load .
+docker buildx build --platform linux/amd64,linux/arm64 -t jeroenwillemsen/platformer-game-1:local --load .
 ```
 
 ### Local run (after pulling or building for your platform)

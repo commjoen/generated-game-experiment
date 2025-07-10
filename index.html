@@ -2,12 +2,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Side-Scrolling Platformer</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico" integrity="sha384-WIAW6xAEXdhYNNZ9GH1rl4WPOMWMaQMgxKZODC+S7r2fG9dN4lboJogVkFFZRJVm" crossorigin="anonymous">
   <style>
     body { margin: 0; background: #222; }
     html, body { height: 100%; width: 100%; }
     canvas { display: block; margin: 0 auto; background: #87ceeb; width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh; }
   </style>
-  <script type="module" crossorigin="" src="/generated-game-experiment/assets/index-CDvNNNKh.js" integrity="sha384-O94jOHdbZZ8OtzATh7FAM8V+gtS9ZYL8jYH2ApWzhKTvzsuR1xzbSa/GYMEVVcin"></script>
+  <script type="module" crossorigin="" src="/generated-game-experiment/assets/index-CZ7Aodk1.js" integrity="sha384-wrv9ytPrTXRWVqjb4z6LugRey2E8LDZZ2pF9jnFMedy9jFq1syYQ2gzMf7o9LuN3"></script>
 </head>
 <body>
   <canvas id="gameCanvas" width="800" height="450"></canvas>
@@ -33,6 +34,10 @@
       <label style="display:flex;align-items:center;gap:8px;margin:16px 0;">
         <input type="checkbox" id="scroll-gradient-toggle">
         Scrolling background gradient
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;margin:16px 0;">
+        <input type="checkbox" id="image-bg-toggle">
+        Random landscape background (scrolls with player)
       </label>
     </div>
   </div>

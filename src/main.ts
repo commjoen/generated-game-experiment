@@ -169,8 +169,8 @@ function showRestartButton() {
     btn.textContent = 'Restart';
     btn.style.position = 'fixed';
     btn.style.left = '50%';
-    btn.style.top = '50%';
-    btn.style.transform = 'translate(-50%, -50%)';
+    btn.style.top = 'calc(50% + 120px)'; // below the game over text and score
+    btn.style.transform = 'translateX(-50%)';
     btn.style.fontSize = '2em';
     btn.style.padding = '16px 32px';
     btn.style.zIndex = '100';
@@ -186,6 +186,8 @@ function showRestartButton() {
     document.body.appendChild(btn);
   } else if (btn) {
     btn.style.display = 'block';
+    btn.style.top = 'calc(50% + 120px)';
+    btn.style.transform = 'translateX(-50%)';
   }
 }
 

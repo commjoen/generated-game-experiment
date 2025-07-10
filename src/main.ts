@@ -216,6 +216,18 @@ function generateNewLevel() {
   generateLevel();
   resetPlayer();
   level++;
+
+  // Change background per level
+  if (fixedGradient) {
+    fixedGradientColors = randomGradientColors();
+    localStorage.setItem('fixedGradientColors', JSON.stringify(fixedGradientColors));
+  } else if (scrollGradient) {
+    scrollGradientColors = randomGradientColors();
+    localStorage.setItem('scrollGradientColors', JSON.stringify(scrollGradientColors));
+  } else if (imageBg) {
+    fetchRandomLandscapeImage();
+  }
+
   launchConfetti();
   nextLevelPending = false;
   nextLevelTimer = 0;

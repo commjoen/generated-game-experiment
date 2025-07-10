@@ -91,6 +91,12 @@ function generateLevel() {
       boxes.push({ x: x + 10, y: GROUND_Y - 40, width: 40, height: 40 });
     }
   }
+  // Ensure a platform at the player spawn point (x=100)
+  const spawnX = 100;
+  const hasSpawnBlock = platforms.some(plat => plat.x <= spawnX && plat.x + plat.width >= spawnX + 40);
+  if (!hasSpawnBlock) {
+    platforms.unshift({ x: 60, y: GROUND_Y, width: 80, height: 50 });
+  }
 }
 generateLevel();
 

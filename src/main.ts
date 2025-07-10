@@ -19,6 +19,9 @@ const collectibles: Collectible[] = [];
 const spikes: Rect[] = [];
 const movingPlatforms: MovingPlatform[] = [];
 
+// --- Finish Flag ---
+let finishFlag = { x: 0, y: 0, width: 24, height: 80 };
+
 // Player state
 const player = {
   x: 100,
@@ -101,6 +104,12 @@ function generateLevel() {
   if (!hasSpawnBlock) {
     platforms.unshift({ x: 60, y: GROUND_Y, width: 80, height: 50 });
   }
+  // Place finish flag at the end of the last platform
+  const lastPlat = platforms[platforms.length - 1];
+  let flagX = lastPlat.x + lastPlat.width - 32;
+  let flagY = ('isSlope' in lastPlat && lastPlat.isSlope) ? lastPlat.endY - finishFlag.height : lastPlat.y - finishFlag.height;
+  finishFlag.x = flagX;
+  finishFlag.y = flagY;
 }
 generateLevel();
 
@@ -120,6 +129,8 @@ let respawnTimer = 0;
 let lives = 3;
 let gameOver = false;
 let topScore = Number(localStorage.getItem('topScore') || '0');
+let nextLevelPending = false;
+let nextLevelTimer = 0;
 
 function setTopScore(newScore: number) {
   if (newScore > topScore) {
@@ -169,8 +180,8 @@ function showRestartButton() {
     btn.textContent = 'Restart';
     btn.style.position = 'fixed';
     btn.style.left = '50%';
-    btn.style.top = '50%';
-    btn.style.transform = 'translate(-50%, -50%)';
+    btn.style.top = 'calc(50% + 120px)'; // below the game over text and score
+    btn.style.transform = 'translateX(-50%)';
     btn.style.fontSize = '2em';
     btn.style.padding = '16px 32px';
     btn.style.zIndex = '100';
@@ -186,6 +197,8 @@ function showRestartButton() {
     document.body.appendChild(btn);
   } else if (btn) {
     btn.style.display = 'block';
+    btn.style.top = 'calc(50% + 120px)';
+    btn.style.transform = 'translateX(-50%)';
   }
 }
 
@@ -202,12 +215,27 @@ function generateNewLevel() {
   movingPlatforms.length = 0;
   generateLevel();
   resetPlayer();
-  score = 0;
   level++;
+  launchConfetti();
+  nextLevelPending = false;
+  nextLevelTimer = 0;
+}
+
+function startNextLevelWithConfetti() {
+  launchConfetti();
+  nextLevelPending = true;
+  nextLevelTimer = 120; // 2 seconds at 60fps
 }
 
 function update() {
   if (gameOver) return;
+  if (nextLevelPending) {
+    nextLevelTimer--;
+    if (nextLevelTimer <= 0) {
+      generateNewLevel();
+    }
+    return;
+  }
   if (respawnTimer > 0) {
     respawnTimer--;
     return;
@@ -336,8 +364,8 @@ function update() {
     respawnPlayer();
   }
   // End of level
-  if (player.x + player.width >= levelEndX) {
-    generateNewLevel();
+  if (player.x + player.width >= levelEndX && !nextLevelPending) {
+    startNextLevelWithConfetti();
   }
   // --- Camera follows player ---
   cameraX = player.x - canvas.width / 2 + player.width / 2;
@@ -470,6 +498,61 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// --- Confetti Animation ---
+interface ConfettiParticle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  color: string;
+  size: number;
+  life: number;
+  angle: number;
+  spin: number;
+}
+let confettiParticles: ConfettiParticle[] = [];
+let confettiTimer = 0;
+function launchConfetti() {
+  confettiParticles = [];
+  for (let i = 0; i < 60; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 4 + Math.random() * 3;
+    confettiParticles.push({
+      x: canvas.width / 2 + (Math.random() - 0.5) * 100,
+      y: canvas.height / 2 - 80 + (Math.random() - 0.5) * 40,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 2,
+      color: `hsl(${Math.floor(Math.random() * 360)}, 80%, 60%)`,
+      size: 8 + Math.random() * 8,
+      life: 60 + Math.random() * 40,
+      angle: Math.random() * Math.PI * 2,
+      spin: (Math.random() - 0.5) * 0.2
+    });
+  }
+  confettiTimer = 60;
+}
+function updateConfetti() {
+  for (const p of confettiParticles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.15; // gravity
+    p.angle += p.spin;
+    p.life--;
+  }
+  confettiParticles = confettiParticles.filter(p => p.life > 0 && p.y < canvas.height + 40);
+  if (confettiTimer > 0) confettiTimer--;
+}
+function drawConfetti() {
+  for (const p of confettiParticles) {
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.angle);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(-p.size/2, -p.size/6, p.size, p.size/3);
+    ctx.restore();
+  }
+}
 
 function draw() {
   // Draw background
@@ -615,16 +698,35 @@ function draw() {
       ctx.font = 'bold 28px sans-serif';
       ctx.fillStyle = '#0cf';
       ctx.fillText('You beat your own top score!', canvas.width / 2, canvas.height / 2 + 90);
+      if (confettiTimer === 0) launchConfetti();
     }
     ctx.restore();
     showRestartButton();
   } else {
     hideRestartButton();
   }
+  // Draw finish flag just before confetti
+  ctx.save();
+  ctx.translate(-cameraX, 0);
+  // Draw pole
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(finishFlag.x, finishFlag.y, 8, finishFlag.height);
+  // Draw flag
+  ctx.beginPath();
+  ctx.moveTo(finishFlag.x + 8, finishFlag.y);
+  ctx.lineTo(finishFlag.x + 8 + 32, finishFlag.y + 16);
+  ctx.lineTo(finishFlag.x + 8, finishFlag.y + 32);
+  ctx.closePath();
+  ctx.fillStyle = '#e33';
+  ctx.fill();
+  ctx.restore();
+  // Draw confetti last so it appears on top
+  drawConfetti();
 }
 
 function gameLoop() {
   update();
+  updateConfetti();
   draw();
   requestAnimationFrame(gameLoop);
 }

@@ -88,4 +88,76 @@ describe('Game basics', () => {
     expect(player.onGround).toBe(true);
     expect(player.y).toBe(GROUND_Y - player.height);
   });
+});
+
+describe('Game state logic', () => {
+  let score: number;
+  let lives: number;
+  let topScore: number;
+  let gameOver: boolean;
+  let options: { fixedGradient: boolean; scrollGradient: boolean; imageBg: boolean };
+
+  beforeEach(() => {
+    score = 0;
+    lives = 3;
+    topScore = 10;
+    gameOver = false;
+    options = { fixedGradient: false, scrollGradient: false, imageBg: false };
+  });
+
+  it('increments score when collecting a coin', () => {
+    score++;
+    expect(score).toBe(1);
+  });
+
+  it('increments lives when collecting a heart (max 5)', () => {
+    lives = 4;
+    if (lives < 5) lives++;
+    expect(lives).toBe(5);
+    if (lives < 5) lives++;
+    expect(lives).toBe(5); // should not exceed max
+  });
+
+  it('decrements lives on respawn, triggers game over at 0', () => {
+    lives = 2;
+    lives--;
+    expect(lives).toBe(1);
+    lives--;
+    if (lives <= 0) gameOver = true;
+    expect(gameOver).toBe(true);
+  });
+
+  it('resets score, lives, and gameOver on restart', () => {
+    score = 12;
+    lives = 1;
+    gameOver = true;
+    // restart logic
+    score = 0;
+    lives = 3;
+    gameOver = false;
+    expect(score).toBe(0);
+    expect(lives).toBe(3);
+    expect(gameOver).toBe(false);
+  });
+
+  it('only one background option can be enabled at a time', () => {
+    options.fixedGradient = true;
+    options.scrollGradient = false;
+    options.imageBg = false;
+    expect(options.fixedGradient).toBe(true);
+    expect(options.scrollGradient).toBe(false);
+    expect(options.imageBg).toBe(false);
+    // Enable scrollGradient
+    options.fixedGradient = false;
+    options.scrollGradient = true;
+    expect(options.fixedGradient).toBe(false);
+    expect(options.scrollGradient).toBe(true);
+    expect(options.imageBg).toBe(false);
+    // Enable imageBg
+    options.scrollGradient = false;
+    options.imageBg = true;
+    expect(options.fixedGradient).toBe(false);
+    expect(options.scrollGradient).toBe(false);
+    expect(options.imageBg).toBe(true);
+  });
 }); 

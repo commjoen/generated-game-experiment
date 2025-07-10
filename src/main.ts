@@ -8,7 +8,7 @@ const JUMP_POWER = 12;
 const GROUND_Y = 400;
 
 // --- Camera and Level Dimensions ---
-const LEVEL_WIDTH = 2400; // 3x screen width
+const LEVEL_WIDTH = 3200; // longer level
 let cameraX = 0;
 
 // --- Collectibles and Obstacles ---
@@ -70,7 +70,8 @@ const boxes: Rect[] = [];
 function generateLevel() {
   let x = 0;
   while (x < LEVEL_WIDTH) {
-    const platformWidth = Math.random() < 0.2 ? 80 : 160;
+    // Make blocks longer: 160-320, with some extra long
+    const platformWidth = Math.random() < 0.2 ? 320 : 160 + Math.random() * 160;
     platforms.push({ x, y: GROUND_Y, width: platformWidth, height: 50 });
     // Add collectibles on some platforms
     if (Math.random() < 0.5) {
@@ -91,6 +92,12 @@ function generateLevel() {
       boxes.push({ x: x + 10, y: GROUND_Y - 40, width: 40, height: 40 });
     }
   }
+  // Ensure a platform at the player spawn point (x=100)
+  const spawnX = 100;
+  const hasSpawnBlock = platforms.some(plat => plat.x <= spawnX && plat.x + plat.width >= spawnX + 40);
+  if (!hasSpawnBlock) {
+    platforms.unshift({ x: 60, y: GROUND_Y, width: 80, height: 50 });
+  }
 }
 generateLevel();
 
@@ -107,6 +114,30 @@ let score = 0;
 let level = 1;
 let levelEndX = LEVEL_WIDTH - 100;
 let respawnTimer = 0;
+let lives = 3;
+let gameOver = false;
+let topScore = Number(localStorage.getItem('topScore') || '0');
+
+function setTopScore(newScore: number) {
+  if (newScore > topScore) {
+    topScore = newScore;
+    localStorage.setItem('topScore', String(topScore));
+  }
+}
+
+function resetGame() {
+  score = 0;
+  level = 1;
+  lives = 3;
+  gameOver = false;
+  platforms.length = 0;
+  boxes.length = 0;
+  collectibles.length = 0;
+  spikes.length = 0;
+  movingPlatforms.length = 0;
+  generateLevel();
+  resetPlayer();
+}
 
 function resetPlayer() {
   player.x = 100;
@@ -116,8 +147,48 @@ function resetPlayer() {
 }
 
 function respawnPlayer() {
+  lives--;
+  if (lives <= 0) {
+    setTopScore(score);
+    gameOver = true;
+    showRestartButton();
+    return;
+  }
   resetPlayer();
   respawnTimer = 30; // frames to pause/flash
+}
+
+function showRestartButton() {
+  let btn = document.getElementById('restart-btn');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'restart-btn';
+    btn.textContent = 'Restart';
+    btn.style.position = 'fixed';
+    btn.style.left = '50%';
+    btn.style.top = '50%';
+    btn.style.transform = 'translate(-50%, -50%)';
+    btn.style.fontSize = '2em';
+    btn.style.padding = '16px 32px';
+    btn.style.zIndex = '100';
+    btn.style.background = '#222';
+    btn.style.color = '#fff';
+    btn.style.border = '2px solid #0cf';
+    btn.style.borderRadius = '12px';
+    btn.style.cursor = 'pointer';
+    btn.onclick = () => {
+      btn?.remove();
+      resetGame();
+    };
+    document.body.appendChild(btn);
+  } else if (btn) {
+    btn.style.display = 'block';
+  }
+}
+
+function hideRestartButton() {
+  const btn = document.getElementById('restart-btn');
+  if (btn) btn.style.display = 'none';
 }
 
 function generateNewLevel() {
@@ -133,6 +204,7 @@ function generateNewLevel() {
 }
 
 function update() {
+  if (gameOver) return;
   if (respawnTimer > 0) {
     respawnTimer--;
     return;
@@ -224,6 +296,7 @@ function update() {
     if (!c.collected && rectsCollide(player, c)) {
       c.collected = true;
       score++;
+      setTopScore(score);
     }
   }
   // Spike collision (game over logic placeholder)
@@ -250,8 +323,91 @@ function update() {
   if (player.x + player.width > LEVEL_WIDTH) player.x = LEVEL_WIDTH - player.width;
 }
 
+// --- Settings Menu Logic ---
+let fixedGradient = localStorage.getItem('fixedGradient') === 'true';
+let scrollGradient = localStorage.getItem('scrollGradient') === 'true';
+let fixedGradientColors: [string, string] = JSON.parse(localStorage.getItem('fixedGradientColors') || 'null') || randomGradientColors();
+let scrollGradientColors: [string, string] = JSON.parse(localStorage.getItem('scrollGradientColors') || 'null') || randomGradientColors();
+
+function randomGradientColors(): [string, string] {
+  function pastel() {
+    const hue = Math.floor(Math.random() * 360);
+    return `hsl(${hue}, 70%, 75%)`;
+  }
+  return [pastel(), pastel()];
+}
+
+function applyBackgroundSettings() {
+  localStorage.setItem('fixedGradient', String(fixedGradient));
+  localStorage.setItem('scrollGradient', String(scrollGradient));
+  localStorage.setItem('fixedGradientColors', JSON.stringify(fixedGradientColors));
+  localStorage.setItem('scrollGradientColors', JSON.stringify(scrollGradientColors));
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const settingsBtn = document.getElementById('settings-btn');
+  const settingsModal = document.getElementById('settings-modal');
+  const closeSettings = document.getElementById('close-settings');
+  const fixedGradientToggle = document.getElementById('fixed-gradient-toggle') as HTMLInputElement;
+  const scrollGradientToggle = document.getElementById('scroll-gradient-toggle') as HTMLInputElement;
+  if (settingsBtn && settingsModal && closeSettings && fixedGradientToggle && scrollGradientToggle) {
+    settingsBtn.addEventListener('click', () => {
+      settingsModal.style.display = 'flex';
+      fixedGradientToggle.checked = fixedGradient;
+      scrollGradientToggle.checked = scrollGradient;
+      scrollGradientToggle.disabled = fixedGradient;
+      fixedGradientToggle.disabled = scrollGradient;
+    });
+    closeSettings.addEventListener('click', () => {
+      settingsModal.style.display = 'none';
+    });
+    fixedGradientToggle.addEventListener('change', () => {
+      fixedGradient = fixedGradientToggle.checked;
+      if (fixedGradient) {
+        fixedGradientColors = randomGradientColors();
+        scrollGradient = false;
+        scrollGradientToggle.checked = false;
+        scrollGradientToggle.disabled = true;
+      } else {
+        scrollGradientToggle.disabled = false;
+      }
+      applyBackgroundSettings();
+    });
+    scrollGradientToggle.addEventListener('change', () => {
+      scrollGradient = scrollGradientToggle.checked;
+      if (scrollGradient) {
+        scrollGradientColors = randomGradientColors();
+        fixedGradient = false;
+        fixedGradientToggle.checked = false;
+        fixedGradientToggle.disabled = true;
+      } else {
+        fixedGradientToggle.disabled = false;
+      }
+      applyBackgroundSettings();
+    });
+  }
+});
+
 function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // Draw background
+  if (fixedGradient) {
+    // Fixed gradient (does not scroll)
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, fixedGradientColors[0]);
+    grad.addColorStop(1, fixedGradientColors[1]);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else if (scrollGradient) {
+    // Scrolling diagonal gradient (moves with camera)
+    const grad = ctx.createLinearGradient(-cameraX, 0, LEVEL_WIDTH - cameraX, canvas.height);
+    grad.addColorStop(0, scrollGradientColors[0]);
+    grad.addColorStop(1, scrollGradientColors[1]);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else {
+    ctx.fillStyle = '#87ceeb';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
   ctx.save();
   ctx.translate(-cameraX, 0);
   // Draw platforms
@@ -294,11 +450,27 @@ function draw() {
   ctx.fillStyle = '#ff0';
   ctx.fillRect(player.x - cameraX, player.y, player.width, player.height);
   ctx.globalAlpha = 1;
-  // Draw score and level (UI overlay)
+  // Draw UI overlay
+  ctx.save();
   ctx.fillStyle = '#fff';
   ctx.font = '20px sans-serif';
+  ctx.textAlign = 'left';
   ctx.fillText(`Score: ${score}`, 20, 30);
-  ctx.fillText(`Level: ${level}`, 20, 60);
+  ctx.fillText(`Top Score: ${topScore}`, 20, 60);
+  ctx.fillText(`Level: ${level}`, 20, 90);
+  ctx.fillText(`Lives: ${lives}`, 20, 120);
+  ctx.restore();
+  if (gameOver) {
+    ctx.save();
+    ctx.font = 'bold 48px sans-serif';
+    ctx.fillStyle = '#e33';
+    ctx.textAlign = 'center';
+    ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 60);
+    ctx.restore();
+    showRestartButton();
+  } else {
+    hideRestartButton();
+  }
 }
 
 function gameLoop() {

@@ -32,7 +32,7 @@ const player = {
   vy: 0,
   onGround: false,
   hasDoubleJump: false,
-  isBig: false,
+  growLevel: 0, // 0-3
   canDoubleJump: false, // for in-air jump
 };
 
@@ -182,10 +182,25 @@ function resetPlayer() {
   player.vy = 0;
   // Do NOT reset power-ups here; they persist across levels
   // player.hasDoubleJump = false;
-  // player.isBig = false;
+  // player.growLevel = 0;
   player.canDoubleJump = false;
-  player.width = player.isBig ? 60 : 40;
-  player.height = player.isBig ? 75 : 50;
+  setPlayerSizeByGrowLevel();
+}
+
+function setPlayerSizeByGrowLevel() {
+  if (player.growLevel === 0) {
+    player.width = 40;
+    player.height = 50;
+  } else if (player.growLevel === 1) {
+    player.width = 60;
+    player.height = 75;
+  } else if (player.growLevel === 2) {
+    player.width = 80;
+    player.height = 100;
+  } else if (player.growLevel >= 3) {
+    player.width = 100;
+    player.height = 125;
+  }
 }
 
 function respawnPlayer() {
@@ -198,10 +213,9 @@ function respawnPlayer() {
   }
   // Reset power-ups on death
   player.hasDoubleJump = false;
-  player.isBig = false;
+  player.growLevel = 0;
   player.canDoubleJump = false;
-  player.width = 40;
-  player.height = 50;
+  setPlayerSizeByGrowLevel();
   resetPlayer();
   respawnTimer = 30; // frames to pause/flash
 }
@@ -400,7 +414,7 @@ function update() {
   for (const c of collectibles) {
     if (!c.collected && rectsCollide(player, c)) {
       if (c.type === 'doublejump' && player.hasDoubleJump) continue; // can't collect twice
-      if (c.type === 'grow' && player.isBig) continue; // can't collect twice
+      if (c.type === 'grow' && player.growLevel >= 3) continue; // can't collect more than 3
       c.collected = true;
       if (c.type === 'coin') {
         score++;
@@ -411,9 +425,8 @@ function update() {
         player.hasDoubleJump = true;
         player.canDoubleJump = false; // must jump once before using
       } else if (c.type === 'grow') {
-        player.isBig = true;
-        player.width = 60;
-        player.height = 75;
+        if (player.growLevel < 3) player.growLevel++;
+        setPlayerSizeByGrowLevel();
       }
     }
   }
@@ -801,7 +814,7 @@ function draw() {
     ctx.restore();
     iconX += 36;
   }
-  if (player.isBig) {
+  for (let i = 0; i < player.growLevel; i++) {
     // Mushroom icon
     ctx.save();
     ctx.translate(iconX, 120);

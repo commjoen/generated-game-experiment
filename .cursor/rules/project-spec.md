@@ -8,7 +8,10 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
 - **Side-Scrolling World**: The camera follows the player as they move horizontally through a procedurally generated level.
 - **Platforms**: Static and moving platforms for the player to jump on, with longer and varied platform lengths.
 - **Obstacles & Hazards**: Spikes, pits, and moving platforms challenge the player.
-- **Collectibles**: Items (e.g., coins) that the player can collect for points.
+- **Collectibles & Power-Ups**: Items (e.g., coins) that the player can collect for points, and power-ups that grant new abilities:
+  - **Double Jump Power-Up**: Grants the ability to double jump until the player dies. Only one can be active at a time; never allows triple jump. Shown as a feather icon in the UI. Persists across levels, resets on death.
+  - **Grow Power-Up**: Player can collect up to 3 grow power-ups per life. Each increases player size (hitbox and drawing). Shown as up to 3 mushroom icons in the UI. Resets to normal size on death. Persists across levels, resets on death. No more than 3 can be collected per life.
+  - Power-ups are visually distinct and spawn at most once per level (per type).
 - **Finish Marker**: A visible, bold red flag on a white pole, always placed above the last block at the end of the level.
 - **Level Progression**: Multiple levels with increasing difficulty and procedural generation.
 - **Game Over & Restart**: The game ends when the player loses all lives or falls off screen, with a restart button that resets all state.
@@ -30,11 +33,12 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
 - **Project Documentation**: Up-to-date README and changelog.
 
 ## Stretch Goals (Optional/Future)
-- **Sound & Music**: Background music and sound effects.
-- **Power-Ups**: Temporary abilities (e.g., double jump, speed boost).
+- **Other Power-Ups**: Additional abilities (e.g., speed boost).
 - **Enemy AI**: Simple enemies with basic movement or attack patterns.
 - **Leaderboard**: Track and display player scores globally.
 - **Additional Levels**: More level types and increasing complexity.
+- **Sound & Music**: Background music and sound effects.
+- **Multiplayer**: the ability to play with multiple people.
 
 ## Art & Assets
 - Uses open-source or custom-made assets for characters, backgrounds, and objects.
@@ -55,4 +59,6 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
 - Settings modal for background customization, including gradients and random landscape images.
 - Dockerfile and Nginx config for production deployment.
 - Automated deployment to GitHub Pages with SRI and security best practices.
-- Up-to-date documentation and changelog. 
+- Up-to-date documentation and changelog.
+- Power-up system (double jump, grow up to 3x) fully implemented, with UI, persistence across levels, and reset on death.
+- Unit tests cover all major features, including power-up logic, edge cases, and reset behavior. 

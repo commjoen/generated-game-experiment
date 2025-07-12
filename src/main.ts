@@ -12,7 +12,7 @@ const LEVEL_WIDTH = 3200; // longer level
 let cameraX = 0;
 
 // --- Collectibles and Obstacles ---
-interface Collectible extends Rect { collected: boolean; type: 'coin' | 'heart'; }
+interface Collectible extends Rect { collected: boolean; type: 'coin' | 'heart' | 'doublejump' | 'grow'; }
 interface MovingPlatform extends Rect { dx: number; range: number; startX: number; }
 
 const collectibles: Collectible[] = [];
@@ -31,6 +31,9 @@ const player = {
   vx: 0,
   vy: 0,
   onGround: false,
+  hasDoubleJump: false,
+  growLevel: 0, // 0-3
+  canDoubleJump: false, // for in-air jump
 };
 
 // Platform types
@@ -51,6 +54,8 @@ const boxes: Rect[] = [];
 function generateLevel() {
   let x = 0;
   let heartPlaced = false;
+  let doubleJumpPlaced = false;
+  let growPlaced = false;
   const platformCenters: { x: number, y: number }[] = [];
   while (x < LEVEL_WIDTH) {
     // Make blocks longer: 160-320, with some extra long
@@ -94,9 +99,26 @@ function generateLevel() {
   }
   // Place a heart collectible on a random platform (at most 1 per level)
   if (platformCenters.length > 0) {
-    const idx = Math.floor(Math.random() * platformCenters.length);
+    const idx: number = Math.floor(Math.random() * platformCenters.length);
     const pos = platformCenters[idx];
     collectibles.push({ x: pos.x - 10, y: pos.y, width: 20, height: 20, collected: false, type: 'heart' });
+  }
+  // Place a double jump power-up on a random platform (at most 1 per level, not on heart)
+  if (platformCenters.length > 1) {
+    let idx: number;
+    do { idx = Math.floor(Math.random() * platformCenters.length); } while (collectibles.some(c => c.x === platformCenters[idx].x - 10 && c.y === platformCenters[idx].y));
+    const pos = platformCenters[idx];
+    collectibles.push({ x: pos.x - 10, y: pos.y - 30, width: 20, height: 20, collected: false, type: 'doublejump' });
+  }
+  // Place a grow power-up on a random platform (at most 1 per level, not on heart or doublejump)
+  if (platformCenters.length > 2) {
+    let idx: number;
+    do { idx = Math.floor(Math.random() * platformCenters.length); } while (
+      collectibles.some(c => c.x === platformCenters[idx].x - 10 && c.y === platformCenters[idx].y) ||
+      collectibles.some(c => c.x === platformCenters[idx].x - 10 && c.y === platformCenters[idx].y - 30)
+    );
+    const pos = platformCenters[idx];
+    collectibles.push({ x: pos.x - 10, y: pos.y - 60, width: 20, height: 20, collected: false, type: 'grow' });
   }
   // Ensure a platform at the player spawn point (x=100)
   const spawnX = 100;
@@ -158,6 +180,27 @@ function resetPlayer() {
   player.y = GROUND_Y - 50;
   player.vx = 0;
   player.vy = 0;
+  // Do NOT reset power-ups here; they persist across levels
+  // player.hasDoubleJump = false;
+  // player.growLevel = 0;
+  player.canDoubleJump = false;
+  setPlayerSizeByGrowLevel();
+}
+
+function setPlayerSizeByGrowLevel() {
+  if (player.growLevel === 0) {
+    player.width = 40;
+    player.height = 50;
+  } else if (player.growLevel === 1) {
+    player.width = 60;
+    player.height = 75;
+  } else if (player.growLevel === 2) {
+    player.width = 80;
+    player.height = 100;
+  } else if (player.growLevel >= 3) {
+    player.width = 100;
+    player.height = 125;
+  }
 }
 
 function respawnPlayer() {
@@ -168,6 +211,11 @@ function respawnPlayer() {
     showRestartButton();
     return;
   }
+  // Reset power-ups on death
+  player.hasDoubleJump = false;
+  player.growLevel = 0;
+  player.canDoubleJump = false;
+  setPlayerSizeByGrowLevel();
   resetPlayer();
   respawnTimer = 30; // frames to pause/flash
 }
@@ -257,11 +305,19 @@ function update() {
   if (keys['ArrowLeft'] || keys['KeyA']) player.vx = -MOVE_SPEED;
   if (keys['ArrowRight'] || keys['KeyD']) player.vx = MOVE_SPEED;
 
-  // Jump
-  if ((keys['ArrowUp'] || keys['Space'] || keys['KeyW']) && player.onGround) {
-    player.vy = -JUMP_POWER;
-    player.onGround = false;
+  // Jump (only on new key press)
+  const jumpKey = keys['ArrowUp'] || keys['Space'] || keys['KeyW'];
+  if (jumpKey && !prevJumpKey) {
+    if (player.onGround) {
+      player.vy = -JUMP_POWER;
+      player.onGround = false;
+      if (player.hasDoubleJump) player.canDoubleJump = true;
+    } else if (player.hasDoubleJump && player.canDoubleJump) {
+      player.vy = -JUMP_POWER;
+      player.canDoubleJump = false;
+    }
   }
+  prevJumpKey = jumpKey;
 
   // Apply gravity
   player.vy += GRAVITY;
@@ -286,6 +342,7 @@ function update() {
           player.y = yAtX - player.height;
           player.vy = 0;
           player.onGround = true;
+          player.canDoubleJump = player.hasDoubleJump; // reset double jump on landing
         }
       }
     } else {
@@ -300,6 +357,7 @@ function update() {
         player.y = plat.y - player.height;
         player.vy = 0;
         player.onGround = true;
+        player.canDoubleJump = player.hasDoubleJump; // reset double jump on landing
       }
     }
   }
@@ -355,12 +413,20 @@ function update() {
   // Collectibles
   for (const c of collectibles) {
     if (!c.collected && rectsCollide(player, c)) {
+      if (c.type === 'doublejump' && player.hasDoubleJump) continue; // can't collect twice
+      if (c.type === 'grow' && player.growLevel >= 3) continue; // can't collect more than 3
       c.collected = true;
       if (c.type === 'coin') {
         score++;
         setTopScore(score);
       } else if (c.type === 'heart') {
         if (lives < 5) lives++;
+      } else if (c.type === 'doublejump') {
+        player.hasDoubleJump = true;
+        player.canDoubleJump = false; // must jump once before using
+      } else if (c.type === 'grow') {
+        if (player.growLevel < 3) player.growLevel++;
+        setPlayerSizeByGrowLevel();
       }
     }
   }
@@ -648,6 +714,39 @@ function draw() {
         ctx.fillStyle = '#e33';
         ctx.fill();
         ctx.restore();
+      } else if (c.type === 'doublejump') {
+        // Feather icon
+        ctx.save();
+        ctx.translate(c.x + c.width/2, c.y + c.height/2);
+        ctx.rotate(-0.3);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(10, -10, 0, -20);
+        ctx.quadraticCurveTo(-8, -10, 0, 0);
+        ctx.closePath();
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+        ctx.strokeStyle = '#0cf';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+      } else if (c.type === 'grow') {
+        // Mushroom icon
+        ctx.save();
+        ctx.translate(c.x + c.width/2, c.y + c.height/2);
+        ctx.beginPath();
+        ctx.arc(0, 0, 10, Math.PI, 2 * Math.PI);
+        ctx.lineTo(10, 10);
+        ctx.arc(0, 10, 10, 0, Math.PI, true);
+        ctx.closePath();
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(0, 0, 10, Math.PI, 2 * Math.PI);
+        ctx.closePath();
+        ctx.fillStyle = '#e33';
+        ctx.fill();
+        ctx.restore();
       }
     }
   }
@@ -694,6 +793,45 @@ function draw() {
     ctx.fillStyle = '#e33';
     ctx.fill();
     ctx.restore();
+  }
+  // Draw power-up icons
+  let iconX = 20 + lives * 28 + 20;
+  if (player.hasDoubleJump) {
+    // Feather icon
+    ctx.save();
+    ctx.translate(iconX, 120);
+    ctx.rotate(-0.3);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(10, -10, 0, -20);
+    ctx.quadraticCurveTo(-8, -10, 0, 0);
+    ctx.closePath();
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+    ctx.strokeStyle = '#0cf';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+    iconX += 36;
+  }
+  for (let i = 0; i < player.growLevel; i++) {
+    // Mushroom icon
+    ctx.save();
+    ctx.translate(iconX, 120);
+    ctx.beginPath();
+    ctx.arc(0, 0, 10, Math.PI, 2 * Math.PI);
+    ctx.lineTo(10, 10);
+    ctx.arc(0, 10, 10, 0, Math.PI, true);
+    ctx.closePath();
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(0, 0, 10, Math.PI, 2 * Math.PI);
+    ctx.closePath();
+    ctx.fillStyle = '#e33';
+    ctx.fill();
+    ctx.restore();
+    iconX += 36;
   }
   ctx.restore();
   if (gameOver) {
@@ -745,6 +883,7 @@ function gameLoop() {
 
 // Input state
 const keys: Record<string, boolean> = {};
+let prevJumpKey = false;
 window.addEventListener('keydown', (e) => { keys[e.code] = true; });
 window.addEventListener('keyup', (e) => { keys[e.code] = false; });
 

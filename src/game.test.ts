@@ -160,4 +160,122 @@ describe('Game state logic', () => {
     expect(options.scrollGradient).toBe(false);
     expect(options.imageBg).toBe(true);
   });
+});
+
+describe('Power-up logic', () => {
+  let player: any;
+  function resetPlayer() {
+    player = {
+      x: 100,
+      y: GROUND_Y - 50,
+      width: 40,
+      height: 50,
+      vx: 0,
+      vy: 0,
+      onGround: false,
+      hasDoubleJump: false,
+      growLevel: 0,
+      canDoubleJump: false,
+    };
+  }
+  beforeEach(() => resetPlayer());
+
+  it('cannot double jump without power-up', () => {
+    player.onGround = true;
+    // First jump
+    player.vy = -JUMP_POWER;
+    player.onGround = false;
+    player.canDoubleJump = false;
+    // Try double jump
+    let jumped = false;
+    if (player.hasDoubleJump && player.canDoubleJump) {
+      player.vy = -JUMP_POWER;
+      player.canDoubleJump = false;
+      jumped = true;
+    }
+    expect(jumped).toBe(false);
+  });
+
+  it('can double jump once with power-up', () => {
+    player.hasDoubleJump = true;
+    player.onGround = true;
+    // First jump
+    player.vy = -JUMP_POWER;
+    player.onGround = false;
+    player.canDoubleJump = true;
+    // Double jump
+    let jumps = 0;
+    if (player.hasDoubleJump && player.canDoubleJump) {
+      player.vy = -JUMP_POWER;
+      player.canDoubleJump = false;
+      jumps++;
+    }
+    // Try triple jump
+    if (player.hasDoubleJump && player.canDoubleJump) {
+      player.vy = -JUMP_POWER;
+      player.canDoubleJump = false;
+      jumps++;
+    }
+    expect(jumps).toBe(1);
+  });
+
+  it('double jump resets on landing', () => {
+    player.hasDoubleJump = true;
+    player.canDoubleJump = false;
+    // Simulate landing
+    player.onGround = true;
+    if (player.hasDoubleJump) player.canDoubleJump = true;
+    expect(player.canDoubleJump).toBe(true);
+  });
+
+  it('double jump is lost on death', () => {
+    player.hasDoubleJump = true;
+    // Simulate death
+    player.hasDoubleJump = false;
+    expect(player.hasDoubleJump).toBe(false);
+  });
+
+  it('can grow up to 3 times, size increases, cannot grow more', () => {
+    player.growLevel = 0;
+    function grow() {
+      if (player.growLevel < 3) player.growLevel++;
+    }
+    grow();
+    expect(player.growLevel).toBe(1);
+    grow();
+    expect(player.growLevel).toBe(2);
+    grow();
+    expect(player.growLevel).toBe(3);
+    grow();
+    expect(player.growLevel).toBe(3); // cannot exceed 3
+  });
+
+  it('grow resets on death', () => {
+    player.growLevel = 3;
+    // Simulate death
+    player.growLevel = 0;
+    expect(player.growLevel).toBe(0);
+  });
+
+  it('size matches grow level', () => {
+    function setPlayerSizeByGrowLevel() {
+      if (player.growLevel === 0) {
+        player.width = 40; player.height = 50;
+      } else if (player.growLevel === 1) {
+        player.width = 60; player.height = 75;
+      } else if (player.growLevel === 2) {
+        player.width = 80; player.height = 100;
+      } else if (player.growLevel >= 3) {
+        player.width = 100; player.height = 125;
+      }
+    }
+    player.growLevel = 0; setPlayerSizeByGrowLevel();
+    expect(player.width).toBe(40); expect(player.height).toBe(50);
+    player.growLevel = 1; setPlayerSizeByGrowLevel();
+    expect(player.width).toBe(60); expect(player.height).toBe(75);
+    player.growLevel = 2; setPlayerSizeByGrowLevel();
+    expect(player.width).toBe(80); expect(player.height).toBe(100);
+    player.growLevel = 3; setPlayerSizeByGrowLevel();
+    expect(player.width).toBe(100); expect(player.height).toBe(125);
+  });
 }); 

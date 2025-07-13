@@ -186,7 +186,7 @@ function resetGame() {
 
 function resetPlayer() {
   player.x = 100;
-  player.y = GROUND_Y - 50;
+  player.y = GROUND_Y - 175; // Start 125 pixels higher than ground
   player.vx = 0;
   player.vy = 0;
   // Do NOT reset power-ups here; they persist across levels
@@ -314,16 +314,24 @@ function update(deltaTime: number) {
   if (keys['ArrowLeft'] || keys['KeyA']) player.vx = -MOVE_SPEED * currentSpeedMultiplier * deltaTime * 60;
   if (keys['ArrowRight'] || keys['KeyD']) player.vx = MOVE_SPEED * currentSpeedMultiplier * deltaTime * 60;
 
-  // Jump (only on new key press)
+  // Jump (continuous while key is held)
   const jumpKey = keys['ArrowUp'] || keys['Space'] || keys['KeyW'];
-  if (jumpKey && !prevJumpKey) {
+  
+  // Update jump cooldown
+  if (jumpCooldown > 0) {
+    jumpCooldown--;
+  }
+  
+  if (jumpKey && jumpCooldown === 0) {
     if (player.onGround) {
       player.vy = -JUMP_POWER;
       player.onGround = false;
       if (player.hasDoubleJump) player.canDoubleJump = true;
+      jumpCooldown = 8; // Small cooldown to prevent infinite jumping
     } else if (player.hasDoubleJump && player.canDoubleJump) {
       player.vy = -JUMP_POWER;
       player.canDoubleJump = false;
+      jumpCooldown = 8; // Cooldown for double jump too
     }
   }
   prevJumpKey = jumpKey;
@@ -875,6 +883,16 @@ function draw() {
   ctx.restore();
   if (gameOver) {
     ctx.save();
+    
+    // Draw semi-transparent grey background
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(canvas.width / 2 - 200, canvas.height / 2 - 100, 400, 200);
+    
+    // Draw border around the background
+    ctx.strokeStyle = '#444';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(canvas.width / 2 - 200, canvas.height / 2 - 100, 400, 200);
+    
     ctx.font = 'bold 48px sans-serif';
     ctx.fillStyle = '#e33';
     ctx.textAlign = 'center';
@@ -939,6 +957,7 @@ function gameLoop() {
 const keys: Record<string, boolean> = {};
 let prevJumpKey = false;
 let prevSpeedToggleKey = false;
+let jumpCooldown = 0; // Cooldown for continuous jumping
 window.addEventListener('keydown', (e) => { keys[e.code] = true; });
 window.addEventListener('keyup', (e) => { keys[e.code] = false; });
 

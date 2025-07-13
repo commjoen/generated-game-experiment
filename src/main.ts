@@ -9,7 +9,6 @@ const GROUND_Y = 400;
 
 // Frame rate and speed control
 const TARGET_FPS = 60;
-const FRAME_TIME = 1000 / TARGET_FPS; // milliseconds per frame
 let lastFrameTime = 0;
 let frameCount = 0;
 let fpsDisplay = 0;
@@ -918,17 +917,20 @@ function gameLoop() {
   const currentTime = performance.now();
   const deltaTime = currentTime - lastFrameTime;
 
-  if (deltaTime >= FRAME_TIME) {
+  // Always draw to keep the browser happy
+  draw();
+  
+  // Update game logic at target FPS (approximately)
+  if (deltaTime >= 1000 / TARGET_FPS) {
     // Calculate FPS for display
     frameCount++;
     if (frameCount % 60 === 0) { // Update FPS display every 60 frames
-      fpsDisplay = Math.round(1000 / FRAME_TIME); // Should always be TARGET_FPS
+      fpsDisplay = Math.round(1000 / (deltaTime / 60));
     }
 
-    update(FRAME_TIME / 1000); // Pass delta time in seconds
+    update(deltaTime / 1000); // Pass actual delta time in seconds
     updateConfetti();
-    draw();
-    lastFrameTime = currentTime - (deltaTime % FRAME_TIME); // Adjust for frame time
+    lastFrameTime = currentTime;
   }
   requestAnimationFrame(gameLoop);
 }

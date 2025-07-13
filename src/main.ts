@@ -3,9 +3,19 @@ const ctx = canvas.getContext('2d')!;
 
 // Game constants
 const GRAVITY = 0.5;
-const MOVE_SPEED = 4;
-const JUMP_POWER = 12;
+const MOVE_SPEED = 5;
+const JUMP_POWER = 13;
 const GROUND_Y = 400;
+
+// Frame rate and speed control
+const TARGET_FPS = 60;
+const FRAME_TIME = 1000 / TARGET_FPS; // milliseconds per frame
+let lastFrameTime = 0;
+let frameCount = 0;
+let fpsDisplay = 0;
+let speedUnlocked = localStorage.getItem('speedUnlocked') === 'true';
+let currentSpeedMultiplier = speedUnlocked ? 2 : 1; // 2x speed when unlocked
+let showFpsCounter = localStorage.getItem('showFpsCounter') !== 'false'; // Default to true
 
 // --- Camera and Level Dimensions ---
 const LEVEL_WIDTH = 3200; // longer level
@@ -287,7 +297,7 @@ function startNextLevelWithConfetti() {
   nextLevelTimer = 120; // 2 seconds at 60fps
 }
 
-function update() {
+function update(deltaTime: number) {
   if (gameOver) return;
   if (nextLevelPending) {
     nextLevelTimer--;
@@ -300,10 +310,10 @@ function update() {
     respawnTimer--;
     return;
   }
-  // Horizontal movement
+  // Horizontal movement (frame-rate independent)
   player.vx = 0;
-  if (keys['ArrowLeft'] || keys['KeyA']) player.vx = -MOVE_SPEED;
-  if (keys['ArrowRight'] || keys['KeyD']) player.vx = MOVE_SPEED;
+  if (keys['ArrowLeft'] || keys['KeyA']) player.vx = -MOVE_SPEED * currentSpeedMultiplier * deltaTime * 60;
+  if (keys['ArrowRight'] || keys['KeyD']) player.vx = MOVE_SPEED * currentSpeedMultiplier * deltaTime * 60;
 
   // Jump (only on new key press)
   const jumpKey = keys['ArrowUp'] || keys['Space'] || keys['KeyW'];
@@ -319,10 +329,19 @@ function update() {
   }
   prevJumpKey = jumpKey;
 
-  // Apply gravity
-  player.vy += GRAVITY;
+  // Speed toggle (only on new key press)
+  const speedToggleKey = keys['KeyT'];
+  if (speedToggleKey && !prevSpeedToggleKey) {
+    speedUnlocked = !speedUnlocked;
+    localStorage.setItem('speedUnlocked', String(speedUnlocked));
+    currentSpeedMultiplier = speedUnlocked ? 2 : 1;
+  }
+  prevSpeedToggleKey = speedToggleKey;
 
-  // Update position
+  // Apply gravity (frame-rate independent)
+  player.vy += GRAVITY * deltaTime * 60;
+
+  // Update position (frame-rate independent)
   player.x += player.vx;
   player.y += player.vy;
 
@@ -525,13 +544,17 @@ window.addEventListener('DOMContentLoaded', () => {
   const fixedGradientToggle = document.getElementById('fixed-gradient-toggle') as HTMLInputElement;
   const scrollGradientToggle = document.getElementById('scroll-gradient-toggle') as HTMLInputElement;
   const imageBgToggle = document.getElementById('image-bg-toggle') as HTMLInputElement;
-  if (settingsBtn && settingsModal && closeSettings && fixedGradientToggle && scrollGradientToggle && imageBgToggle) {
-    settingsBtn.addEventListener('click', () => {
-      settingsModal.style.display = 'flex';
-      fixedGradientToggle.checked = fixedGradient;
-      scrollGradientToggle.checked = scrollGradient;
-      imageBgToggle.checked = imageBg;
-    });
+  const speedUnlockToggle = document.getElementById('speed-unlock-toggle') as HTMLInputElement;
+  const fpsCounterToggle = document.getElementById('fps-counter-toggle') as HTMLInputElement;
+  if (settingsBtn && settingsModal && closeSettings && fixedGradientToggle && scrollGradientToggle && imageBgToggle && speedUnlockToggle && fpsCounterToggle) {
+          settingsBtn.addEventListener('click', () => {
+        settingsModal.style.display = 'flex';
+        fixedGradientToggle.checked = fixedGradient;
+        scrollGradientToggle.checked = scrollGradient;
+        imageBgToggle.checked = imageBg;
+        speedUnlockToggle.checked = speedUnlocked;
+        fpsCounterToggle.checked = showFpsCounter;
+      });
     closeSettings.addEventListener('click', () => {
       settingsModal.style.display = 'none';
     });
@@ -573,6 +596,15 @@ window.addEventListener('DOMContentLoaded', () => {
         imageBg = false;
       }
       applyBackgroundSettings();
+    });
+    speedUnlockToggle.addEventListener('change', () => {
+      speedUnlocked = speedUnlockToggle.checked;
+      localStorage.setItem('speedUnlocked', String(speedUnlocked));
+      currentSpeedMultiplier = speedUnlocked ? 2 : 1;
+    });
+    fpsCounterToggle.addEventListener('change', () => {
+      showFpsCounter = fpsCounterToggle.checked;
+      localStorage.setItem('showFpsCounter', String(showFpsCounter));
     });
   }
 });
@@ -778,6 +810,14 @@ function draw() {
   ctx.fillText(`Score: ${score}`, 20, 30);
   ctx.fillText(`Top Score: ${topScore}`, 20, 60);
   ctx.fillText(`Level: ${level}`, 20, 90);
+  if (showFpsCounter) {
+    ctx.fillText(`FPS: ${fpsDisplay}`, 20, 120);
+  }
+  if (speedUnlocked) {
+    ctx.fillStyle = '#0cf';
+    const speedY = showFpsCounter ? 150 : 120;
+    ctx.fillText(`Speed: ${currentSpeedMultiplier}x`, 20, speedY);
+  }
   // Draw hearts for lives
   for (let i = 0; i < lives; i++) {
     ctx.save();
@@ -875,15 +915,28 @@ function draw() {
 }
 
 function gameLoop() {
-  update();
-  updateConfetti();
-  draw();
+  const currentTime = performance.now();
+  const deltaTime = currentTime - lastFrameTime;
+
+  if (deltaTime >= FRAME_TIME) {
+    // Calculate FPS for display
+    frameCount++;
+    if (frameCount % 60 === 0) { // Update FPS display every 60 frames
+      fpsDisplay = Math.round(1000 / FRAME_TIME); // Should always be TARGET_FPS
+    }
+
+    update(FRAME_TIME / 1000); // Pass delta time in seconds
+    updateConfetti();
+    draw();
+    lastFrameTime = currentTime - (deltaTime % FRAME_TIME); // Adjust for frame time
+  }
   requestAnimationFrame(gameLoop);
 }
 
 // Input state
 const keys: Record<string, boolean> = {};
 let prevJumpKey = false;
+let prevSpeedToggleKey = false;
 window.addEventListener('keydown', (e) => { keys[e.code] = true; });
 window.addEventListener('keyup', (e) => { keys[e.code] = false; });
 

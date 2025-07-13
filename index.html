@@ -44,7 +44,7 @@
       &copy; 2024 Jeroen Willemsen &middot; <a href="https://github.com/commjoen/generated-game-experiment" target="_blank" style="color:#0cf; text-decoration:underline; pointer-events:auto;">Source code</a>
     </span>
   </div>
-  <div id="mobile-controls" style="display:none; position:fixed; left:0; right:0; bottom:20px; justify-content:center; gap:20px; pointer-events:none; flex-direction:column; align-items:center;">
+  <div id="onscreen-controls" style="display:none; position:fixed; left:0; right:0; bottom:20px; justify-content:center; gap:20px; pointer-events:none; flex-direction:column; align-items:center;">
     <div style="display:flex; gap:20px; pointer-events:none;">
       <button id="btn-left" style="width:60px;height:60px;font-size:2em;opacity:0.8;pointer-events:auto;border:none;border-radius:50%;background:rgba(0,0,0,0.7);color:#fff;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;margin:0;">◀️</button>
       <button id="btn-jump" style="width:60px;height:60px;font-size:2em;opacity:0.8;pointer-events:auto;border:none;border-radius:50%;background:rgba(0,0,0,0.7);color:#fff;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;margin:0;">⏫</button>
@@ -81,6 +81,10 @@
       <label style="display:flex;align-items:center;gap:8px;margin:16px 0;">
         <input type="checkbox" id="fps-counter-toggle" />
         Show FPS counter
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;margin:16px 0;">
+        <input type="checkbox" id="tesla-mode-toggle" />
+        Tesla Mode (always show onscreen controls)
       </label>
       <div style="margin-top:24px;padding-top:16px;border-top:1px solid #444;color:#aaa;font-size:14px;">
         <div style="margin-bottom:8px;"><strong>Keyboard Controls:</strong></div>
@@ -122,7 +126,7 @@
       return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
     }
     if (isMobile()) {
-      const mobileControls = document.getElementById('mobile-controls');
+      const mobileControls = document.getElementById('onscreen-controls');
       const desktopCopyright = document.getElementById('desktop-copyright');
       if (mobileControls) {
         mobileControls.style.display = 'flex';

@@ -480,6 +480,16 @@ function update(deltaTime: number) {
   if (player.x + player.width > LEVEL_WIDTH) player.x = LEVEL_WIDTH - player.width;
 }
 
+// --- Tesla Detection and Onscreen Controls Logic ---
+function isTeslaBrowser() {
+  // Tesla browser user agent contains 'Tesla' or 'QtCarBrowser'
+  return /Tesla|QtCarBrowser/i.test(navigator.userAgent);
+}
+let teslaMode = localStorage.getItem('teslaMode') === 'true';
+function shouldShowOnscreenControls() {
+  return isTeslaBrowser() || teslaMode || /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+}
+
 // --- Settings Menu Logic ---
 let fixedGradient = localStorage.getItem('fixedGradient') === 'true';
 let scrollGradient = localStorage.getItem('scrollGradient') === 'true';
@@ -553,15 +563,17 @@ window.addEventListener('DOMContentLoaded', () => {
   const imageBgToggle = document.getElementById('image-bg-toggle') as HTMLInputElement;
   const speedUnlockToggle = document.getElementById('speed-unlock-toggle') as HTMLInputElement;
   const fpsCounterToggle = document.getElementById('fps-counter-toggle') as HTMLInputElement;
-  if (settingsBtn && settingsModal && closeSettings && fixedGradientToggle && scrollGradientToggle && imageBgToggle && speedUnlockToggle && fpsCounterToggle) {
-          settingsBtn.addEventListener('click', () => {
-        settingsModal.style.display = 'flex';
-        fixedGradientToggle.checked = fixedGradient;
-        scrollGradientToggle.checked = scrollGradient;
-        imageBgToggle.checked = imageBg;
-        speedUnlockToggle.checked = speedUnlocked;
-        fpsCounterToggle.checked = showFpsCounter;
-      });
+  const teslaModeToggle = document.getElementById('tesla-mode-toggle') as HTMLInputElement;
+  if (settingsBtn && settingsModal && closeSettings && fixedGradientToggle && scrollGradientToggle && imageBgToggle && speedUnlockToggle && fpsCounterToggle && teslaModeToggle) {
+    settingsBtn.addEventListener('click', () => {
+      settingsModal.style.display = 'flex';
+      fixedGradientToggle.checked = fixedGradient;
+      scrollGradientToggle.checked = scrollGradient;
+      imageBgToggle.checked = imageBg;
+      speedUnlockToggle.checked = speedUnlocked;
+      fpsCounterToggle.checked = showFpsCounter;
+      teslaModeToggle.checked = teslaMode;
+    });
     closeSettings.addEventListener('click', () => {
       settingsModal.style.display = 'none';
     });
@@ -613,8 +625,45 @@ window.addEventListener('DOMContentLoaded', () => {
       showFpsCounter = fpsCounterToggle.checked;
       localStorage.setItem('showFpsCounter', String(showFpsCounter));
     });
+    teslaModeToggle.addEventListener('change', () => {
+      teslaMode = teslaModeToggle.checked;
+      localStorage.setItem('teslaMode', String(teslaMode));
+      updateOnscreenControlsVisibility();
+    });
   }
+  updateOnscreenControlsVisibility();
 });
+
+function updateOnscreenControlsVisibility() {
+  const onscreenControls = document.getElementById('onscreen-controls');
+  if (onscreenControls) {
+    onscreenControls.style.display = shouldShowOnscreenControls() ? 'flex' : 'none';
+  }
+}
+
+// --- Onscreen Controls Setup (was setupMobileControls) ---
+function setupOnscreenControls() {
+  const btnLeft = document.getElementById('btn-left');
+  const btnRight = document.getElementById('btn-right');
+  const btnJump = document.getElementById('btn-jump');
+  if (btnLeft && btnRight && btnJump) {
+    btnLeft.addEventListener('touchstart', e => { e.preventDefault(); keys['ArrowLeft'] = true; });
+    btnLeft.addEventListener('touchend', e => { e.preventDefault(); keys['ArrowLeft'] = false; });
+    btnRight.addEventListener('touchstart', e => { e.preventDefault(); keys['ArrowRight'] = true; });
+    btnRight.addEventListener('touchend', e => { e.preventDefault(); keys['ArrowRight'] = false; });
+    btnJump.addEventListener('touchstart', e => { e.preventDefault(); keys['Space'] = true; });
+    btnJump.addEventListener('touchend', e => { e.preventDefault(); keys['Space'] = false; });
+    // Also support mouse for Tesla browser
+    btnLeft.addEventListener('mousedown', e => { e.preventDefault(); keys['ArrowLeft'] = true; });
+    btnLeft.addEventListener('mouseup', e => { e.preventDefault(); keys['ArrowLeft'] = false; });
+    btnRight.addEventListener('mousedown', e => { e.preventDefault(); keys['ArrowRight'] = true; });
+    btnRight.addEventListener('mouseup', e => { e.preventDefault(); keys['ArrowRight'] = false; });
+    btnJump.addEventListener('mousedown', e => { e.preventDefault(); keys['Space'] = true; });
+    btnJump.addEventListener('mouseup', e => { e.preventDefault(); keys['Space'] = false; });
+  }
+}
+setupOnscreenControls();
+updateOnscreenControlsVisibility();
 
 // --- Confetti Animation ---
 interface ConfettiParticle {
@@ -962,21 +1011,22 @@ window.addEventListener('keydown', (e) => { keys[e.code] = true; });
 window.addEventListener('keyup', (e) => { keys[e.code] = false; });
 
 // --- Mobile Controls ---
-function setupMobileControls() {
-  const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
-  if (!isMobile) return;
-  const btnLeft = document.getElementById('btn-left');
-  const btnRight = document.getElementById('btn-right');
-  const btnJump = document.getElementById('btn-jump');
-  if (btnLeft && btnRight && btnJump) {
-    btnLeft.addEventListener('touchstart', e => { e.preventDefault(); keys['ArrowLeft'] = true; });
-    btnLeft.addEventListener('touchend', e => { e.preventDefault(); keys['ArrowLeft'] = false; });
-    btnRight.addEventListener('touchstart', e => { e.preventDefault(); keys['ArrowRight'] = true; });
-    btnRight.addEventListener('touchend', e => { e.preventDefault(); keys['ArrowRight'] = false; });
-    btnJump.addEventListener('touchstart', e => { e.preventDefault(); keys['Space'] = true; });
-    btnJump.addEventListener('touchend', e => { e.preventDefault(); keys['Space'] = false; });
-  }
-}
-setupMobileControls();
+// This function is now redundant as onscreen controls are always shown
+// function setupMobileControls() {
+//   const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+//   if (!isMobile) return;
+//   const btnLeft = document.getElementById('btn-left');
+//   const btnRight = document.getElementById('btn-right');
+//   const btnJump = document.getElementById('btn-jump');
+//   if (btnLeft && btnRight && btnJump) {
+//     btnLeft.addEventListener('touchstart', e => { e.preventDefault(); keys['ArrowLeft'] = true; });
+//     btnLeft.addEventListener('touchend', e => { e.preventDefault(); keys['ArrowLeft'] = false; });
+//     btnRight.addEventListener('touchstart', e => { e.preventDefault(); keys['ArrowRight'] = true; });
+//     btnRight.addEventListener('touchend', e => { e.preventDefault(); keys['ArrowRight'] = false; });
+//     btnJump.addEventListener('touchstart', e => { e.preventDefault(); keys['Space'] = true; });
+//     btnJump.addEventListener('touchend', e => { e.preventDefault(); keys['Space'] = false; });
+//   }
+// }
+// setupMobileControls();
 
 gameLoop(); 

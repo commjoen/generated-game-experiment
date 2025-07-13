@@ -186,7 +186,7 @@ function resetGame() {
 
 function resetPlayer() {
   player.x = 100;
-  player.y = GROUND_Y - 50;
+  player.y = GROUND_Y - 175; // Start 125 pixels higher than ground
   player.vx = 0;
   player.vy = 0;
   // Do NOT reset power-ups here; they persist across levels

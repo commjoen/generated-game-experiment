@@ -636,8 +636,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function updateOnscreenControlsVisibility() {
   const onscreenControls = document.getElementById('onscreen-controls');
+  const desktopCopyright = document.getElementById('desktop-copyright');
+  const show = shouldShowOnscreenControls();
   if (onscreenControls) {
-    onscreenControls.style.display = shouldShowOnscreenControls() ? 'flex' : 'none';
+    onscreenControls.style.display = show ? 'flex' : 'none';
+  }
+  if (desktopCopyright) {
+    desktopCopyright.style.display = show ? 'none' : 'block';
   }
 }
 

@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "prebuild": "node scripts/inject-version.js",
+    "predev": "node scripts/inject-version.js"
   },
   "engines": {
     "node": ">=22.0.0"

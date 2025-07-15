@@ -554,6 +554,9 @@ function applyBackgroundSettings() {
   }
 }
 
+// Version string injected at build time
+export const VERSION = 'v0.1.8-6-g17f97db-dirty (17f97db, 2025-07-14)';
+
 window.addEventListener('DOMContentLoaded', () => {
   const settingsBtn = document.getElementById('settings-btn');
   const settingsModal = document.getElementById('settings-modal');
@@ -630,6 +633,11 @@ window.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('teslaMode', String(teslaMode));
       updateOnscreenControlsVisibility();
     });
+  }
+  // Set version in settings modal if present
+  const versionDiv = document.querySelector('#settings-modal [style*="Version: v0.1.8-6-g17f97db-dirty (17f97db, 2025-07-14)"]');
+  if (versionDiv) {
+    versionDiv.textContent = `Version: ${VERSION}`;
   }
   updateOnscreenControlsVisibility();
 });

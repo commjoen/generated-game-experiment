@@ -499,6 +499,7 @@ let imageBg = localStorage.getItem('imageBg') === 'true';
 let imageBgUrl: string | null = localStorage.getItem('imageBgUrl') || null;
 let imageBgObj: HTMLImageElement | null = null;
 let imageBgLoaded = false;
+let imageBgLoadId = 0; // For aborting previous loads
 
 function fetchRandomLandscapeImage() {
   // Pixabay example (replace with your API key)
@@ -524,11 +525,29 @@ function fetchRandomLandscapeImage() {
 
 function loadImageBg() {
   if (!imageBgUrl) return;
-  imageBgObj = new window.Image();
-  imageBgObj.crossOrigin = 'anonymous';
-  imageBgObj.onload = () => { imageBgLoaded = true; };
-  imageBgObj.onerror = () => { imageBgLoaded = false; };
-  imageBgObj.src = imageBgUrl!;
+  // Clean up previous image and abort previous load
+  imageBgLoaded = false;
+  imageBgLoadId++;
+  const thisLoadId = imageBgLoadId;
+  if (imageBgObj) {
+    imageBgObj.onload = null;
+    imageBgObj.onerror = null;
+    imageBgObj.src = '';
+    imageBgObj = null;
+  }
+  const img = new window.Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    if (thisLoadId !== imageBgLoadId) return; // Abort if a newer load started
+    imageBgLoaded = true;
+    imageBgObj = img;
+  };
+  img.onerror = () => {
+    if (thisLoadId !== imageBgLoadId) return;
+    imageBgLoaded = false;
+    imageBgObj = null;
+  };
+  img.src = imageBgUrl!;
 }
 if (imageBgUrl) loadImageBg();
 

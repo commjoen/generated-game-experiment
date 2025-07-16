@@ -115,19 +115,44 @@ function generateLevel() {
   // Place a double jump power-up on a random platform (at most 1 per level, not on heart)
   if (platformCenters.length > 1) {
     let idx: number;
-    do { idx = Math.floor(Math.random() * platformCenters.length); } while (collectibles.some(c => c.x === platformCenters[idx].x - 10 && c.y === platformCenters[idx].y));
-    const pos = platformCenters[idx];
-    collectibles.push({ x: pos.x - 10, y: pos.y - 30, width: 20, height: 20, collected: false, type: 'doublejump' });
+    let attempts = 0;
+    const maxAttempts = platformCenters.length * 3; // Give it reasonable attempts
+    
+    do { 
+      idx = Math.floor(Math.random() * platformCenters.length);
+      attempts++;
+    } while (
+      attempts < maxAttempts && 
+      collectibles.some(c => c.x === platformCenters[idx].x - 10 && c.y === platformCenters[idx].y)
+    );
+    
+    // Only place if we found a valid spot
+    if (attempts < maxAttempts) {
+      const pos = platformCenters[idx];
+      collectibles.push({ x: pos.x - 10, y: pos.y - 30, width: 20, height: 20, collected: false, type: 'doublejump' });
+    }
   }
   // Place a grow power-up on a random platform (at most 1 per level, not on heart or doublejump)
   if (platformCenters.length > 2) {
     let idx: number;
-    do { idx = Math.floor(Math.random() * platformCenters.length); } while (
-      collectibles.some(c => c.x === platformCenters[idx].x - 10 && c.y === platformCenters[idx].y) ||
-      collectibles.some(c => c.x === platformCenters[idx].x - 10 && c.y === platformCenters[idx].y - 30)
+    let attempts = 0;
+    const maxAttempts = platformCenters.length * 3; // Give it reasonable attempts
+    
+    do { 
+      idx = Math.floor(Math.random() * platformCenters.length);
+      attempts++;
+    } while (
+      attempts < maxAttempts && (
+        collectibles.some(c => c.x === platformCenters[idx].x - 10 && c.y === platformCenters[idx].y) ||
+        collectibles.some(c => c.x === platformCenters[idx].x - 10 && c.y === platformCenters[idx].y - 30)
+      )
     );
-    const pos = platformCenters[idx];
-    collectibles.push({ x: pos.x - 10, y: pos.y - 60, width: 20, height: 20, collected: false, type: 'grow' });
+    
+    // Only place if we found a valid spot
+    if (attempts < maxAttempts) {
+      const pos = platformCenters[idx];
+      collectibles.push({ x: pos.x - 10, y: pos.y - 60, width: 20, height: 20, collected: false, type: 'grow' });
+    }
   }
   // Ensure a platform at the player spawn point (x=100)
   const spawnX = 100;

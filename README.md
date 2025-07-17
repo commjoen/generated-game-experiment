@@ -65,6 +65,32 @@ docker run -p 8080:80 jeroenwillemsen/platformer-game-1:latest
 
 For detailed multiplayer setup instructions, see [MULTIPLAYER_SETUP.md](./MULTIPLAYER_SETUP.md).
 
+## ☁️ Cloud Deployment
+
+### Render.com (Recommended)
+
+Deploy to Render.com with one click:
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+
+Or manually:
+1. Fork this repository
+2. Connect to [Render.com](https://render.com)
+3. Create new "Blueprint" service
+4. Select your repository (render.yaml will be auto-detected)
+5. Deploy!
+
+**Features:**
+- ✅ **Free tier available** (750 hours/month)
+- ✅ **Automatic HTTPS** and WebSocket support  
+- ✅ **Auto-deploy** on git push
+- ✅ **Built-in monitoring** and health checks
+- ✅ **Graceful sleep handling** (falls back to single-player)
+
+Your game will be available at: `https://your-app-name.onrender.com`
+
+For detailed instructions, see [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md).
+
 ## Project Documentation
 
 - The full project specification is available in `.cursor/rules/project-spec.md`.

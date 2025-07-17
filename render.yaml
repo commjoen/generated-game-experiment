@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: platformer-game
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    region: oregon
+    branch: main
+    buildCommand: ""
+    startCommand: ""
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: NODE_ENV
+        value: production
+      - key: RENDER_EXTERNAL_HOSTNAME
+        sync: false
+    disk:
+      name: platformer-data
+      mountPath: /data
+      sizeGB: 1
+    healthCheckPath: /
+    autoDeploy: true
+    preDeployCommand: ""
+    buildFilter:
+      paths:
+        - src/**
+        - public/**
+        - package.json
+        - package-lock.json
+        - Dockerfile
+        - server.js
+        - server-package.json
+        - start.sh
+        - nginx.conf
+        - index.html
+        - vite.config.ts
+        - tsconfig.json

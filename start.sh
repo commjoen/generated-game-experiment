@@ -2,6 +2,21 @@
 
 echo "Starting multiplayer platformer game container..."
 
+# Detect if running on Render (Render sets RENDER environment variable)
+if [ -n "$RENDER" ] || [ -n "$RENDER_EXTERNAL_HOSTNAME" ]; then
+    echo "🌐 Detected Render.com deployment"
+    export IS_RENDER=true
+    # Use Render-optimized nginx config
+    cp /etc/nginx/nginx-render.conf /etc/nginx/nginx.conf 2>/dev/null || echo "Using default nginx config"
+    
+    # Set WebSocket URL for Render
+    export WS_URL="wss://${RENDER_EXTERNAL_HOSTNAME:-$RENDER_EXTERNAL_URL}/ws"
+    echo "🔗 WebSocket URL: $WS_URL"
+else
+    echo "🐳 Local/Docker deployment"
+    export IS_RENDER=false
+fi
+
 # Start the multiplayer server in background
 echo "Starting multiplayer server on port 3001..."
 cd /app
@@ -25,8 +40,13 @@ NGINX_PID=$!
 
 echo "✓ Game client started successfully"
 echo ""
-echo "🎮 Game is available at: http://localhost:80"
-echo "🌐 Multiplayer server at: http://localhost:3001"
+if [ "$IS_RENDER" = "true" ]; then
+    echo "🎮 Game is available at: https://${RENDER_EXTERNAL_HOSTNAME:-your-app}.onrender.com"
+    echo "🌐 Multiplayer WebSocket: wss://${RENDER_EXTERNAL_HOSTNAME:-your-app}.onrender.com/ws"
+else
+    echo "🎮 Game is available at: http://localhost:80"
+    echo "🌐 Multiplayer server at: http://localhost:3001"
+fi
 echo ""
 echo "The game will work in single-player mode even if multiplayer server fails."
 

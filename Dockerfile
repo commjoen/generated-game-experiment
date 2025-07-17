@@ -28,17 +28,18 @@ COPY --from=server-deps /server/node_modules /app/node_modules
 COPY server.js /app/
 COPY server-package.json /app/package.json
 
-# Copy nginx configuration
+# Copy nginx configurations
 COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx-render.conf /etc/nginx/nginx-render.conf
 
 # Create startup script
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
-# Expose ports
+# Expose ports (Render will map PORT env var to external port)
 EXPOSE 80 3001
 
-# Health check for both services
+# Health check for both services (support Render's PORT env var)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:80 && curl -f http://localhost:3001/health || exit 1
 

@@ -39,7 +39,16 @@ export class MultiplayerManager {
     try {
       // Try to make a quick HTTP request to check if server is running
       const httpUrl = serverUrl.replace('ws://', 'http://').replace('wss://', 'https://');
-      const healthUrl = httpUrl.includes('/mp') ? `${httpUrl}/health` : `${httpUrl}/health`;
+      
+      // Determine the correct health check URL
+      let healthUrl: string;
+      if (httpUrl.includes('/ws')) {
+        // For Render.com and similar proxy setups, use the proxy health endpoint
+        healthUrl = httpUrl.replace('/ws', '/mp/health');
+      } else {
+        // For direct connections, use direct health endpoint
+        healthUrl = `${httpUrl}/health`;
+      }
       
       const response = await fetch(healthUrl, { 
         method: 'GET',
@@ -56,19 +65,30 @@ export class MultiplayerManager {
     // Auto-detect the WebSocket URL based on current location
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
+    const hostname = window.location.hostname;
+    
+    // Check if running on Render.com
+    if (hostname.includes('.onrender.com')) {
+      return `${protocol}//${host}/ws`;
+    }
     
     // If running in development (localhost:5173), try local server
     if (host.includes('localhost:5173') || host.includes('127.0.0.1:5173')) {
       return 'ws://localhost:3001';
     }
     
-    // If running in Docker container, use direct connection to port 3001
-    if (host.includes(':8080') || host.includes(':80')) {
-      const hostname = host.split(':')[0];
-      return `${protocol}//${hostname}:3001`;
+    // If running in Docker container locally, use direct connection to port 3001
+    if (host.includes(':8080') || (hostname === 'localhost' && host.includes(':80'))) {
+      const baseHostname = host.split(':')[0];
+      return `${protocol}//${baseHostname}:3001`;
     }
     
-    // Default fallback
+    // For production deployments with custom domains, try WebSocket path
+    if (protocol === 'wss:') {
+      return `${protocol}//${host}/ws`;
+    }
+    
+    // Default fallback for HTTP
     return `${protocol}//${host}:3001`;
   }
 

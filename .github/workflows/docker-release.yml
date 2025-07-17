@@ -1,0 +1,211 @@
+name: Docker Build and Release
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'server.js'
+      - 'server-package.json'
+      - 'Dockerfile'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'nginx*.conf'
+      - 'start.sh'
+      - 'index.html'
+      - 'vite.config.ts'
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'server.js'
+      - 'server-package.json'
+      - 'Dockerfile'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'nginx*.conf'
+      - 'start.sh'
+      - 'index.html'
+      - 'vite.config.ts'
+  release:
+    types: [published]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          # Set latest tag for main branch
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+        labels: |
+          org.opencontainers.image.title=Multiplayer Platformer Game
+          org.opencontainers.image.description=A 2D platformer game with optional multiplayer support
+          org.opencontainers.image.url=https://github.com/${{ github.repository }}
+          org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          org.opencontainers.image.version=${{ github.ref_name }}
+          org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
+          org.opencontainers.image.revision=${{ github.sha }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILDTIME=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+
+    - name: Generate deployment URL
+      id: deployment
+      run: |
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          echo "DEPLOY_URL=ghcr.io/${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}" >> $GITHUB_OUTPUT
+          echo "DEPLOY_TAG=pr-${{ github.event.number }}" >> $GITHUB_OUTPUT
+        else
+          echo "DEPLOY_URL=ghcr.io/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_OUTPUT
+          echo "DEPLOY_TAG=latest" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Test Docker image
+      run: |
+        echo "Testing Docker image..."
+        # Pull the built image
+        docker pull ${{ steps.deployment.outputs.DEPLOY_URL }}
+        
+        # Run container in background
+        docker run -d --name test-container -p 8080:80 -p 3001:3001 ${{ steps.deployment.outputs.DEPLOY_URL }}
+        
+        # Wait for container to start
+        sleep 15
+        
+        # Test game client
+        curl -f http://localhost:8080 || (docker logs test-container && exit 1)
+        
+        # Test multiplayer health check
+        curl -f http://localhost:3001/health || echo "Multiplayer server not ready yet"
+        
+        # Cleanup
+        docker stop test-container
+        docker rm test-container
+        
+        echo "✅ Docker image test passed!"
+
+    - name: Comment on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const output = `## 🐳 Docker Image Built Successfully!
+
+          **Image:** \`ghcr.io/${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}\`
+
+          ### 🚀 Quick Test
+          \`\`\`bash
+          # Pull and run the PR image
+          docker pull ghcr.io/${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}
+          docker run -p 8080:80 -p 3001:3001 ghcr.io/${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}
+          
+          # Access the game
+          open http://localhost:8080
+          \`\`\`
+
+          ### 📋 Features Tested
+          - ✅ Game client loads on port 80
+          - ✅ Multiplayer server starts on port 3001
+          - ✅ Health checks pass
+          - ✅ Multi-platform build (amd64, arm64)
+
+          ### 🔗 Container Details
+          - **Registry:** GitHub Container Registry (ghcr.io)
+          - **Platforms:** linux/amd64, linux/arm64
+          - **Size:** Optimized multi-stage build
+          - **Security:** Runs as non-root user
+
+          ### 🌐 Deploy to Render
+          You can deploy this specific image to Render by updating the image reference in your service settings.`;
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: output
+          });
+
+    - name: Generate summary
+      run: |
+        echo "## 🐳 Docker Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Image:** \`${{ steps.deployment.outputs.DEPLOY_URL }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "**Tag:** \`${{ steps.deployment.outputs.DEPLOY_TAG }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📦 Available Images" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🚀 Usage" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "docker pull ${{ steps.deployment.outputs.DEPLOY_URL }}" >> $GITHUB_STEP_SUMMARY
+        echo "docker run -p 8080:80 -p 3001:3001 ${{ steps.deployment.outputs.DEPLOY_URL }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'

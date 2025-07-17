@@ -91,6 +91,40 @@ Your game will be available at: `https://your-app-name.onrender.com`
 
 For detailed instructions, see [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md).
 
+## 🐳 Docker Images & CI/CD
+
+### Automated Container Builds
+
+Every PR and release automatically builds Docker containers:
+
+- **📦 GitHub Container Registry**: `ghcr.io/commjoen/generated-game-experiment`
+- **🌐 Docker Hub**: `username/platformer-game` (optional)
+- **🔒 Security Scanning**: Trivy vulnerability scanner
+- **🧪 Automatic Testing**: Container functionality tests
+
+### Available Images
+
+```bash
+# Latest from main branch
+docker pull ghcr.io/commjoen/generated-game-experiment:latest
+
+# Specific PR (for testing)
+docker pull ghcr.io/commjoen/generated-game-experiment:pr-123
+
+# Specific release
+docker pull ghcr.io/commjoen/generated-game-experiment:v1.0.0
+```
+
+### PR Workflow
+
+When you create a PR:
+1. 🔨 **Automatic build** triggers
+2. 🧪 **Container testing** runs  
+3. 💬 **PR comment** with image details
+4. 🌐 **Deploy PR image** to test changes
+
+For detailed CI/CD information, see [DOCKER_CI_CD.md](./DOCKER_CI_CD.md).
+
 ## Project Documentation
 
 - The full project specification is available in `.cursor/rules/project-spec.md`.

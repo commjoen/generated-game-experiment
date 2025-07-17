@@ -1,5 +1,28 @@
+<!-- Build & Test Status -->
 [![Test](https://github.com/commjoen/generated-game-experiment/actions/workflows/test.yml/badge.svg)](https://github.com/commjoen/generated-game-experiment/actions/workflows/test.yml)
 [![Deploy to GitHub Pages](https://github.com/commjoen/generated-game-experiment/actions/workflows/deploy.yml/badge.svg)](https://github.com/commjoen/generated-game-experiment/actions/workflows/deploy.yml)
+[![Docker Build and Release](https://github.com/commjoen/generated-game-experiment/actions/workflows/docker-release.yml/badge.svg)](https://github.com/commjoen/generated-game-experiment/actions/workflows/docker-release.yml)
+
+<!-- Project Status -->
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue.svg)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-7.0.4-646CFF.svg)](https://vitejs.dev/)
+
+<!-- Deployment & Infrastructure -->
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-success.svg)](https://commjoen.github.io/generated-game-experiment/)
+[![Render Deployment](https://img.shields.io/badge/Render-Deployed-46E3B7.svg)](https://generated-game-experiment.onrender.com/)
+[![Docker](https://img.shields.io/badge/Docker-Available-2496ED.svg)](https://github.com/commjoen/generated-game-experiment/pkgs/container/generated-game-experiment)
+
+<!-- Package & Dependencies -->
+[![npm version](https://img.shields.io/npm/v/generated-game-experiment.svg)](https://www.npmjs.com/package/generated-game-experiment)
+[![Dependencies](https://img.shields.io/badge/dependencies-2-green.svg)](package.json)
+[![Dev Dependencies](https://img.shields.io/badge/devDependencies-6-orange.svg)](package.json)
+
+<!-- Quality & Security -->
+[![Security: Trivy](https://img.shields.io/badge/Security-Trivy%20Scanned-green.svg)](https://github.com/commjoen/generated-game-experiment/actions)
+[![Code Quality](https://img.shields.io/badge/Code%20Quality-TypeScript-blue.svg)](tsconfig.json)
+[![Multiplayer](https://img.shields.io/badge/Multiplayer-WebSocket-orange.svg)](server.js)
 
 # generated-game-experiment
 Private experiment to create a game with cursor. Play it for free at https://commjoen.github.io/generated-game-experiment/

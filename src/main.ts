@@ -1,3 +1,5 @@
+import { multiplayerManager } from './multiplayer.js';
+
 const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
 
@@ -44,6 +46,11 @@ const player = {
   growLevel: 0, // 0-3
   canDoubleJump: false, // for in-air jump
 };
+
+// Multiplayer state
+let otherPlayers: Map<string, any> = new Map();
+let multiplayerEnabled = false;
+let lastPositionUpdate = 0;
 
 // Platform types
 interface Rect { x: number; y: number; width: number; height: number; }
@@ -503,6 +510,18 @@ function update(deltaTime: number) {
   // Prevent going off screen
   if (player.x < 0) player.x = 0;
   if (player.x + player.width > LEVEL_WIDTH) player.x = LEVEL_WIDTH - player.width;
+  
+  // Send multiplayer updates (throttled)
+  if (multiplayerEnabled && Date.now() - lastPositionUpdate > 50) { // Update every 50ms
+    multiplayerManager.updatePlayerPosition(
+      player.x, 
+      player.y, 
+      player.width, 
+      player.height, 
+      player.growLevel
+    );
+    lastPositionUpdate = Date.now();
+  }
 }
 
 // --- Tesla Detection and Onscreen Controls Logic ---
@@ -1066,5 +1085,42 @@ window.addEventListener('keyup', (e) => { keys[e.code] = false; });
 //   }
 // }
 // setupMobileControls();
+
+// Initialize multiplayer (optional)
+(async () => {
+  try {
+    const serverUrl = (window as any).VITE_MULTIPLAYER_SERVER_URL || 'ws://localhost:3001';
+    multiplayerEnabled = await multiplayerManager.initialize(serverUrl);
+    
+    if (multiplayerEnabled) {
+      console.log('Multiplayer enabled!');
+      
+      // Set up multiplayer event handlers
+      multiplayerManager.onGameStateUpdate((gameState) => {
+        // Update other players' positions
+        otherPlayers.clear();
+        gameState.players.forEach((playerData: any) => {
+          if (playerData.id !== multiplayerManager.currentPlayerId) {
+            otherPlayers.set(playerData.id, playerData);
+          }
+        });
+      });
+      
+      multiplayerManager.onPlayerJoined((playerId) => {
+        console.log(`Player ${playerId} joined the game!`);
+      });
+      
+      multiplayerManager.onPlayerLeft((playerId) => {
+        console.log(`Player ${playerId} left the game`);
+        otherPlayers.delete(playerId);
+      });
+    } else {
+      console.log('Running in single-player mode');
+    }
+  } catch (error) {
+    console.log('Multiplayer initialization failed, continuing in single-player mode');
+    multiplayerEnabled = false;
+  }
+})();
 
 gameLoop(); 

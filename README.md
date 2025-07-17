@@ -33,37 +33,37 @@ Private experiment to create a game with cursor. Play it for free at https://com
 
 The game includes **optional multiplayer functionality** in a single container:
 
-### Single Container with Optional Multiplayer
+### Build and Run with Docker Buildx (Recommended)
 
 ```sh
-# Build the container
-docker build -t platformer-game .
+# Build a multi-platform image (replace with your Docker Hub username/image)
+docker buildx build --platform linux/amd64,linux/arm64 -t jeroenwillemsen/platformer-game-1:local --load .
 
 # Run with both game and multiplayer server
-docker run -p 8080:80 -p 3001:3001 platformer-game
+docker run -p 8080:80 -p 3001:3001 jeroenwillemsen/platformer-game-1:local
 ```
 
 - **Game client**: http://localhost:8080
 - **Multiplayer**: Automatically detected and enabled
 - **Single-player fallback**: Works even if multiplayer fails
 
-### Cross-platform build and push (amd64 & arm64)
-
-```sh
-# Build and push for multiple platforms (replace with your Docker Hub username/image)
-docker buildx build --platform linux/amd64,linux/arm64 -t jeroenwillemsen/platformer-game-1:local --load .
-```
-
-### Legacy: Game-only mode
-
-```sh
-# Run only the game client (no multiplayer)
-docker run -p 8080:80 jeroenwillemsen/platformer-game-1:local
-# Run the container from latest:
-docker run -p 8080:80 jeroenwillemsen/platformer-game-1:latest
-```
-
 For detailed multiplayer setup instructions, see [MULTIPLAYER_SETUP.md](./MULTIPLAYER_SETUP.md).
+
+### Run the Latest Published Version
+
+You can run the latest published image from Docker Hub or GitHub Container Registry:
+
+```sh
+# From Docker Hub (replace with your image name if different)
+docker run -p 8080:80 -p 3001:3001 jeroenwillemsen/platformer-game-1:latest
+
+# Or from GitHub Container Registry
+docker run -p 8080:80 -p 3001:3001 ghcr.io/commjoen/generated-game-experiment:latest
+```
+
+- **Game client**: http://localhost:8080
+- **Multiplayer**: Automatically detected and enabled
+- **Single-player fallback**: Works even if multiplayer fails
 
 ## ☁️ Cloud Deployment
 

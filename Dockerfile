@@ -6,6 +6,7 @@ COPY vite.config.ts ./
 COPY index.html ./
 COPY public ./public
 COPY src ./src
+COPY scripts ./scripts
 RUN npm install && npm run build
 
 # Stage 2: Setup multiplayer server dependencies

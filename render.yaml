@@ -13,6 +13,8 @@ services:
         value: production
       - key: RENDER_EXTERNAL_HOSTNAME
         sync: false
+      - key: PORT
+        value: 3001
     disk:
       name: platformer-data
       mountPath: /data

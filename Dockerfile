@@ -7,6 +7,7 @@ COPY index.html ./
 COPY public ./public
 COPY src ./src
 COPY scripts ./scripts
+ENV VITE_MULTIPLAYER=1
 RUN npm install && npm run build
 
 # Stage 2: Setup multiplayer server dependencies
@@ -30,8 +31,8 @@ COPY server.js /app/
 COPY server-package.json /app/package.json
 
 # Copy nginx configurations
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY nginx-render.conf /etc/nginx/nginx-render.conf
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
+COPY nginx/nginx-render.conf /etc/nginx/nginx-render.conf
 
 # Create startup script
 COPY start.sh /start.sh

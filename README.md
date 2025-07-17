@@ -98,7 +98,7 @@ Or manually:
 - ✅ **Built-in monitoring** and health checks
 - ✅ **Graceful sleep handling** (falls back to single-player)
 
-Your game will be available at: `https://your-app-name.onrender.com`
+Your game will be available at: `https://your-app-name.onrender.com` (we now test at https://generated-game-experiment.onrender.com/)
 
 For detailed instructions, see [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md).
 

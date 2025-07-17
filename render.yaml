@@ -9,8 +9,6 @@ services:
     buildCommand: ""
     startCommand: ""
     envVars:
-      - key: PORT
-        value: 3001
       - key: NODE_ENV
         value: production
       - key: RENDER_EXTERNAL_HOSTNAME
@@ -19,7 +17,7 @@ services:
       name: platformer-data
       mountPath: /data
       sizeGB: 1
-    healthCheckPath: /
+    healthCheckPath: /mp/health
     autoDeploy: true
     preDeployCommand: ""
     buildFilter:
@@ -32,7 +30,8 @@ services:
         - server.js
         - server-package.json
         - start.sh
-        - nginx.conf
+        - nginx/nginx.conf
+        - nginx/nginx-render.conf
         - index.html
         - vite.config.ts
         - tsconfig.json

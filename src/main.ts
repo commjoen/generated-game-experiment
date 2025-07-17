@@ -49,7 +49,7 @@ const player = {
 
 // Multiplayer state
 let otherPlayers: Map<string, any> = new Map();
-let multiplayerEnabled = import.meta.env.VITE_MULTIPLAYER === '1';
+let multiplayerEnabled = localStorage.getItem('multiplayerEnabled') === 'true';
 let lastPositionUpdate = 0;
 
 // Platform types
@@ -611,7 +611,8 @@ window.addEventListener('DOMContentLoaded', () => {
   const speedUnlockToggle = document.getElementById('speed-unlock-toggle') as HTMLInputElement;
   const fpsCounterToggle = document.getElementById('fps-counter-toggle') as HTMLInputElement;
   const teslaModeToggle = document.getElementById('tesla-mode-toggle') as HTMLInputElement;
-  if (settingsBtn && settingsModal && closeSettings && fixedGradientToggle && scrollGradientToggle && imageBgToggle && speedUnlockToggle && fpsCounterToggle && teslaModeToggle) {
+  const multiplayerToggle = document.getElementById('multiplayer-toggle') as HTMLInputElement;
+  if (settingsBtn && settingsModal && closeSettings && fixedGradientToggle && scrollGradientToggle && imageBgToggle && speedUnlockToggle && fpsCounterToggle && teslaModeToggle && multiplayerToggle) {
     settingsBtn.addEventListener('click', () => {
       settingsModal.style.display = 'flex';
       fixedGradientToggle.checked = fixedGradient;
@@ -620,6 +621,7 @@ window.addEventListener('DOMContentLoaded', () => {
       speedUnlockToggle.checked = speedUnlocked;
       fpsCounterToggle.checked = showFpsCounter;
       teslaModeToggle.checked = teslaMode;
+      multiplayerToggle.checked = multiplayerEnabled;
     });
     closeSettings.addEventListener('click', () => {
       settingsModal.style.display = 'none';
@@ -676,6 +678,11 @@ window.addEventListener('DOMContentLoaded', () => {
       teslaMode = teslaModeToggle.checked;
       localStorage.setItem('teslaMode', String(teslaMode));
       updateOnscreenControlsVisibility();
+    });
+    multiplayerToggle.addEventListener('change', () => {
+      multiplayerEnabled = multiplayerToggle.checked;
+      localStorage.setItem('multiplayerEnabled', String(multiplayerEnabled));
+      window.location.reload(); // Reload to re-init multiplayer
     });
   }
   // Set version in settings modal if present

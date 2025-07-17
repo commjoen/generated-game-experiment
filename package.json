@@ -9,6 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
+    "test:ci": "vitest run",
     "prebuild": "node scripts/inject-version.js",
     "predev": "node scripts/inject-version.js"
   },

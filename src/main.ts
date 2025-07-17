@@ -1,3 +1,5 @@
+import { multiplayerManager } from './multiplayer.js';
+
 const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
 
@@ -44,6 +46,11 @@ const player = {
   growLevel: 0, // 0-3
   canDoubleJump: false, // for in-air jump
 };
+
+// Multiplayer state
+let otherPlayers: Map<string, any> = new Map();
+let multiplayerEnabled = localStorage.getItem('multiplayerEnabled') === 'true';
+let lastPositionUpdate = 0;
 
 // Platform types
 interface Rect { x: number; y: number; width: number; height: number; }
@@ -503,6 +510,18 @@ function update(deltaTime: number) {
   // Prevent going off screen
   if (player.x < 0) player.x = 0;
   if (player.x + player.width > LEVEL_WIDTH) player.x = LEVEL_WIDTH - player.width;
+  
+  // Send multiplayer updates (throttled)
+  if (multiplayerEnabled && Date.now() - lastPositionUpdate > 50) { // Update every 50ms
+    multiplayerManager.updatePlayerPosition(
+      player.x, 
+      player.y, 
+      player.width, 
+      player.height, 
+      player.growLevel
+    );
+    lastPositionUpdate = Date.now();
+  }
 }
 
 // --- Tesla Detection and Onscreen Controls Logic ---
@@ -592,7 +611,8 @@ window.addEventListener('DOMContentLoaded', () => {
   const speedUnlockToggle = document.getElementById('speed-unlock-toggle') as HTMLInputElement;
   const fpsCounterToggle = document.getElementById('fps-counter-toggle') as HTMLInputElement;
   const teslaModeToggle = document.getElementById('tesla-mode-toggle') as HTMLInputElement;
-  if (settingsBtn && settingsModal && closeSettings && fixedGradientToggle && scrollGradientToggle && imageBgToggle && speedUnlockToggle && fpsCounterToggle && teslaModeToggle) {
+  const multiplayerToggle = document.getElementById('multiplayer-toggle') as HTMLInputElement;
+  if (settingsBtn && settingsModal && closeSettings && fixedGradientToggle && scrollGradientToggle && imageBgToggle && speedUnlockToggle && fpsCounterToggle && teslaModeToggle && multiplayerToggle) {
     settingsBtn.addEventListener('click', () => {
       settingsModal.style.display = 'flex';
       fixedGradientToggle.checked = fixedGradient;
@@ -601,6 +621,7 @@ window.addEventListener('DOMContentLoaded', () => {
       speedUnlockToggle.checked = speedUnlocked;
       fpsCounterToggle.checked = showFpsCounter;
       teslaModeToggle.checked = teslaMode;
+      multiplayerToggle.checked = multiplayerEnabled;
     });
     closeSettings.addEventListener('click', () => {
       settingsModal.style.display = 'none';
@@ -657,6 +678,11 @@ window.addEventListener('DOMContentLoaded', () => {
       teslaMode = teslaModeToggle.checked;
       localStorage.setItem('teslaMode', String(teslaMode));
       updateOnscreenControlsVisibility();
+    });
+    multiplayerToggle.addEventListener('change', () => {
+      multiplayerEnabled = multiplayerToggle.checked;
+      localStorage.setItem('multiplayerEnabled', String(multiplayerEnabled));
+      window.location.reload(); // Reload to re-init multiplayer
     });
   }
   // Set version in settings modal if present
@@ -896,6 +922,13 @@ function draw() {
   ctx.fillStyle = '#ff0';
   ctx.fillRect(player.x - cameraX, player.y, player.width, player.height);
   ctx.globalAlpha = 1;
+  // Draw other players
+  ctx.save();
+  ctx.fillStyle = '#0cf'; // Distinct color for other players
+  for (const other of otherPlayers.values()) {
+    ctx.fillRect(other.x - cameraX, other.y, other.width, other.height);
+  }
+  ctx.restore();
   // Draw UI overlay
   ctx.save();
   ctx.fillStyle = '#fff';
@@ -1066,5 +1099,49 @@ window.addEventListener('keyup', (e) => { keys[e.code] = false; });
 //   }
 // }
 // setupMobileControls();
+
+// Initialize multiplayer (optional)
+if (multiplayerEnabled) {
+  (async () => {
+    try {
+      // The multiplayer manager will auto-detect the correct server URL
+      const enabled = await multiplayerManager.initialize();
+      if (enabled) {
+        console.log('Multiplayer enabled!');
+        // Set up multiplayer event handlers
+        multiplayerManager.onGameStateUpdate((gameState) => {
+          // Update other players' positions
+          otherPlayers.clear();
+          gameState.players.forEach((playerData: any) => {
+            if (playerData.id !== multiplayerManager.currentPlayerId) {
+              otherPlayers.set(playerData.id, playerData);
+            }
+          });
+        });
+        multiplayerManager.onPlayerJoined((playerId) => {
+          console.log(`Player ${playerId} joined the game!`);
+        });
+        multiplayerManager.onPlayerLeft((playerId) => {
+          console.log(`Player ${playerId} left the game`);
+          otherPlayers.delete(playerId);
+        });
+        multiplayerManager.onPlayerUpdate((playerId, position) => {
+          if (otherPlayers.has(playerId)) {
+            const player = otherPlayers.get(playerId);
+            Object.assign(player, position);
+          } else {
+            otherPlayers.set(playerId, { id: playerId, ...position });
+          }
+        });
+      } else {
+        console.log('Running in single-player mode');
+      }
+    } catch (error) {
+      console.log('Multiplayer initialization failed, continuing in single-player mode');
+    }
+  })();
+} else {
+  console.log('Running in single-player mode');
+}
 
 gameLoop(); 

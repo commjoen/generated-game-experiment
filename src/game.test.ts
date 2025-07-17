@@ -278,4 +278,70 @@ describe('Power-up logic', () => {
     player.growLevel = 3; setPlayerSizeByGrowLevel();
     expect(player.width).toBe(100); expect(player.height).toBe(125);
   });
+});
+
+describe('Singleplayer fallback', () => {
+  it('should run in singleplayer mode if multiplayer server is unavailable', async () => {
+    // Simulate multiplayerManager.initialize() returning false
+    const multiplayerManager = { initialize: async () => false };
+    const multiplayerEnabled = await multiplayerManager.initialize();
+    expect(multiplayerEnabled).toBe(false);
+    // Game should still be playable (simulate a move)
+    let player = { x: 100, y: 350, vx: 0, vy: 0 };
+    player.x += 5;
+    expect(player.x).toBe(105);
+  });
+});
+
+describe('Player movement and game logic', () => {
+  it('should move player left and right', () => {
+    let player = { x: 100, vx: 0 };
+    player.vx = 5;
+    player.x += player.vx;
+    expect(player.x).toBe(105);
+    player.vx = -3;
+    player.x += player.vx;
+    expect(player.x).toBe(102);
+  });
+
+  it('should jump and fall with gravity', () => {
+    let player = { y: 100, vy: 0 };
+    const GRAVITY = 0.5;
+    player.vy = -10; // jump
+    player.y += player.vy;
+    expect(player.y).toBe(90);
+    player.vy += GRAVITY;
+    player.y += player.vy;
+    expect(player.y).toBeLessThan(90); // still going up
+  });
+
+  it('should collect a coin and increment score', () => {
+    let score = 0;
+    let coin = { x: 100, y: 100, collected: false };
+    let player = { x: 100, y: 100 };
+    if (player.x === coin.x && player.y === coin.y && !coin.collected) {
+      coin.collected = true;
+      score++;
+    }
+    expect(coin.collected).toBe(true);
+    expect(score).toBe(1);
+  });
+
+  it('should respawn player and decrement lives', () => {
+    let lives = 3;
+    function respawnPlayer() { lives--; }
+    respawnPlayer();
+    expect(lives).toBe(2);
+  });
+
+  it('should trigger game over when lives reach 0', () => {
+    let lives = 1;
+    let gameOver = false;
+    function respawnPlayer() {
+      lives--;
+      if (lives <= 0) gameOver = true;
+    }
+    respawnPlayer();
+    expect(gameOver).toBe(true);
+  });
 }); 

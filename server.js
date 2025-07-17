@@ -8,6 +8,7 @@ const server = http.createServer(app);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.json({ status: 'ok', timestamp: Date.now() });
 });
 

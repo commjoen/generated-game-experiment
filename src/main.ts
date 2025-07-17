@@ -49,7 +49,7 @@ const player = {
 
 // Multiplayer state
 let otherPlayers: Map<string, any> = new Map();
-let multiplayerEnabled = false;
+let multiplayerEnabled = import.meta.env.VITE_MULTIPLAYER === '1';
 let lastPositionUpdate = 0;
 
 // Platform types
@@ -915,6 +915,13 @@ function draw() {
   ctx.fillStyle = '#ff0';
   ctx.fillRect(player.x - cameraX, player.y, player.width, player.height);
   ctx.globalAlpha = 1;
+  // Draw other players
+  ctx.save();
+  ctx.fillStyle = '#0cf'; // Distinct color for other players
+  for (const other of otherPlayers.values()) {
+    ctx.fillRect(other.x - cameraX, other.y, other.width, other.height);
+  }
+  ctx.restore();
   // Draw UI overlay
   ctx.save();
   ctx.fillStyle = '#fff';
@@ -1087,40 +1094,47 @@ window.addEventListener('keyup', (e) => { keys[e.code] = false; });
 // setupMobileControls();
 
 // Initialize multiplayer (optional)
-(async () => {
-  try {
-    // The multiplayer manager will auto-detect the correct server URL
-    multiplayerEnabled = await multiplayerManager.initialize();
-    
-    if (multiplayerEnabled) {
-      console.log('Multiplayer enabled!');
-      
-      // Set up multiplayer event handlers
-      multiplayerManager.onGameStateUpdate((gameState) => {
-        // Update other players' positions
-        otherPlayers.clear();
-        gameState.players.forEach((playerData: any) => {
-          if (playerData.id !== multiplayerManager.currentPlayerId) {
-            otherPlayers.set(playerData.id, playerData);
+if (multiplayerEnabled) {
+  (async () => {
+    try {
+      // The multiplayer manager will auto-detect the correct server URL
+      const enabled = await multiplayerManager.initialize();
+      if (enabled) {
+        console.log('Multiplayer enabled!');
+        // Set up multiplayer event handlers
+        multiplayerManager.onGameStateUpdate((gameState) => {
+          // Update other players' positions
+          otherPlayers.clear();
+          gameState.players.forEach((playerData: any) => {
+            if (playerData.id !== multiplayerManager.currentPlayerId) {
+              otherPlayers.set(playerData.id, playerData);
+            }
+          });
+        });
+        multiplayerManager.onPlayerJoined((playerId) => {
+          console.log(`Player ${playerId} joined the game!`);
+        });
+        multiplayerManager.onPlayerLeft((playerId) => {
+          console.log(`Player ${playerId} left the game`);
+          otherPlayers.delete(playerId);
+        });
+        multiplayerManager.onPlayerUpdate((playerId, position) => {
+          if (otherPlayers.has(playerId)) {
+            const player = otherPlayers.get(playerId);
+            Object.assign(player, position);
+          } else {
+            otherPlayers.set(playerId, { id: playerId, ...position });
           }
         });
-      });
-      
-      multiplayerManager.onPlayerJoined((playerId) => {
-        console.log(`Player ${playerId} joined the game!`);
-      });
-      
-      multiplayerManager.onPlayerLeft((playerId) => {
-        console.log(`Player ${playerId} left the game`);
-        otherPlayers.delete(playerId);
-      });
-    } else {
-      console.log('Running in single-player mode');
+      } else {
+        console.log('Running in single-player mode');
+      }
+    } catch (error) {
+      console.log('Multiplayer initialization failed, continuing in single-player mode');
     }
-  } catch (error) {
-    console.log('Multiplayer initialization failed, continuing in single-player mode');
-    multiplayerEnabled = false;
-  }
-})();
+  })();
+} else {
+  console.log('Running in single-player mode');
+}
 
 gameLoop(); 

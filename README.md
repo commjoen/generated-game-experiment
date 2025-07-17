@@ -12,11 +12,22 @@ Private experiment to create a game with cursor. Play it for free at https://com
    ```sh
    npm install
    ```
-2. Start the development server:
+2. Start the development server (single-player):
    ```sh
    npm run dev
    ```
-3. Open your browser and go to the URL shown in the terminal (usually http://localhost:5173).
+3. To enable multiplayer in development, run both the dev server and the multiplayer server:
+   ```sh
+   # In one terminal:
+   npm run dev:mp
+   # In another terminal:
+   node server.js
+   ```
+   Open two browser windows at the shown URL (usually http://localhost:5173) to test multiplayer.
+4. If you see TypeScript errors about `import.meta.env`, ensure you have this line in `src/vite-env.d.ts`:
+   ```ts
+   /// <reference types="vite/client" />
+   ```
 
 ## Build for Production
 

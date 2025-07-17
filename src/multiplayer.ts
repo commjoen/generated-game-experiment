@@ -193,6 +193,11 @@ export class MultiplayerManager {
           this.onPlayerLeave(data.playerId);
         }
         break;
+      case 'playerUpdate':
+        if (this._onPlayerUpdate) {
+          this._onPlayerUpdate(data.playerId, data.position);
+        }
+        break;
       case 'pong':
         // Handle ping/pong for connection health
         break;
@@ -245,6 +250,15 @@ export class MultiplayerManager {
 
   onPlayerLeft(callback: (playerId: string) => void) {
     this.onPlayerLeave = callback;
+  }
+
+  private _onPlayerUpdate?: (playerId: string, position: any) => void;
+  /**
+   * Register a callback for player position updates.
+   * @param callback (playerId: string, position: any) => void
+   */
+  onPlayerUpdate(callback: (playerId: string, position: any) => void): void {
+    this._onPlayerUpdate = callback;
   }
 
   // Getters

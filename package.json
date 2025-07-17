@@ -4,7 +4,8 @@
   "description": "Private experiment to create a game with cursor",
   "main": "index.js",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
+    "dev:mp": "VITE_MULTIPLAYER=1 vite --host",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
@@ -33,5 +34,9 @@
     "vite": "^7.0.4",
     "vite-plugin-sri": "^0.0.2",
     "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "ws": "^8.18.3"
   }
 }

@@ -34,7 +34,9 @@ COPY nginx-render.conf /etc/nginx/nginx-render.conf
 
 # Create startup script
 COPY start.sh /start.sh
-RUN chmod +x /start.sh
+RUN chmod +x /start.sh && \
+    # Ensure Unix line endings
+    sed -i 's/\r$//' /start.sh
 
 # Expose ports (Render will map PORT env var to external port)
 EXPOSE 80 3001

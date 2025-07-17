@@ -6,9 +6,9 @@
 ❌ **Problem**: Workflow was passing `BUILDTIME` and `VERSION` build args that weren't defined in the Dockerfile.
 ✅ **Fix**: Removed the build-args section from the workflow.
 
-### 2. **Simplified Multi-Platform Build**
-❌ **Problem**: Multi-platform builds (amd64, arm64) can be resource-intensive and cause timeouts.
-✅ **Fix**: Temporarily reduced to `linux/amd64` only for faster builds.
+### 2. **Fixed Invalid Docker Tag Format**
+❌ **Problem**: Metadata action was generating invalid tags like `ghcr.io/repo:-6456d5e` (notice the `:-`).
+✅ **Fix**: Simplified tag generation and fixed SHA format. Re-enabled multi-platform builds.
 
 ### 3. **Fixed Security Scan Image Reference**
 ❌ **Problem**: Security scan was trying to reference an image tag that didn't exist.
@@ -33,11 +33,18 @@
 ## Current Workflow Configuration
 
 ```yaml
-# Single platform build (faster)
-platforms: linux/amd64
+# Multi-platform build (restored)
+platforms: linux/amd64,linux/arm64
 
 # No build args (cleaner)
 build-args: # removed
+
+# Fixed tag generation
+tags: |
+  type=ref,event=branch
+  type=ref,event=pr  
+  type=raw,value=latest,enable={{is_default_branch}}
+  type=sha,format=short
 
 # Reliable testing with retries
 - Test game client with retry logic
@@ -72,9 +79,8 @@ Check these items:
 3. **nginx configuration** syntax
 4. **Node.js dependencies** in server-package.json
 
-## Re-enable Multi-Platform Later
+## Latest Update
 
-Once the basic build is working, you can re-enable multi-platform:
-```yaml
-platforms: linux/amd64,linux/arm64
-```
+✅ **Multi-platform builds re-enabled**: `linux/amd64,linux/arm64`
+✅ **Fixed invalid tag format**: Resolved `:-` issue in image references
+✅ **Improved tag generation**: Cleaner, more reliable tagging strategy

@@ -39,6 +39,9 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    outputs:
+      image-url: ${{ steps.deployment.outputs.DEPLOY_URL }}
+      image-tag: ${{ steps.deployment.outputs.DEPLOY_TAG }}
     permissions:
       contents: read
       packages: write
@@ -67,10 +70,10 @@ jobs:
           # Set latest tag for main branch
           type=ref,event=branch
           type=ref,event=pr
-          type=sha,prefix={{branch}}-
           type=raw,value=latest,enable={{is_default_branch}}
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
+          type=sha,format=short
         labels: |
           org.opencontainers.image.title=Multiplayer Platformer Game
           org.opencontainers.image.description=A 2D platformer game with optional multiplayer support
@@ -85,7 +88,7 @@ jobs:
       with:
         context: .
         file: ./Dockerfile
-        platforms: linux/amd64
+        platforms: linux/amd64,linux/arm64
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
@@ -95,16 +98,15 @@ jobs:
     - name: Generate deployment URL
       id: deployment
       run: |
-        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          echo "DEPLOY_URL=ghcr.io/${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}" >> $GITHUB_OUTPUT
-          echo "DEPLOY_TAG=pr-${{ github.event.number }}" >> $GITHUB_OUTPUT
-        elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-          echo "DEPLOY_URL=ghcr.io/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_OUTPUT
-          echo "DEPLOY_TAG=latest" >> $GITHUB_OUTPUT
-        else
-          echo "DEPLOY_URL=ghcr.io/${{ env.IMAGE_NAME }}:${{ github.ref_name }}" >> $GITHUB_OUTPUT
-          echo "DEPLOY_TAG=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-        fi
+        # Extract the first tag from the metadata output
+        FIRST_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -n1)
+        echo "DEPLOY_URL=${FIRST_TAG}" >> $GITHUB_OUTPUT
+        
+        # Extract just the tag part for display
+        TAG_ONLY=$(echo "${FIRST_TAG}" | cut -d':' -f2)
+        echo "DEPLOY_TAG=${TAG_ONLY}" >> $GITHUB_OUTPUT
+        
+        echo "Using image: ${FIRST_TAG}"
 
     - name: Test Docker image
       run: |
@@ -149,13 +151,13 @@ jobs:
         script: |
           const output = `## 🐳 Docker Image Built Successfully!
 
-          **Image:** \`ghcr.io/${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}\`
+          **Image:** \`${{ steps.deployment.outputs.DEPLOY_URL }}\`
 
           ### 🚀 Quick Test
           \`\`\`bash
           # Pull and run the PR image
-          docker pull ghcr.io/${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}
-          docker run -p 8080:80 -p 3001:3001 ghcr.io/${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}
+          docker pull ${{ steps.deployment.outputs.DEPLOY_URL }}
+          docker run -p 8080:80 -p 3001:3001 ${{ steps.deployment.outputs.DEPLOY_URL }}
           
           # Access the game
           open http://localhost:8080
@@ -165,11 +167,11 @@ jobs:
           - ✅ Game client loads on port 80
           - ✅ Multiplayer server starts on port 3001
           - ✅ Health checks pass
-          - ✅ Platform: linux/amd64
+          - ✅ Multi-platform build (amd64, arm64)
 
           ### 🔗 Container Details
           - **Registry:** GitHub Container Registry (ghcr.io)
-          - **Platforms:** linux/amd64
+          - **Platforms:** linux/amd64, linux/arm64
           - **Size:** Optimized multi-stage build
           - **Security:** Runs as non-root user
 
@@ -213,7 +215,7 @@ jobs:
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        image-ref: ${{ needs.build-and-push.outputs.image-url }}
         format: 'sarif'
         output: 'trivy-results.sarif'
 

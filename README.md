@@ -31,7 +31,21 @@ Private experiment to create a game with cursor. Play it for free at https://com
 
 ## Docker Deployment
 
-To build and run the game in a Docker container:
+The game includes **optional multiplayer functionality** in a single container:
+
+### Single Container with Optional Multiplayer
+
+```sh
+# Build the container
+docker build -t platformer-game .
+
+# Run with both game and multiplayer server
+docker run -p 8080:80 -p 3001:3001 platformer-game
+```
+
+- **Game client**: http://localhost:8080
+- **Multiplayer**: Automatically detected and enabled
+- **Single-player fallback**: Works even if multiplayer fails
 
 ### Cross-platform build and push (amd64 & arm64)
 
@@ -40,14 +54,16 @@ To build and run the game in a Docker container:
 docker buildx build --platform linux/amd64,linux/arm64 -t jeroenwillemsen/platformer-game-1:local --load .
 ```
 
-### Local run (after pulling or building for your platform)
+### Legacy: Game-only mode
 
 ```sh
-# Run the container (serves on http://localhost:8080)
+# Run only the game client (no multiplayer)
 docker run -p 8080:80 jeroenwillemsen/platformer-game-1:local
 # Run the container from latest:
 docker run -p 8080:80 jeroenwillemsen/platformer-game-1:latest
 ```
+
+For detailed multiplayer setup instructions, see [MULTIPLAYER_SETUP.md](./MULTIPLAYER_SETUP.md).
 
 ## Project Documentation
 

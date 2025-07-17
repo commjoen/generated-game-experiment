@@ -1089,8 +1089,8 @@ window.addEventListener('keyup', (e) => { keys[e.code] = false; });
 // Initialize multiplayer (optional)
 (async () => {
   try {
-    const serverUrl = (window as any).VITE_MULTIPLAYER_SERVER_URL || 'ws://localhost:3001';
-    multiplayerEnabled = await multiplayerManager.initialize(serverUrl);
+    // The multiplayer manager will auto-detect the correct server URL
+    multiplayerEnabled = await multiplayerManager.initialize();
     
     if (multiplayerEnabled) {
       console.log('Multiplayer enabled!');

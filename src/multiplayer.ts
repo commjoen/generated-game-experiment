@@ -35,11 +35,13 @@ export class MultiplayerManager {
   }
 
   // Check if multiplayer server is available (optional)
-  async checkServerAvailable(serverUrl: string = 'ws://localhost:3001'): Promise<boolean> {
+  async checkServerAvailable(serverUrl: string = this.getDefaultServerUrl()): Promise<boolean> {
     try {
       // Try to make a quick HTTP request to check if server is running
       const httpUrl = serverUrl.replace('ws://', 'http://').replace('wss://', 'https://');
-      const response = await fetch(`${httpUrl}/health`, { 
+      const healthUrl = httpUrl.includes('/mp') ? `${httpUrl}/health` : `${httpUrl}/health`;
+      
+      const response = await fetch(healthUrl, { 
         method: 'GET',
         signal: AbortSignal.timeout(2000) // 2 second timeout
       });
@@ -50,8 +52,28 @@ export class MultiplayerManager {
     }
   }
 
+  private getDefaultServerUrl(): string {
+    // Auto-detect the WebSocket URL based on current location
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host;
+    
+    // If running in development (localhost:5173), try local server
+    if (host.includes('localhost:5173') || host.includes('127.0.0.1:5173')) {
+      return 'ws://localhost:3001';
+    }
+    
+    // If running in Docker container, use direct connection to port 3001
+    if (host.includes(':8080') || host.includes(':80')) {
+      const hostname = host.split(':')[0];
+      return `${protocol}//${hostname}:3001`;
+    }
+    
+    // Default fallback
+    return `${protocol}//${host}:3001`;
+  }
+
   // Initialize multiplayer connection (optional)
-  async initialize(serverUrl: string = 'ws://localhost:3001'): Promise<boolean> {
+  async initialize(serverUrl: string = this.getDefaultServerUrl()): Promise<boolean> {
     try {
       // First check if server is available
       const serverAvailable = await this.checkServerAvailable(serverUrl);

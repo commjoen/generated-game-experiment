@@ -625,7 +625,7 @@ function applyBackgroundSettings() {
 }
 
 // Version string injected at build time
-export const VERSION = 'v0.1.8-6-g17f97db-dirty (17f97db, 2025-07-14)';
+export const VERSION = '__VERSION__';
 
 window.addEventListener('DOMContentLoaded', () => {
   const settingsBtn = document.getElementById('settings-btn');
@@ -720,7 +720,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
   // Set version in settings modal if present
-  const versionDiv = document.querySelector('#settings-modal [style*="Version: v0.1.8-6-g17f97db-dirty (17f97db, 2025-07-14)"]');
+  const versionDiv = document.getElementById('version-string');
   if (versionDiv) {
     versionDiv.textContent = `Version: ${VERSION}`;
   }

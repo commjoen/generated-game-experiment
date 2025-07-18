@@ -103,6 +103,28 @@ A browser-based, side-scrolling platformer game built with TypeScript, Vite, and
 - **Conversation transcript**: `.cursor/rules/conversation.md`
 - **CI/CD, multiplayer, and deployment**: See `.cursor/fixesanddocs/` for detailed guides.
 
+## CI/CD: Ensuring Version Injection Works
+
+To ensure the version string is correctly injected in all environments (including Render and GitHub Pages), make sure your build pipeline fetches the full git history before building:
+
+### Render.com
+Add this to your build command or as a prebuild script:
+
+```
+git fetch --unshallow || true
+```
+
+### GitHub Actions
+In your workflow, use the following for the checkout step:
+
+```yaml
+- uses: actions/checkout@v4
+  with:
+    fetch-depth: 0
+```
+
+This ensures that `git describe` and other git commands in `scripts/inject-version.js` work as expected, so the version string is always up to date.
+
 ## Changelog
 - Unique IDs for all collectibles (fixes multiplayer coin collection).
 - Progress logging is now optional and disabled in Docker/Render.

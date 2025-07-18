@@ -5,7 +5,7 @@ services:
     dockerfilePath: ./Dockerfile
     plan: starter
     region: oregon
-    branch: cursor/multiplayer-via-docker-container-instellen-678f
+    branch: main
     buildCommand: ""
     startCommand: ""
     envVars:

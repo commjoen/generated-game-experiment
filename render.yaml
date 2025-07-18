@@ -21,7 +21,7 @@ services:
       sizeGB: 1
     healthCheckPath: /mp/health
     autoDeploy: true
-    preDeployCommand: ""
+    preDeployCommand: "git fetch --unshallow || true"
     buildFilter:
       paths:
         - src/**

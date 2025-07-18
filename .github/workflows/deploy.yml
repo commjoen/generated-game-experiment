@@ -17,6 +17,8 @@ jobs:
       - run: ls -l
       - run: ls -l dist
       - run: touch dist/.keep
+      - name: Fetch full git history for version injection
+        run: git fetch --unshallow || true
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
         with:

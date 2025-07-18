@@ -7,7 +7,6 @@ COPY vite.config.ts ./
 COPY index.html ./
 COPY public ./public
 COPY src ./src
-COPY scripts ./scripts
 ENV VITE_MULTIPLAYER=1
 
 # Add build args for version injection in cloud builds

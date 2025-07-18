@@ -37,23 +37,20 @@ export class MultiplayerManager {
   // Check if multiplayer server is available (optional)
   async checkServerAvailable(serverUrl: string = this.getDefaultServerUrl()): Promise<boolean> {
     try {
-      // Try to make a quick HTTP request to check if server is running
+      // For relative /ws, use /mp/health
+      if (serverUrl === '/ws') {
+        const response = await fetch('/mp/health', { method: 'GET', signal: AbortSignal.timeout(2000) });
+        return response.ok;
+      }
+      // Otherwise, use the old logic
       const httpUrl = serverUrl.replace('ws://', 'http://').replace('wss://', 'https://');
-      
-      // Determine the correct health check URL
       let healthUrl: string;
       if (httpUrl.includes('/ws')) {
-        // For Render.com and similar proxy setups, use the proxy health endpoint
         healthUrl = httpUrl.replace('/ws', '/mp/health');
       } else {
-        // For direct connections, use direct health endpoint
         healthUrl = `${httpUrl}/health`;
       }
-      
-      const response = await fetch(healthUrl, { 
-        method: 'GET',
-        signal: AbortSignal.timeout(2000) // 2 second timeout
-      });
+      const response = await fetch(healthUrl, { method: 'GET', signal: AbortSignal.timeout(2000) });
       return response.ok;
     } catch (error) {
       console.log('Multiplayer server not available, running in single-player mode');
@@ -62,32 +59,22 @@ export class MultiplayerManager {
   }
 
   private getDefaultServerUrl(): string {
-    // Auto-detect the WebSocket URL based on current location
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
     const hostname = window.location.hostname;
-    
-    // Check if running on Render.com
-    if (hostname.includes('.onrender.com')) {
-      return `${protocol}//${host}/ws`;
+    // Render.com or any production: always use relative /ws
+    if (hostname.includes('.onrender.com') || !host.includes('localhost')) {
+      return '/ws';
     }
-    
     // If running in development (localhost:5173), try local server
     if (host.includes('localhost:5173') || host.includes('127.0.0.1:5173')) {
       return 'ws://localhost:3001';
     }
-    
     // If running in Docker container locally, use direct connection to port 3001
     if (host.includes(':8080') || (hostname === 'localhost' && host.includes(':80'))) {
       const baseHostname = host.split(':')[0];
       return `${protocol}//${baseHostname}:3001`;
     }
-    
-    // For production deployments with custom domains, try WebSocket path
-    if (protocol === 'wss:') {
-      return `${protocol}//${host}/ws`;
-    }
-    
     // Default fallback for HTTP
     return `${protocol}//${host}:3001`;
   }

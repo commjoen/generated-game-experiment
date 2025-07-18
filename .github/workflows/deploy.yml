@@ -19,11 +19,11 @@ jobs:
       - run: touch dist/.keep
       - name: Fetch full git history for version injection
         run: git fetch --unshallow || true
-      - run: git fetch --tags --force
       - name: Get version from tag
         id: get_version
         run: |
-          VERSION=$(git describe --tags --abbrev=0)
+          git fetch --tags --force
+          export VERSION=$(git describe --tags --abbrev=0)
           echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
       - name: Print version
         run: echo "VERSION=${{ steps.get_version.outputs.VERSION }}"

@@ -624,8 +624,15 @@ function applyBackgroundSettings() {
   }
 }
 
-// Version string injected at build time
-export const VERSION = '__VERSION__';
+// Version injection globals
+// @ts-ignore
+const VERSION = typeof __VERSION__ !== 'undefined' ? __VERSION__ : 'unknown';
+// @ts-ignore
+const COMMITHASH = typeof __COMMITHASH__ !== 'undefined' ? __COMMITHASH__ : 'unknown';
+// @ts-ignore
+const BRANCH = typeof __BRANCH__ !== 'undefined' ? __BRANCH__ : 'unknown';
+// @ts-ignore
+const GITTAG = typeof __GITTAG__ !== 'undefined' ? __GITTAG__ : 'none';
 
 window.addEventListener('DOMContentLoaded', () => {
   const settingsBtn = document.getElementById('settings-btn');
@@ -720,9 +727,9 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
   // Set version in settings modal if present
-  const versionDiv = document.getElementById('version-string');
-  if (versionDiv) {
-    versionDiv.textContent = `Version: ${VERSION}`;
+  const versionEl = document.querySelector('.version-string, #version, .version, #version-string') as HTMLElement;
+  if (versionEl) {
+    versionEl.textContent = `Version: ${VERSION} (tag: ${GITTAG}, ${BRANCH}, ${COMMITHASH})`;
   }
   updateOnscreenControlsVisibility();
 });

@@ -1,11 +1,13 @@
 # Stage 1: Build the game client
 FROM node:22 AS builder
 WORKDIR /app
+RUN apt-get update && apt-get install -y git
 COPY package.json package-lock.json ./
 COPY vite.config.ts ./
 COPY index.html ./
 COPY public ./public
 COPY src ./src
+COPY .git .git
 COPY scripts ./scripts
 ENV VITE_MULTIPLAYER=1
 RUN npm install && npm run build

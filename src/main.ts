@@ -23,8 +23,14 @@ const LEVEL_WIDTH = 3200; // longer level
 let cameraX = 0;
 
 // --- Collectibles and Obstacles ---
-interface Collectible extends Rect { collected: boolean; type: 'coin' | 'heart' | 'doublejump' | 'grow'; }
+interface Collectible extends Rect { collected: boolean; type: 'coin' | 'heart' | 'doublejump' | 'grow'; id: string; }
 interface MovingPlatform extends Rect { dx: number; range: number; startX: number; }
+
+// Unique collectible id generator
+let collectibleIdCounter = 0;
+function generateCollectibleId(type: string) {
+  return `${type}_${Date.now()}_${collectibleIdCounter++}`;
+}
 
 const collectibles: Collectible[] = [];
 const spikes: Rect[] = [];
@@ -51,6 +57,8 @@ const player = {
 let otherPlayers: Map<string, any> = new Map();
 let multiplayerEnabled = localStorage.getItem('multiplayerEnabled') === 'true';
 let lastPositionUpdate = 0;
+let playerName = localStorage.getItem('playerName') || '';
+let playerNameInput: HTMLInputElement | null = null;
 
 // Platform types
 interface Rect { x: number; y: number; width: number; height: number; }
@@ -67,7 +75,7 @@ type Platform = Rect | SlopePlatform;
 const platforms: Platform[] = [];
 const boxes: Rect[] = [];
 
-function generateLevel() {
+async function generateLevel() {
   let x = 0;
   let heartPlaced = false;
   let doubleJumpPlaced = false;
@@ -96,7 +104,7 @@ function generateLevel() {
     platformCenters.push({ x: x + platformWidth / 2, y: GROUND_Y - 30 });
     // Add coin collectibles on some platforms
     if (Math.random() < 0.5) {
-      collectibles.push({ x: x + platformWidth / 2 - 10, y: GROUND_Y - 30, width: 20, height: 20, collected: false, type: 'coin' });
+      collectibles.push({ x: x + platformWidth / 2 - 10, y: GROUND_Y - 30, width: 20, height: 20, collected: false, type: 'coin', id: generateCollectibleId('coin') });
     }
     // Add spikes in some gaps
     if (Math.random() < 0.3 && x > 0) {
@@ -117,7 +125,7 @@ function generateLevel() {
   if (platformCenters.length > 0) {
     const idx: number = Math.floor(Math.random() * platformCenters.length);
     const pos = platformCenters[idx];
-    collectibles.push({ x: pos.x - 10, y: pos.y, width: 20, height: 20, collected: false, type: 'heart' });
+    collectibles.push({ x: pos.x - 10, y: pos.y, width: 20, height: 20, collected: false, type: 'heart', id: generateCollectibleId('heart') });
   }
   // Place a double jump power-up on a random platform (at most 1 per level, not on heart)
   if (platformCenters.length > 1) {
@@ -136,7 +144,7 @@ function generateLevel() {
     // Only place if we found a valid spot
     if (attempts < maxAttempts) {
       const pos = platformCenters[idx];
-      collectibles.push({ x: pos.x - 10, y: pos.y - 30, width: 20, height: 20, collected: false, type: 'doublejump' });
+      collectibles.push({ x: pos.x - 10, y: pos.y - 30, width: 20, height: 20, collected: false, type: 'doublejump', id: generateCollectibleId('doublejump') });
     }
   }
   // Place a grow power-up on a random platform (at most 1 per level, not on heart or doublejump)
@@ -158,7 +166,7 @@ function generateLevel() {
     // Only place if we found a valid spot
     if (attempts < maxAttempts) {
       const pos = platformCenters[idx];
-      collectibles.push({ x: pos.x - 10, y: pos.y - 60, width: 20, height: 20, collected: false, type: 'grow' });
+      collectibles.push({ x: pos.x - 10, y: pos.y - 60, width: 20, height: 20, collected: false, type: 'grow', id: generateCollectibleId('grow') });
     }
   }
   // Ensure a platform at the player spawn point (x=100)
@@ -173,6 +181,21 @@ function generateLevel() {
   let flagY = ('isSlope' in lastPlat && lastPlat.isSlope) ? lastPlat.endY - finishFlag.height : lastPlat.y - finishFlag.height;
   finishFlag.x = flagX;
   finishFlag.y = flagY;
+
+  // Register all collectibles with the server for multiplayer
+  if (multiplayerEnabled && collectibles.length > 0) {
+    const backendUrl =
+      window.location.port === '5173'
+        ? 'http://localhost:3001/register-collectibles'
+        : '/register-collectibles';
+    try {
+      await fetch(backendUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ collectibles: collectibles.map(c => ({ id: (c as any).id, type: c.type })) })
+      });
+    } catch (e) { /* ignore */ }
+  }
 }
 generateLevel();
 
@@ -474,6 +497,9 @@ function update(deltaTime: number) {
       if (c.type === 'doublejump' && player.hasDoubleJump) continue; // can't collect twice
       if (c.type === 'grow' && player.growLevel >= 3) continue; // can't collect more than 3
       c.collected = true;
+      if (multiplayerEnabled) {
+        multiplayerManager.collectItem((c as any).id);
+      }
       if (c.type === 'coin') {
         score++;
         setTopScore(score);
@@ -612,7 +638,8 @@ window.addEventListener('DOMContentLoaded', () => {
   const fpsCounterToggle = document.getElementById('fps-counter-toggle') as HTMLInputElement;
   const teslaModeToggle = document.getElementById('tesla-mode-toggle') as HTMLInputElement;
   const multiplayerToggle = document.getElementById('multiplayer-toggle') as HTMLInputElement;
-  if (settingsBtn && settingsModal && closeSettings && fixedGradientToggle && scrollGradientToggle && imageBgToggle && speedUnlockToggle && fpsCounterToggle && teslaModeToggle && multiplayerToggle) {
+  playerNameInput = document.getElementById('player-name-input') as HTMLInputElement;
+  if (settingsBtn && settingsModal && closeSettings && fixedGradientToggle && scrollGradientToggle && imageBgToggle && speedUnlockToggle && fpsCounterToggle && teslaModeToggle && multiplayerToggle && playerNameInput) {
     settingsBtn.addEventListener('click', () => {
       settingsModal.style.display = 'flex';
       fixedGradientToggle.checked = fixedGradient;
@@ -622,6 +649,7 @@ window.addEventListener('DOMContentLoaded', () => {
       fpsCounterToggle.checked = showFpsCounter;
       teslaModeToggle.checked = teslaMode;
       multiplayerToggle.checked = multiplayerEnabled;
+      if (playerNameInput) playerNameInput.value = playerName;
     });
     closeSettings.addEventListener('click', () => {
       settingsModal.style.display = 'none';
@@ -684,6 +712,12 @@ window.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('multiplayerEnabled', String(multiplayerEnabled));
       window.location.reload(); // Reload to re-init multiplayer
     });
+    if (playerNameInput) {
+      playerNameInput.addEventListener('input', () => {
+        playerName = playerNameInput!.value.slice(0, 12);
+        localStorage.setItem('playerName', playerName);
+      });
+    }
   }
   // Set version in settings modal if present
   const versionDiv = document.querySelector('#settings-modal [style*="Version: v0.1.8-6-g17f97db-dirty (17f97db, 2025-07-14)"]');
@@ -925,10 +959,50 @@ function draw() {
   // Draw other players
   ctx.save();
   ctx.fillStyle = '#0cf'; // Distinct color for other players
+  // Find highest score among all players (including yourself)
+  let highestScore = score;
+  let highestPlayerIds: string[] = [];
+  for (const other of otherPlayers.values()) {
+    if (typeof other.score === 'number' && other.score > highestScore) {
+      highestScore = other.score;
+      highestPlayerIds = [other.id];
+    } else if (typeof other.score === 'number' && other.score === highestScore) {
+      highestPlayerIds.push(other.id);
+    }
+  }
+  if (score === highestScore) highestPlayerIds.push('self');
   for (const other of otherPlayers.values()) {
     ctx.fillRect(other.x - cameraX, other.y, other.width, other.height);
+    // Draw name and crown above player only in multiplayer mode
+    if (multiplayerEnabled && otherPlayers.size > 0 && other.name) {
+      ctx.save();
+      ctx.font = '16px sans-serif';
+      if (highestPlayerIds.includes(other.id)) {
+        ctx.fillStyle = 'gold';
+        ctx.fillText('👑', other.x - cameraX + other.width / 2, other.y - 22);
+      } else {
+        ctx.fillStyle = '#fff';
+      }
+      ctx.textAlign = 'center';
+      ctx.fillText(other.name, other.x - cameraX + other.width / 2, other.y - 8);
+      ctx.restore();
+    }
   }
   ctx.restore();
+  // Draw your own name
+  if (multiplayerEnabled && otherPlayers.size > 0) {
+    ctx.save();
+    ctx.font = '16px sans-serif';
+    if (highestPlayerIds.includes('self')) {
+      ctx.fillStyle = 'gold';
+      ctx.fillText('👑', player.x - cameraX + player.width / 2, player.y - 22);
+    } else {
+      ctx.fillStyle = '#fff';
+    }
+    ctx.textAlign = 'center';
+    ctx.fillText(playerName || 'Player', player.x - cameraX + player.width / 2, player.y - 8);
+    ctx.restore();
+  }
   // Draw UI overlay
   ctx.save();
   ctx.fillStyle = '#fff';
@@ -944,6 +1018,42 @@ function draw() {
     ctx.fillStyle = '#0cf';
     const speedY = showFpsCounter ? 150 : 120;
     ctx.fillText(`Speed: ${currentSpeedMultiplier}x`, 20, speedY);
+  }
+  // Draw leaderboard (top-right) only in multiplayer mode with >1 player
+  if (multiplayerEnabled && otherPlayers.size > 0) {
+    // --- Leaderboard ---
+    // Deduplicate by player id (self and others)
+    const leaderboardMap = new Map();
+    // Add self
+    leaderboardMap.set(multiplayerManager.currentPlayerId, { id: multiplayerManager.currentPlayerId, name: playerName || 'Player', score, isSelf: true });
+    // Add others, but skip if id matches self
+    for (const p of otherPlayers.values()) {
+      if (p.id !== multiplayerManager.currentPlayerId) {
+        leaderboardMap.set(p.id, { id: p.id, name: p.name || 'Player', score: typeof p.score === 'number' ? p.score : 0, isSelf: false });
+      }
+    }
+    const leaderboardPlayers = Array.from(leaderboardMap.values());
+    leaderboardPlayers.sort((a, b) => b.score - a.score);
+    ctx.save();
+    ctx.globalAlpha = 0.85;
+    ctx.fillStyle = '#222';
+    ctx.fillRect(canvas.width - 240, 20, 220, 36 + 32 * Math.min(5, leaderboardPlayers.length));
+    ctx.globalAlpha = 1;
+    ctx.font = '18px sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'left';
+    ctx.fillText('Leaderboard', canvas.width - 225, 44);
+    for (let i = 0; i < Math.min(5, leaderboardPlayers.length); i++) {
+      const p = leaderboardPlayers[i];
+      ctx.font = p.isSelf ? 'bold 18px sans-serif' : '18px sans-serif';
+      ctx.fillStyle = p.isSelf ? '#0cf' : (i === 0 ? 'gold' : '#fff');
+      const crown = i === 0 ? '👑 ' : '';
+      ctx.fillText(`${crown}${p.name.slice(0, 12)}`, canvas.width - 225, 76 + i * 32);
+      ctx.textAlign = 'right';
+      ctx.fillText(String(p.score), canvas.width - 30, 76 + i * 32);
+      ctx.textAlign = 'left';
+    }
+    ctx.restore();
   }
   // Draw hearts for lives
   for (let i = 0; i < lives; i++) {
@@ -1115,6 +1225,16 @@ if (multiplayerEnabled) {
           gameState.players.forEach((playerData: any) => {
             if (playerData.id !== multiplayerManager.currentPlayerId) {
               otherPlayers.set(playerData.id, playerData);
+            } else {
+              // Update your own name and score from server
+              if (playerData.name && playerData.name !== playerName) {
+                playerName = playerData.name;
+                localStorage.setItem('playerName', playerName);
+                if (playerNameInput) playerNameInput.value = playerName;
+              }
+              if (typeof playerData.score === 'number') {
+                score = playerData.score;
+              }
             }
           });
         });
@@ -1125,12 +1245,23 @@ if (multiplayerEnabled) {
           console.log(`Player ${playerId} left the game`);
           otherPlayers.delete(playerId);
         });
-        multiplayerManager.onPlayerUpdate((playerId, position) => {
+        multiplayerManager.onPlayerUpdate((playerId, position, scoreFromServer, nameFromServer) => {
           if (otherPlayers.has(playerId)) {
             const player = otherPlayers.get(playerId);
             Object.assign(player, position);
+            if (typeof scoreFromServer === 'number') player.score = scoreFromServer;
+            if (typeof nameFromServer === 'string') player.name = nameFromServer;
           } else {
-            otherPlayers.set(playerId, { id: playerId, ...position });
+            otherPlayers.set(playerId, { id: playerId, ...position, score: scoreFromServer, name: nameFromServer });
+          }
+          // If this is you, update your score and name
+          if (playerId === multiplayerManager.currentPlayerId) {
+            if (typeof scoreFromServer === 'number') score = scoreFromServer;
+            if (typeof nameFromServer === 'string' && nameFromServer !== playerName) {
+              playerName = nameFromServer;
+              localStorage.setItem('playerName', playerName);
+              if (playerNameInput) playerNameInput.value = playerName;
+            }
           }
         });
       } else {

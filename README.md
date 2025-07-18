@@ -20,9 +20,22 @@
 [![Multiplayer](https://img.shields.io/badge/Multiplayer-WebSocket-orange.svg)](server.js)
 
 # generated-game-experiment
-Private experiment to create a game with cursor. Play it for free at https://commjoen.github.io/generated-game-experiment/
 
-# Running the Side-Scrolling Platformer Game
+<!-- Badges and status omitted for brevity, keep as in original -->
+
+## Overview
+A browser-based, side-scrolling platformer game built with TypeScript, Vite, and Docker. Features procedural levels, collectibles, power-ups, a settings modal, and robust multiplayer support. Containerized with nginx for easy deployment to Render and GitHub Pages.
+
+## Features
+- **Procedural Levels**: Each run generates a new level with platforms, spikes, moving platforms, and boxes.
+- **Collectibles & Power-Ups**: Coins (score), hearts (lives), double jump (feather), and grow (mushroom, up to 3x size per life).
+- **Responsive UI**: Onscreen controls for mobile/Tesla, Tesla Mode toggle, and a settings modal for backgrounds, speed, FPS, multiplayer, and player name.
+- **Multiplayer**: Toggle on/off in the UI. Real-time sync of player state (position, name, score) via WebSocket. Optional, with auto-fallback to singleplayer.
+- **Leaderboard**: Real-time, deduplicated leaderboard (top 5) in multiplayer, with crown and gold color for the leader.
+- **Robust Sync**: Player names and scores are always updated from the server. Collectibles are registered only once per level.
+- **Testing & CI**: Unit and integration tests for singleplayer and multiplayer (Vitest, ws, node-fetch). CI/CD with GitHub Actions and Docker.
+- **Deployment**: Dockerfile and nginx for production. Render.yaml for Render.com. CORS handled globally. Health checks and build filters included.
+- **Documentation**: Up-to-date README, project spec, and conversation transcript.
 
 ## Development
 
@@ -30,158 +43,73 @@ Private experiment to create a game with cursor. Play it for free at https://com
    ```sh
    npm install
    ```
-2. Start the development server (single-player):
+2. Start the dev server (singleplayer):
    ```sh
    npm run dev
    ```
-3. To enable multiplayer in development, run both the dev server and the multiplayer server:
+3. For multiplayer in dev, run both:
    ```sh
-   # In another terminal:
    node server.js
-   # In one terminal:
    npm run dev:mp
    ```
-   Open two browser windows at the shown URL (usually http://localhost:5173) to test multiplayer.
-4. If you see TypeScript errors about `import.meta.env`, ensure you have this line in `src/vite-env.d.ts`:
-   ```ts
-   /// <reference types="vite/client" />
-   ```
+   Open two browser windows at http://localhost:5173 to test multiplayer.
+
+## Environment Variables
+- `NODE_ENV`: Set to `production` in Docker/Render for optimized builds and to disable progress logging.
+- `RENDER`, `DOCKER`: Set automatically in Render/Docker. Used to disable progress logging.
+- `VITE_MULTIPLAYER`: Enables multiplayer in dev (`npm run dev:mp`).
+- `VITE_BASE_PATH`: Set asset base path for Docker/nginx or GitHub Pages.
+
+## Progress Logging
+- **Enabled by default in local development.**
+- **Disabled automatically in Docker/Render/production.**
+- Logs player progress (position, score, collectibles) to the server console for debugging.
 
 ## Build for Production
-
-1. Build the project:
+1. Build:
    ```sh
    npm run build
    ```
-2. Preview the production build:
+2. Preview:
    ```sh
    npm run preview
    ```
 
 ## Docker Deployment
-
-The game includes **optional multiplayer functionality** in a single container:
-
-### Build and Run with Docker Buildx (Recommended)
-
-```sh
-# Build a multi-platform image (replace with your Docker Hub username/image)
-docker buildx build --platform linux/amd64,linux/arm64 -t jeroenwillemsen/platformer-game-1:local --load .
-
-# Run with both game and multiplayer server
-docker run -p 8080:80 -p 3001:3001 jeroenwillemsen/platformer-game-1:local
-```
-
-- **Game client**: http://localhost:8080
-- **Multiplayer**: Automatically detected and enabled
-- **Single-player fallback**: Works even if multiplayer fails
-
-For detailed multiplayer setup instructions, see [MULTIPLAYER_SETUP.md](.cursor/fixesanddocs/MULTIPLAYER_SETUP.md).
-
-### Run the Latest Published Version
-
-You can run the latest published image from Docker Hub or GitHub Container Registry:
-
-```sh
-# From Docker Hub (replace with your image name if different)
-docker run -p 8080:80 -p 3001:3001 jeroenwillemsen/platformer-game-1:latest
-
-# Or from GitHub Container Registry
-docker run -p 8080:80 -p 3001:3001 ghcr.io/commjoen/generated-game-experiment:latest
-```
-
-- **Game client**: http://localhost:8080
-- **Multiplayer**: Automatically detected and enabled
-- **Single-player fallback**: Works even if multiplayer fails
-
-## ☁️ Cloud Deployment
-
-### Render.com (Recommended)
-
-Deploy to Render.com with one click:
-
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
-
-Or manually:
-1. Fork this repository
-2. Connect to [Render.com](https://render.com)
-3. Create new "Blueprint" service
-4. Select your repository (e.g. [https://github.com/commjoen/generated-game-experiment](https://github.com/commjoen/generated-game-experiment)) (render.yaml will be auto-detected)
-5. Deploy!
-
-**Features:**
-- ✅ **Free tier available** (750 hours/month)
-- ✅ **Automatic HTTPS** and WebSocket support  
-- ✅ **Auto-deploy** on git push
-- ✅ **Built-in monitoring** and health checks
-- ✅ **Graceful sleep handling** (falls back to single-player)
-
-Your game will be available at: `https://your-app-name.onrender.com` (we now test at https://generated-game-experiment.onrender.com/)
-
-For detailed instructions, see [RENDER_DEPLOYMENT.md](.cursor/fixesanddocs/RENDER_DEPLOYMENT.md).
-
-## 🐳 Docker Images & CI/CD
-
-### Automated Container Builds
-
-Every PR and release automatically builds Docker containers:
-
-- **📦 GitHub Container Registry**: `ghcr.io/commjoen/generated-game-experiment`
-- **🌐 Docker Hub**: `username/platformer-game` (optional)
-- **🔒 Security Scanning**: Trivy vulnerability scanner
-- **🧪 Automatic Testing**: Container functionality tests
-
-### Available Images
-
-```bash
-# Latest from main branch
-docker pull ghcr.io/commjoen/generated-game-experiment:latest
-
-# Specific PR (for testing)
-docker pull ghcr.io/commjoen/generated-game-experiment:pr-123
-
-# Specific release
-docker pull ghcr.io/commjoen/generated-game-experiment:v0.2.0
-```
-
-### PR Workflow
-
-When you create a PR:
-1. 🔨 **Automatic build** triggers
-2. 🧪 **Container testing** runs  
-3. 💬 **PR comment** with image details
-4. 🌐 **Deploy PR image** to test changes
-
-For detailed CI/CD information, see [DOCKER_CI_CD.md](..cursor/fixesanddocs/DOCKER_CI_CD.md).
-
-## Project Documentation
-
-- The full project specification is available in `.cursor/rules/project-spec.md`.
-- A transcript of the assistant-user conversation and implementation steps is available in `.cursor/rules/conversation.md`.
-
-These files document the requirements, design decisions, and development history of the project.
-
-## GitHub Pages Deployment
-
-This game is automatically deployed to GitHub Pages on every push to `main` using a GitHub Actions workflow.
-
-- **Live URL:** https://commjoen.github.io/generated-game-experiment/
-- The workflow builds the project and publishes the `dist` folder to the `gh-pages` branch.
-- The Vite config uses `base: process.env.VITE_BASE_PATH || '/'` to ensure correct asset paths. If you rename the repository, update this value in `vite.config.ts` and the workflow.
-
-To manually trigger a deployment, push to the `main` branch.
-
-## Building for Different Environments
-
-This project uses the `VITE_BASE_PATH` environment variable to set the base path for assets at build time.
-
-- For Docker/nginx (root path):
+- Build and run locally:
   ```sh
-  VITE_BASE_PATH=/ npm run build
+  docker buildx build --platform linux/amd64,linux/arm64 -t your-image:local --load .
+  docker run -p 8080:80 -p 3001:3001 your-image:local
   ```
-- For GitHub Pages (repo subpath):
-  ```sh
-  VITE_BASE_PATH=/generated-game-experiment/ npm run build
-  ```
+- Multiplayer is auto-enabled. Singleplayer fallback is automatic if multiplayer is unavailable.
 
-If you change your repository name or deploy to a different subpath, update the value accordingly.
+## Render.com Deployment
+- Deploy with one click or manually (see Render docs).
+- Multiplayer and health checks are supported out of the box.
+
+## GitHub Pages
+- Auto-deployed on every push to `main`.
+- Live at: https://commjoen.github.io/generated-game-experiment/
+
+## Testing
+- Run all tests:
+  ```sh
+  npm test
+  ```
+- Tests cover health checks, multiplayer join, coin collection, score sync, and broadcast.
+
+## Documentation
+- **Project spec**: `.cursor/rules/project-spec.md`
+- **Conversation transcript**: `.cursor/rules/conversation.md`
+- **CI/CD, multiplayer, and deployment**: See `.cursor/fixesanddocs/` for detailed guides.
+
+## Changelog
+- Unique IDs for all collectibles (fixes multiplayer coin collection).
+- Progress logging is now optional and disabled in Docker/Render.
+- Leaderboard deduplicates entries for the leader.
+- Multiplayer is robust, with real-time sync and fallback.
+- Documentation and CI updated for all new features.
+
+---
+
+For more, see the full project spec and conversation transcript in `.cursor/rules/`.

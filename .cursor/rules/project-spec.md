@@ -31,6 +31,10 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
 - **Automated Deployment**: GitHub Actions workflows for test and deploy, with deployment to GitHub Pages and correct base path/branch structure.
 - **Security**: Nginx config with CORS and security headers, Subresource Integrity (SRI) for built assets.
 - **Project Documentation**: Up-to-date README and changelog.
+- **Multiplayer (Fully Implemented)**: Users can enable or disable multiplayer via a toggle in the settings menu. When enabled, the game connects to a multiplayer server (Docker/Render supported) and synchronizes player state in real time. If the server is unavailable, the game automatically falls back to singleplayer mode. Robust tests cover both singleplayer and multiplayer scenarios.
+- **Unique Collectible IDs**: All collectibles have unique IDs, ensuring correct multiplayer coin collection and state sync.
+- **Deduplicated Leaderboard**: The leaderboard in multiplayer mode shows each player only once, even if they are both 'self' and in otherPlayers.
+- **Optional Progress Logging**: Player progress logging (position, score, collectibles) is enabled only in local development, and automatically disabled in Docker/Render/production environments.
 
 ## Stretch Goals (Optional/Future)
 - **Other Power-Ups**: Additional abilities (e.g., speed boost).
@@ -38,7 +42,6 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
 - **Leaderboard**: Track and display player scores globally.
 - **Additional Levels**: More level types and increasing complexity.
 - **Sound & Music**: Background music and sound effects.
-- **Multiplayer**: the ability to play with multiple people.
 
 ## Art & Assets
 - Uses open-source or custom-made assets for characters, backgrounds, and objects.

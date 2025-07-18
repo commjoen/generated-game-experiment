@@ -15,6 +15,7 @@ const version = require('./package.json').version || 'unknown';
 const commit = safeGit('git rev-parse --short HEAD', 'unknown');
 const branch = safeGit('git rev-parse --abbrev-ref HEAD', 'unknown');
 const tag = safeGit('git describe --tags --abbrev=0', 'none');
+const buildDate = new Date().toISOString();
 
 // Use VITE_BASE_PATH env variable for base path, default to '/'
 // Example: VITE_BASE_PATH=/generated-game-experiment/ npm run build
@@ -37,5 +38,6 @@ export default defineConfig({
     __COMMITHASH__: JSON.stringify(commit),
     __BRANCH__: JSON.stringify(branch),
     __GITTAG__: JSON.stringify(tag),
+    __BUILDDATE__: JSON.stringify(buildDate),
   },
 }); 

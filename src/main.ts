@@ -633,6 +633,8 @@ const COMMITHASH = typeof __COMMITHASH__ !== 'undefined' ? __COMMITHASH__ : 'unk
 const BRANCH = typeof __BRANCH__ !== 'undefined' ? __BRANCH__ : 'unknown';
 // @ts-ignore
 const GITTAG = typeof __GITTAG__ !== 'undefined' ? __GITTAG__ : 'none';
+// @ts-ignore
+const BUILDDATE = typeof __BUILDDATE__ !== 'undefined' ? __BUILDDATE__ : 'unknown';
 
 window.addEventListener('DOMContentLoaded', () => {
   const settingsBtn = document.getElementById('settings-btn');
@@ -729,7 +731,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // Set version in settings modal if present
   const versionEl = document.querySelector('.version-string, #version, .version, #version-string') as HTMLElement;
   if (versionEl) {
-    versionEl.textContent = `Version: ${VERSION} (tag: ${GITTAG}, ${BRANCH}, ${COMMITHASH})`;
+    versionEl.textContent = `Version: ${VERSION} (tag: ${GITTAG}, ${BRANCH}, ${COMMITHASH}, built: ${BUILDDATE})`;
   }
   updateOnscreenControlsVisibility();
 });

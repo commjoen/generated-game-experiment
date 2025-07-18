@@ -106,7 +106,7 @@ Or manually:
 1. Fork this repository
 2. Connect to [Render.com](https://render.com)
 3. Create new "Blueprint" service
-4. Select your repository (render.yaml will be auto-detected)
+4. Select your repository (e.g. [https://github.com/commjoen/generated-game-experiment](https://github.com/commjoen/generated-game-experiment)) (render.yaml will be auto-detected)
 5. Deploy!
 
 **Features:**

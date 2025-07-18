@@ -76,7 +76,7 @@ docker run -p 8080:80 -p 3001:3001 jeroenwillemsen/platformer-game-1:local
 - **Multiplayer**: Automatically detected and enabled
 - **Single-player fallback**: Works even if multiplayer fails
 
-For detailed multiplayer setup instructions, see [MULTIPLAYER_SETUP.md](./MULTIPLAYER_SETUP.md).
+For detailed multiplayer setup instructions, see [MULTIPLAYER_SETUP.md](.cursor/fixesanddocs/MULTIPLAYER_SETUP.md).
 
 ### Run the Latest Published Version
 
@@ -118,7 +118,7 @@ Or manually:
 
 Your game will be available at: `https://your-app-name.onrender.com` (we now test at https://generated-game-experiment.onrender.com/)
 
-For detailed instructions, see [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md).
+For detailed instructions, see [RENDER_DEPLOYMENT.md](.cursor/fixesanddocs/RENDER_DEPLOYMENT.md).
 
 ## 🐳 Docker Images & CI/CD
 
@@ -152,7 +152,7 @@ When you create a PR:
 3. 💬 **PR comment** with image details
 4. 🌐 **Deploy PR image** to test changes
 
-For detailed CI/CD information, see [DOCKER_CI_CD.md](./DOCKER_CI_CD.md).
+For detailed CI/CD information, see [DOCKER_CI_CD.md](..cursor/fixesanddocs/DOCKER_CI_CD.md).
 
 ## Project Documentation
 

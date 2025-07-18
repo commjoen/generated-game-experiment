@@ -40,7 +40,7 @@ describe('Multiplayer server', () => {
         }
       });
       
-      ws.on('error', (err) => {
+      ws.on('error', (err: any) => {
         clearTimeout(timeout);
         reject(err);
       });
@@ -99,14 +99,14 @@ describe('Multiplayer server', () => {
         // Just acknowledge messages from ws2
       });
       
-      ws1.on('error', (err) => {
+      ws1.on('error', (err: any) => {
         clearTimeout(timeout);
         ws1.close();
         ws2.close();
         reject(err);
       });
       
-      ws2.on('error', (err) => {
+      ws2.on('error', (err: any) => {
         clearTimeout(timeout);
         ws1.close();
         ws2.close();

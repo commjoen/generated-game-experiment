@@ -30,6 +30,7 @@
   "devDependencies": {
     "@types/jsdom": "^21.1.7",
     "@types/node": "^24.0.13",
+    "@types/ws": "^8.18.1",
     "jsdom": "^26.1.0",
     "typescript": "^5.8.3",
     "vite": "^7.0.4",

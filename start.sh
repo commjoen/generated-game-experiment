@@ -20,7 +20,7 @@ fi
 # Start the multiplayer server in background
 echo "Starting multiplayer server on port 3001..."
 cd /app
-node server.js &
+PORT=3001 && node server.js &
 SERVER_PID=$!
 
 # Wait a moment for server to start

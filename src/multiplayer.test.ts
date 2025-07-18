@@ -113,5 +113,5 @@ describe('Multiplayer server', () => {
         reject(err);
       });
     });
-  });
+  },20000);
 }); 

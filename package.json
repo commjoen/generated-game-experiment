@@ -8,7 +8,7 @@
     "dev:mp": "VITE_MULTIPLAYER=1 vite --host",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest",
+    "test": "vitest run",
     "test:ci": "vitest run",
     "prebuild": "node scripts/inject-version.js",
     "predev": "node scripts/inject-version.js"
@@ -32,13 +32,14 @@
     "@types/node": "^24.0.13",
     "@types/ws": "^8.18.1",
     "jsdom": "^26.1.0",
+    "node-fetch": "^3.3.2",
     "typescript": "^5.8.3",
     "vite": "^7.0.4",
     "vite-plugin-sri": "^0.0.2",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "ws": "^8.18.3"
   },
   "dependencies": {
-    "express": "^5.1.0",
-    "ws": "^8.18.3"
+    "express": "^5.1.0"
   }
 }

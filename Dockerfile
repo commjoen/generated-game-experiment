@@ -21,6 +21,7 @@ ENV COMMITHASH=$COMMITHASH
 ENV BRANCH=$BRANCH
 ENV GITTAG=$GITTAG
 ENV BUILDDATE=$BUILDDATE
+ENV PORT=$PORT
 RUN npm install && npm run build
 
 # Stage 2: Final container with nginx + Node.js server

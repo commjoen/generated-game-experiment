@@ -19,6 +19,14 @@ jobs:
       - run: touch dist/.keep
       - name: Fetch full git history for version injection
         run: git fetch --unshallow || true
+      - name: Fetch tags for version injection
+        run: git fetch --tags --force
+      - name: Get version from tag
+        id: get_version
+        run: |
+          VERSION=$(git describe --tags --abbrev=0)
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+      - name: Print version
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
         with:

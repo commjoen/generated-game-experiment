@@ -5,7 +5,8 @@ import { execSync } from 'child_process';
 function safeGit(cmd: string, fallback: string) {
   try {
     return execSync(cmd).toString().trim();
-  } catch {
+  } catch (e) {
+    console.warn(`[vite.config.ts] Failed to run '${cmd}': ${e}`);
     return fallback;
   }
 }

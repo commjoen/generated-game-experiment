@@ -77,7 +77,7 @@ A browser-based, side-scrolling platformer game built with TypeScript, Vite, and
 
 ## Docker Deployment
 - Build and run locally:
-  ```sh
+```sh
   docker buildx build --platform linux/amd64,linux/arm64 -t your-image:local --load .
   docker run -p 8080:80 -p 3001:3001 your-image:local
   ```
@@ -93,7 +93,7 @@ A browser-based, side-scrolling platformer game built with TypeScript, Vite, and
 
 ## Testing
 - Run all tests:
-  ```sh
+```sh
   npm test
   ```
 - Tests cover health checks, multiplayer join, coin collection, score sync, and broadcast.

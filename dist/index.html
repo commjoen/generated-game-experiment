@@ -65,7 +65,7 @@
         pointer-events: auto;
       }
     </style>
-  <script type="module" crossorigin="" src="/assets/index-BBptI7O7.js" integrity="sha384-xhgSNvBAPDZKX0S3RFm1ccM7kNG+Oc8yFPVvsLXLkYAJBJDm5xORLMJ3buwGYTmK"></script>
+  <script type="module" crossorigin="" src="/assets/index-0yBVwnL0.js" integrity="sha384-s/FJnNruI/Sp8CuO0Yj4kd50HBkpkR24gwT7wMl0m2dWL4bKRVJWj3Y/G+mYAHAi"></script>
 </head>
 <body>
   <main id="main-content" role="main" tabindex="-1">
@@ -117,15 +117,21 @@
         <input type="checkbox" id="tesla-mode-toggle">
         Tesla Mode (always show onscreen controls)
       </label>
+      <label style="display:flex;align-items:center;gap:8px;margin:16px 0;">
+        <input type="checkbox" id="multiplayer-toggle">
+        Enable Multiplayer (optional)
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;margin:16px 0;">
+        <span style="min-width:90px;">Player Name:</span>
+        <input type="text" id="player-name-input" maxlength="12" style="flex:1;min-width:0;max-width:160px;padding:4px 8px;border-radius:6px;border:1px solid #444;background:#111;color:#fff;" placeholder="Player">
+      </label>
       <div style="margin-top:24px;padding-top:16px;border-top:1px solid #444;color:#aaa;font-size:14px;">
         <div style="margin-bottom:8px;"><strong>Keyboard Controls:</strong></div>
         <div>• Press <strong>T</strong> to toggle speed</div>
         <div>• Arrow keys or WASD to move</div>
         <div>• Space or Up arrow to jump</div>
       </div>
-      <div style="margin-top:18px; color:#888; font-size:13px; text-align:right;">
-        Version: v0.1.8-6-g17f97db-dirty (17f97db, 2025-07-14)
-      </div>
+      <div id="version-string" style="margin-top:18px; color:#888; font-size:13px; text-align:right;"></div>
     </div>
   </div>
   <script>

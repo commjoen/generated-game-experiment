@@ -1,16 +1,31 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { WebSocket } from 'ws';
 import fetch from 'node-fetch';
+import { setupServer, teardownServer, getTestPort } from '../test/server-manager';
 
-const WS_URL = 'ws://localhost:3001';
-const HEALTH_URL = 'http://localhost:3001/health';
+beforeAll(async () => {
+  await setupServer();
+  await new Promise(r => setTimeout(r, 400));
+});
+
+afterAll(async () => {
+  await teardownServer();
+});
 
 function wait(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 describe('Multiplayer server', () => {
+  function getBaseUrl() {
+    return `http://localhost:${getTestPort()}`;
+  }
+  function getWsUrl() {
+    return `ws://localhost:${getTestPort()}`;
+  }
+
   it('should respond to health check', async () => {
+    const HEALTH_URL = getBaseUrl() + '/health';
     const res = await fetch(HEALTH_URL);
     expect(res.status).toBe(200);
     const json: any = await res.json();
@@ -19,14 +34,14 @@ describe('Multiplayer server', () => {
 
   it('should increment and broadcast score when a coin is collected', async () => {
     // Register a coin collectible
-    await fetch('http://localhost:3001/register-collectibles', {
+    await fetch(getBaseUrl() + '/register-collectibles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ collectibles: [{ id: 'coin1', type: 'coin' }] })
     });
 
     // Player 1 joins
-    const ws1 = new WebSocket(WS_URL);
+    const ws1 = new WebSocket(getWsUrl());
     let ws1Score = 0;
     let ws1Ready = false;
     ws1.on('open', () => {
@@ -54,14 +69,14 @@ describe('Multiplayer server', () => {
 
   it('should broadcast updated scores to all players', async () => {
     // Register a new coin collectible
-    await fetch('http://localhost:3001/register-collectibles', {
+    await fetch(getBaseUrl() + '/register-collectibles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ collectibles: [{ id: 'coin2', type: 'coin' }] })
     });
 
     // Player 1 joins
-    const ws1 = new WebSocket(WS_URL);
+    const ws1 = new WebSocket(getWsUrl());
     let ws1Score = 0;
     let ws2Score = 0;
     let ws1Ready = false;
@@ -78,7 +93,7 @@ describe('Multiplayer server', () => {
     });
 
     // Player 2 joins
-    const ws2 = new WebSocket(WS_URL);
+    const ws2 = new WebSocket(getWsUrl());
     ws2.on('open', () => {
       ws2.send(JSON.stringify({ type: 'join', playerId: 'p2', name: 'P2', timestamp: Date.now() }));
     });

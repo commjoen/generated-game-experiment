@@ -1,4 +1,18 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll, afterAll } from 'vitest';
+import { setupServer, teardownServer, getTestPort } from '../test/server-manager';
+
+beforeAll(async () => {
+  await setupServer();
+});
+
+afterAll(async () => {
+  await teardownServer();
+});
+
+// Helper to get the base URL for requests
+function getBaseUrl() {
+  return `http://localhost:${getTestPort()}`;
+}
 
 // Minimal mock of player and platform logic for testing
 const GRAVITY = 0.5;

@@ -316,8 +316,7 @@ wss.on('connection', (ws) => {
 
 app.use(cors());
 
-//const PORT = process.env.PORT || 3001;
-const PORT = 3001;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
 server.listen(PORT, () => {
   console.log(`Multiplayer server running on port ${PORT}`);
   console.log(`Health check available at http://localhost:${PORT}/health`);

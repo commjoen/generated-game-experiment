@@ -9,6 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Get version from tag
+        id: get_version
+        run: |
+          git fetch --tags --force
+          export VERSION=$(git describe --tags --abbrev=0)
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -17,16 +25,7 @@ jobs:
       - run: ls -l
       - run: ls -l dist
       - run: touch dist/.keep
-      - name: Fetch full git history for version injection
-        run: git fetch --unshallow || true
-      - name: Get version from tag
-        id: get_version
-        run: |
-          git fetch --tags --force
-          export VERSION=$(git describe --tags --abbrev=0)
-          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
-      - name: Print version
-        run: echo "VERSION=${{ steps.get_version.outputs.VERSION }}"
+      
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
         with:

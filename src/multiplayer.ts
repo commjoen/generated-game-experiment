@@ -121,14 +121,17 @@ export class MultiplayerManager {
           this.isConnected = true;
           this.reconnectAttempts = 0;
           console.log('Connected to multiplayer server');
-          
-          // Send join message
+          // Get playerName from localStorage or default
+          let playerName = '';
+          try {
+            playerName = localStorage.getItem('playerName') || '';
+          } catch {}
           this.send({
             type: 'join',
             playerId: this.playerId,
+            name: playerName,
             timestamp: Date.now()
           });
-          
           resolve(true);
         };
 
@@ -195,7 +198,12 @@ export class MultiplayerManager {
         break;
       case 'playerUpdate':
         if (this._onPlayerUpdate) {
-          this._onPlayerUpdate(data.playerId, data.position);
+          this._onPlayerUpdate(data.playerId, data.position, data.score, data.name);
+        }
+        break;
+      case 'itemCollected':
+        if (this._onPlayerUpdate) {
+          this._onPlayerUpdate(data.playerId, {}, data.score, data.name);
         }
         break;
       case 'pong':
@@ -230,7 +238,6 @@ export class MultiplayerManager {
   // Send collectible pickup
   collectItem(collectibleId: string) {
     if (!this.isConnected) return;
-
     this.send({
       type: 'collectItem',
       playerId: this.playerId,
@@ -252,12 +259,12 @@ export class MultiplayerManager {
     this.onPlayerLeave = callback;
   }
 
-  private _onPlayerUpdate?: (playerId: string, position: any) => void;
+  private _onPlayerUpdate?: (playerId: string, position: any, score?: number, name?: string) => void;
   /**
    * Register a callback for player position updates.
    * @param callback (playerId: string, position: any) => void
    */
-  onPlayerUpdate(callback: (playerId: string, position: any) => void): void {
+  onPlayerUpdate(callback: (playerId: string, position: any, score?: number, name?: string) => void): void {
     this._onPlayerUpdate = callback;
   }
 

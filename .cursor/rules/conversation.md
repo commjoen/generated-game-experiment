@@ -33,3 +33,10 @@
 
 ## UI & Attribution
 - Added a copyright and source code link, fixed to the bottom center of the viewport for visibility on all devices. 
+
+## Multiplayer, Logging, and Leaderboard Improvements
+- Unique IDs are now assigned to all collectibles, fixing multiplayer coin collection and state sync.
+- The leaderboard is deduplicated so each player appears only once, even if they are both 'self' and in otherPlayers.
+- Progress logging (player position, score, collectibles) is now optional and only enabled in local development. It is automatically disabled in Docker/Render/production environments.
+- Multiplayer is robust, with real-time sync of names and scores, and a fallback to singleplayer if the server is unavailable.
+- Documentation, CI, and deployment instructions have been updated to reflect all new features and improvements. 

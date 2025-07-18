@@ -41,8 +41,8 @@ NGINX_PID=$!
 echo "✓ Game client started successfully"
 echo ""
 if [ "$IS_RENDER" = "true" ]; then
-    echo "🎮 Game is available at: https://${RENDER_EXTERNAL_HOSTNAME:-your-app}.onrender.com"
-    echo "🌐 Multiplayer WebSocket: wss://${RENDER_EXTERNAL_HOSTNAME:-your-app}.onrender.com/ws"
+    echo "🎮 Game is available at: https://${RENDER_EXTERNAL_HOSTNAME:-your-app}"
+    echo "🌐 Multiplayer WebSocket: wss://${RENDER_EXTERNAL_HOSTNAME:-your-app}/ws"
 else
     echo "🎮 Game is available at: http://localhost:80"
     echo "🌐 Multiplayer server at: http://localhost:3001"

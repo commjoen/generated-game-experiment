@@ -11,11 +11,11 @@ function safeGit(cmd: string, fallback: string) {
   }
 }
 
-const version = require('./package.json').version || 'unknown';
-const commit = safeGit('git rev-parse --short HEAD', 'unknown');
-const branch = safeGit('git rev-parse --abbrev-ref HEAD', 'unknown');
-const tag = safeGit('git describe --tags --abbrev=0', 'none');
-const buildDate = new Date().toISOString();
+const version = safeGit('git describe --tags --always --dirty', process.env.VERSION || require('./package.json').version || 'unknown');
+const commit = safeGit('git rev-parse --short HEAD', process.env.COMMITHASH || 'unknown');
+const branch = safeGit('git rev-parse --abbrev-ref HEAD', process.env.BRANCH || 'unknown');
+const tag = safeGit('git describe --tags --abbrev=0', process.env.GITTAG || 'none');
+const buildDate = process.env.BUILDDATE || new Date().toISOString();
 
 // Use VITE_BASE_PATH env variable for base path, default to '/'
 // Example: VITE_BASE_PATH=/generated-game-experiment/ npm run build

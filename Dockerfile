@@ -7,9 +7,20 @@ COPY vite.config.ts ./
 COPY index.html ./
 COPY public ./public
 COPY src ./src
-COPY .git .git
 COPY scripts ./scripts
 ENV VITE_MULTIPLAYER=1
+
+# Add build args for version injection in cloud builds
+ARG VERSION=unknown
+ARG COMMITHASH=unknown
+ARG BRANCH=unknown
+ARG GITTAG=none
+ARG BUILDDATE=unknown
+ENV VERSION=$VERSION
+ENV COMMITHASH=$COMMITHASH
+ENV BRANCH=$BRANCH
+ENV GITTAG=$GITTAG
+ENV BUILDDATE=$BUILDDATE
 RUN npm install && npm run build
 
 # Stage 2: Final container with nginx + Node.js server

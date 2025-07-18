@@ -14,11 +14,6 @@
 [![Render Deployment](https://img.shields.io/badge/Render-Deployed-46E3B7.svg)](https://generated-game-experiment.onrender.com/)
 [![Docker](https://img.shields.io/badge/Docker-Available-2496ED.svg)](https://github.com/commjoen/generated-game-experiment/pkgs/container/generated-game-experiment)
 
-<!-- Package & Dependencies -->
-[![npm version](https://img.shields.io/npm/v/generated-game-experiment.svg)](https://www.npmjs.com/package/generated-game-experiment)
-[![Dependencies](https://img.shields.io/badge/dependencies-2-green.svg)](package.json)
-[![Dev Dependencies](https://img.shields.io/badge/devDependencies-6-orange.svg)](package.json)
-
 <!-- Quality & Security -->
 [![Security: Trivy](https://img.shields.io/badge/Security-Trivy%20Scanned-green.svg)](https://github.com/commjoen/generated-game-experiment/actions)
 [![Code Quality](https://img.shields.io/badge/Code%20Quality-TypeScript-blue.svg)](tsconfig.json)

@@ -36,10 +36,10 @@ Private experiment to create a game with cursor. Play it for free at https://com
    ```
 3. To enable multiplayer in development, run both the dev server and the multiplayer server:
    ```sh
-   # In one terminal:
-   npm run dev:mp
    # In another terminal:
    node server.js
+   # In one terminal:
+   npm run dev:mp
    ```
    Open two browser windows at the shown URL (usually http://localhost:5173) to test multiplayer.
 4. If you see TypeScript errors about `import.meta.env`, ensure you have this line in `src/vite-env.d.ts`:
@@ -141,7 +141,7 @@ docker pull ghcr.io/commjoen/generated-game-experiment:latest
 docker pull ghcr.io/commjoen/generated-game-experiment:pr-123
 
 # Specific release
-docker pull ghcr.io/commjoen/generated-game-experiment:v1.0.0
+docker pull ghcr.io/commjoen/generated-game-experiment:v0.2.0
 ```
 
 ### PR Workflow

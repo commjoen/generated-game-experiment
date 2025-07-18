@@ -1,7 +1,7 @@
 # Stage 1: Build the game client
 FROM node:22 AS builder
 WORKDIR /app
-RUN apt-get update && apt-get install -y git
+RUN apt-get update
 COPY package.json package-lock.json ./
 COPY vite.config.ts ./
 COPY index.html ./
@@ -11,6 +11,7 @@ ENV VITE_MULTIPLAYER=1
 
 # Add build args for version injection in cloud builds
 ARG VERSION=unknown
+ARG PORT=3001
 ARG COMMITHASH=unknown
 ARG BRANCH=unknown
 ARG GITTAG=none

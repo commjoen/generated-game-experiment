@@ -50,6 +50,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Fetch full git history for version injection
       run: git fetch --unshallow || true

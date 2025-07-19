@@ -65,7 +65,7 @@
         pointer-events: auto;
       }
     </style>
-  <script type="module" crossorigin="" src="/generated-game-experiment/assets/index-Bg5fYtM6.js" integrity="sha384-hjtwUFPkjirNQfNC+DPewthHZTzWl9B530qLqSeQQoWzQxqMGuz2lNCI6SyDjxDH"></script>
+  <script type="module" crossorigin="" src="/generated-game-experiment/assets/index-D7cSzOHA.js" integrity="sha384-0L/6U+Y16DKFAd+2TNVXOz2CHwLItgT+A19vqDcpa7LkmA7cd/ztEAwzIgn7aLFw"></script>
 </head>
 <body>
   <main id="main-content" role="main" tabindex="-1">
@@ -139,7 +139,7 @@
     function isTizen() {
       return typeof window.tizen !== 'undefined' || /Tizen|SMART-TV|SmartTV|SamsungBrowser/i.test(navigator.userAgent);
     }
-    if (isTizen()) {
+    // if (isTizen()) {
       // Register TV remote keys if tizen.tvinputdevice is available
       try {
         if (window.tizen && tizen.tvinputdevice && tizen.tvinputdevice.registerKey) {
@@ -190,7 +190,7 @@
             break;
         }
       });
-    }
+    // }
   </script>
   <script>
     // Responsive canvas sizing and landscape overlay

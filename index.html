@@ -137,6 +137,41 @@
   </div>
   <script type="module" src="src/main.ts"></script>
   <script>
+    // Tizen TV support: listen for remote key events
+    function isTizen() {
+      return /Tizen|SMART-TV|SmartTV|SamsungBrowser/i.test(navigator.userAgent);
+    }
+    if (isTizen()) {
+      document.addEventListener('keydown', function(e) {
+        if (e.repeat) return;
+        switch (e.key) {
+          case 'ArrowLeft':
+            document.getElementById('btn-left')?.dispatchEvent(new Event('touchstart', { bubbles: true }));
+            break;
+          case 'ArrowUp':
+            document.getElementById('btn-jump')?.dispatchEvent(new Event('touchstart', { bubbles: true }));
+            break;
+          case 'ArrowRight':
+            document.getElementById('btn-right')?.dispatchEvent(new Event('touchstart', { bubbles: true }));
+            break;
+        }
+      });
+      document.addEventListener('keyup', function(e) {
+        switch (e.key) {
+          case 'ArrowLeft':
+            document.getElementById('btn-left')?.dispatchEvent(new Event('touchend', { bubbles: true }));
+            break;
+          case 'ArrowUp':
+            document.getElementById('btn-jump')?.dispatchEvent(new Event('touchend', { bubbles: true }));
+            break;
+          case 'ArrowRight':
+            document.getElementById('btn-right')?.dispatchEvent(new Event('touchend', { bubbles: true }));
+            break;
+        }
+      });
+    }
+  </script>
+  <script>
     // Responsive canvas sizing and landscape overlay
     function isMobile() {
       return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);

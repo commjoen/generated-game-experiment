@@ -96,9 +96,3 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
 - Enemy Gauntlet Levels (combat focus)
 - Mini-Game or Bonus Levels (short diversions)
 - Platforming Precision Levels (require precise jumps/timing) 
-
-## Tizen TV Support
-
-- Detect Tizen/Smart TV user agents and enable TV remote navigation.
-- Listen for ArrowLeft, ArrowUp, and ArrowRight key events to control the player (left, jump, right) using the TV remote.
-- Integrate with on-screen controls for consistent behavior across devices. 

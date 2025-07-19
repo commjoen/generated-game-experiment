@@ -137,64 +137,6 @@
   </div>
   <script type="module" src="src/main.ts"></script>
   <script>
-    // Enhanced Tizen TV support: register TV keys and listen for keyCode events
-    function isTizen() {
-      return typeof window.tizen !== 'undefined' || /Tizen|SMART-TV|SmartTV|SamsungBrowser/i.test(navigator.userAgent);
-    }
-    // if (isTizen()) {
-      // Register TV remote keys if tizen.tvinputdevice is available
-      try {
-        if (window.tizen && tizen.tvinputdevice && tizen.tvinputdevice.registerKey) {
-          tizen.tvinputdevice.registerKey('ArrowLeft');
-          tizen.tvinputdevice.registerKey('ArrowUp');
-          tizen.tvinputdevice.registerKey('ArrowRight');
-        }
-      } catch (e) {
-        // Ignore errors if not on Tizen
-      }
-      window.addEventListener('keydown', function(keyEvent) {
-        switch (keyEvent.keyCode) {
-          case 37: // Left Arrow
-            console.log('Left Arrow Key Pressed');
-            document.getElementById('btn-left')?.dispatchEvent(new Event('touchstart', { bubbles: true }));
-            break;
-          case 38: // Up Arrow
-            console.log('Up Arrow Key Pressed');
-            document.getElementById('btn-jump')?.dispatchEvent(new Event('touchstart', { bubbles: true }));
-            break;
-          case 39: // Right Arrow
-            console.log('Right Arrow Key Pressed');
-            document.getElementById('btn-right')?.dispatchEvent(new Event('touchstart', { bubbles: true }));
-            break;
-          case 417: // Fast Forward (example)
-            console.log('Fast Forward Key Pressed');
-            // Add custom action if needed
-            break;
-        }
-      });
-      window.addEventListener('keyup', function(keyEvent) {
-        switch (keyEvent.keyCode) {
-          case 37: // Left Arrow
-            console.log('Left Arrow Key Released');
-            document.getElementById('btn-left')?.dispatchEvent(new Event('touchend', { bubbles: true }));
-            break;
-          case 38: // Up Arrow
-            console.log('Up Arrow Key Released');
-            document.getElementById('btn-jump')?.dispatchEvent(new Event('touchend', { bubbles: true }));
-            break;
-          case 39: // Right Arrow
-            console.log('Right Arrow Key Released');
-            document.getElementById('btn-right')?.dispatchEvent(new Event('touchend', { bubbles: true }));
-            break;
-          case 417: // Fast Forward (example)
-            console.log('Fast Forward Key Released');
-            // Add custom action if needed
-            break;
-        }
-      });
-    // }
-  </script>
-  <script>
     // Responsive canvas sizing and landscape overlay
     function isMobile() {
       return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);

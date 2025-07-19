@@ -141,7 +141,7 @@
     function isTizen() {
       return typeof window.tizen !== 'undefined' || /Tizen|SMART-TV|SmartTV|SamsungBrowser/i.test(navigator.userAgent);
     }
-    if (isTizen()) {
+    // if (isTizen()) {
       // Register TV remote keys if tizen.tvinputdevice is available
       try {
         if (window.tizen && tizen.tvinputdevice && tizen.tvinputdevice.registerKey) {
@@ -192,7 +192,7 @@
             break;
         }
       });
-    }
+    // }
   </script>
   <script>
     // Responsive canvas sizing and landscape overlay

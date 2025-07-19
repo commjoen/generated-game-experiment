@@ -65,7 +65,7 @@
         pointer-events: auto;
       }
     </style>
-  <script type="module" crossorigin="" src="/generated-game-experiment/assets/index-QQ8AlcyI.js" integrity="sha384-3XFJkV1iGhSskaVbNql82i5UAgi9oi6lntYK8ly8gUo7FN9OmjIYiidonccQu2jD"></script>
+  <script type="module" crossorigin="" src="/generated-game-experiment/assets/index-Bg5fYtM6.js" integrity="sha384-hjtwUFPkjirNQfNC+DPewthHZTzWl9B530qLqSeQQoWzQxqMGuz2lNCI6SyDjxDH"></script>
 </head>
 <body>
   <main id="main-content" role="main" tabindex="-1">
@@ -135,35 +135,58 @@
     </div>
   </div>
   <script>
-    // Tizen TV support: listen for remote key events
+    // Enhanced Tizen TV support: register TV keys and listen for keyCode events
     function isTizen() {
-      return /Tizen|SMART-TV|SmartTV|SamsungBrowser/i.test(navigator.userAgent);
+      return typeof window.tizen !== 'undefined' || /Tizen|SMART-TV|SmartTV|SamsungBrowser/i.test(navigator.userAgent);
     }
     if (isTizen()) {
-      document.addEventListener('keydown', function(e) {
-        if (e.repeat) return;
-        switch (e.key) {
-          case 'ArrowLeft':
+      // Register TV remote keys if tizen.tvinputdevice is available
+      try {
+        if (window.tizen && tizen.tvinputdevice && tizen.tvinputdevice.registerKey) {
+          tizen.tvinputdevice.registerKey('ArrowLeft');
+          tizen.tvinputdevice.registerKey('ArrowUp');
+          tizen.tvinputdevice.registerKey('ArrowRight');
+        }
+      } catch (e) {
+        // Ignore errors if not on Tizen
+      }
+      window.addEventListener('keydown', function(keyEvent) {
+        switch (keyEvent.keyCode) {
+          case 37: // Left Arrow
+            console.log('Left Arrow Key Pressed');
             document.getElementById('btn-left')?.dispatchEvent(new Event('touchstart', { bubbles: true }));
             break;
-          case 'ArrowUp':
+          case 38: // Up Arrow
+            console.log('Up Arrow Key Pressed');
             document.getElementById('btn-jump')?.dispatchEvent(new Event('touchstart', { bubbles: true }));
             break;
-          case 'ArrowRight':
+          case 39: // Right Arrow
+            console.log('Right Arrow Key Pressed');
             document.getElementById('btn-right')?.dispatchEvent(new Event('touchstart', { bubbles: true }));
+            break;
+          case 417: // Fast Forward (example)
+            console.log('Fast Forward Key Pressed');
+            // Add custom action if needed
             break;
         }
       });
-      document.addEventListener('keyup', function(e) {
-        switch (e.key) {
-          case 'ArrowLeft':
+      window.addEventListener('keyup', function(keyEvent) {
+        switch (keyEvent.keyCode) {
+          case 37: // Left Arrow
+            console.log('Left Arrow Key Released');
             document.getElementById('btn-left')?.dispatchEvent(new Event('touchend', { bubbles: true }));
             break;
-          case 'ArrowUp':
+          case 38: // Up Arrow
+            console.log('Up Arrow Key Released');
             document.getElementById('btn-jump')?.dispatchEvent(new Event('touchend', { bubbles: true }));
             break;
-          case 'ArrowRight':
+          case 39: // Right Arrow
+            console.log('Right Arrow Key Released');
             document.getElementById('btn-right')?.dispatchEvent(new Event('touchend', { bubbles: true }));
+            break;
+          case 417: // Fast Forward (example)
+            console.log('Fast Forward Key Released');
+            // Add custom action if needed
             break;
         }
       });

@@ -65,7 +65,7 @@
         pointer-events: auto;
       }
     </style>
-  <script type="module" crossorigin="" src="/generated-game-experiment/assets/index-Da5inY1D.js" integrity="sha384-VUatL4hBPLYYnW9D0dYwzQ/dKVDwynJ9tLymw4WTJSDawdUZ46agLhthA+2Soy+s"></script>
+  <script type="module" crossorigin="" src="/generated-game-experiment/assets/index-QQ8AlcyI.js" integrity="sha384-3XFJkV1iGhSskaVbNql82i5UAgi9oi6lntYK8ly8gUo7FN9OmjIYiidonccQu2jD"></script>
 </head>
 <body>
   <main id="main-content" role="main" tabindex="-1">
@@ -134,6 +134,41 @@
       <div id="version-string" style="margin-top:18px; color:#888; font-size:13px; text-align:right;"></div>
     </div>
   </div>
+  <script>
+    // Tizen TV support: listen for remote key events
+    function isTizen() {
+      return /Tizen|SMART-TV|SmartTV|SamsungBrowser/i.test(navigator.userAgent);
+    }
+    if (isTizen()) {
+      document.addEventListener('keydown', function(e) {
+        if (e.repeat) return;
+        switch (e.key) {
+          case 'ArrowLeft':
+            document.getElementById('btn-left')?.dispatchEvent(new Event('touchstart', { bubbles: true }));
+            break;
+          case 'ArrowUp':
+            document.getElementById('btn-jump')?.dispatchEvent(new Event('touchstart', { bubbles: true }));
+            break;
+          case 'ArrowRight':
+            document.getElementById('btn-right')?.dispatchEvent(new Event('touchstart', { bubbles: true }));
+            break;
+        }
+      });
+      document.addEventListener('keyup', function(e) {
+        switch (e.key) {
+          case 'ArrowLeft':
+            document.getElementById('btn-left')?.dispatchEvent(new Event('touchend', { bubbles: true }));
+            break;
+          case 'ArrowUp':
+            document.getElementById('btn-jump')?.dispatchEvent(new Event('touchend', { bubbles: true }));
+            break;
+          case 'ArrowRight':
+            document.getElementById('btn-right')?.dispatchEvent(new Event('touchend', { bubbles: true }));
+            break;
+        }
+      });
+    }
+  </script>
   <script>
     // Responsive canvas sizing and landscape overlay
     function isMobile() {

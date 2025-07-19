@@ -177,6 +177,13 @@
       }
     }
   </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/service-worker.js');
+      });
+    }
+  </script>
   </main>
   <noscript>
     <div style="background:#222;color:#fff;padding:32px;text-align:center;font-size:1.2em;">

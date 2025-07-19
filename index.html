@@ -65,7 +65,7 @@
         pointer-events: auto;
       }
     </style>
-  <script type="module" crossorigin="" src="/generated-game-experiment/assets/index-C0mbfykS.js" integrity="sha384-Rbbk3754K3X/5aH1YZ1FoAr+rrKRaCcl5NZuydDqrGVRUsuZB/wISh4nHirGAjdJ"></script>
+  <script type="module" crossorigin="" src="/generated-game-experiment/assets/index-8NMAV10Y.js" integrity="sha384-C94kYIk0KD68G8fbnyARljZ+mCShWiZZYeDLHM6qfv+8Y794TOg1ZzlhXmyLJvT3"></script>
 </head>
 <body>
   <main id="main-content" role="main" tabindex="-1">
@@ -173,6 +173,13 @@
       if (desktopCopyright) {
         desktopCopyright.style.display = 'none';
       }
+    }
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/service-worker.js');
+      });
     }
   </script>
   </main>

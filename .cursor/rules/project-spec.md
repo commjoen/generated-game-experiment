@@ -65,3 +65,34 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
 - Up-to-date documentation and changelog.
 - Power-up system (double jump, grow up to 3x) fully implemented, with UI, persistence across levels, and reset on death.
 - Unit tests cover all major features, including power-up logic, edge cases, and reset behavior. 
+
+## Platform Enhancements
+
+- Add to Home Screen (A2HS) / Installable PWA
+- App Shortcuts in web app manifest (e.g., New Game, Multiplayer)
+- Offline-first enhancements (custom offline page, cache more assets)
+- Push Notifications (for updates, invites, etc.)
+- Background Sync (for high scores, achievements)
+- Native-like UI features (fullscreen, hide browser UI, vibration)
+- Gamepad and controller support
+- Save state/progress locally (IndexedDB/localStorage)
+- Accessibility improvements (ARIA, keyboard navigation, screen reader)
+- Platform-specific integrations (iOS/Android icons, splash, theme)
+
+## Level Type Enhancements
+
+- Vertical Climb Levels (ascend/descend instead of side-scroll)
+- Auto-Scrolling Levels (forced movement)
+- Puzzle/Logic Levels (switches, keys, block pushing)
+- Speedrun/Time Attack Levels (beat the clock)
+- Boss Levels (unique boss fights)
+- Stealth/Evasion Levels (avoid detection)
+- Collectathon Levels (collect items to progress)
+- Survival/Escape Levels (survive waves or escape threats)
+- Gravity/Physics Levels (altered gravity, moving platforms)
+- Darkness/Light Levels (limited visibility)
+- Water/Underwater Levels (swimming mechanics)
+- Reverse/Backwards Levels (return to start)
+- Enemy Gauntlet Levels (combat focus)
+- Mini-Game or Bonus Levels (short diversions)
+- Platforming Precision Levels (require precise jumps/timing) 

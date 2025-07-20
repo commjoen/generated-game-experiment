@@ -77,8 +77,8 @@ const boxes: Rect[] = [];
 
 // --- Level Type Toggle ---
 let levelType: 'horizontal' | 'vertical' = localStorage.getItem('levelType') as any || 'horizontal';
-let manualLevelType: boolean = false;
-let manualLevelTypeValue: 'horizontal' | 'vertical' = levelType;
+let manualLevelType: boolean = localStorage.getItem('manualLevelType') === 'true';
+let manualLevelTypeValue: 'horizontal' | 'vertical' = (localStorage.getItem('manualLevelTypeValue') as 'horizontal' | 'vertical') || levelType;
 
 // --- Camera for vertical levels ---
 let cameraY = 0;
@@ -212,6 +212,9 @@ async function generateVerticalLevel() {
 }
 
 // Patch generateLevel and resetGame to use vertical if selected
+if (manualLevelType) {
+  levelType = manualLevelTypeValue;
+}
 async function generateLevel() {
   if (levelType === 'vertical') {
     await generateVerticalLevel();
@@ -377,6 +380,12 @@ function resetGame() {
   collectibles.length = 0;
   spikes.length = 0;
   movingPlatforms.length = 0;
+  // Do not reset manualLevelType or manualLevelTypeValue here
+  if (manualLevelType) {
+    levelType = manualLevelTypeValue;
+  } else {
+    levelType = 'horizontal';
+  }
   generateLevel();
   resetPlayer();
 }
@@ -494,7 +503,7 @@ function generateNewLevel() {
     // Always start horizontal, then every third level is vertical
     if (level === 1) {
       levelType = 'horizontal';
-    } else if ((level - 1) % 3 === 2) {
+    } else if (level % 3 === 0) {
       levelType = 'vertical';
     } else {
       levelType = 'horizontal';

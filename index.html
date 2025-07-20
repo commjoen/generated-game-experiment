@@ -36,6 +36,8 @@
   }
   </script>
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="theme-color" content="#ffffff" />
       <style>
       body { margin: 0; background: #222; overscroll-behavior: none; touch-action: none; }
       html, body { height: 100%; width: 100%; overflow: hidden; }
@@ -135,6 +137,7 @@
       <div id="version-string" style="margin-top:18px; color:#888; font-size:13px; text-align:right;"></div>
     </div>
   </div>
+  <button id="a2hs-btn" style="display:none;position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;font-size:1.1em;border-radius:8px;background:#0cf;color:#fff;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.2);cursor:pointer;">Install Game</button>
   <script type="module" src="src/main.ts"></script>
   <script>
     // Responsive canvas sizing and landscape overlay
@@ -181,6 +184,28 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
         navigator.serviceWorker.register('/service-worker.js');
+      });
+    }
+  </script>
+  <script>
+    // Add to Home Screen (A2HS) prompt
+    let deferredPrompt;
+    const a2hsBtn = document.getElementById('a2hs-btn');
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (a2hsBtn) a2hsBtn.style.display = 'block';
+    });
+    if (a2hsBtn) {
+      a2hsBtn.addEventListener('click', async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          if (outcome === 'accepted') {
+            a2hsBtn.style.display = 'none';
+          }
+          deferredPrompt = null;
+        }
       });
     }
   </script>

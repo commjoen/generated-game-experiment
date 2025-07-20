@@ -77,32 +77,15 @@ const boxes: Rect[] = [];
 
 // --- Level Type Toggle ---
 let levelType: 'horizontal' | 'vertical' = localStorage.getItem('levelType') as any || 'horizontal';
+let manualLevelType: boolean = false;
+let manualLevelTypeValue: 'horizontal' | 'vertical' = levelType;
 
 // --- Camera for vertical levels ---
 let cameraY = 0;
 const LEVEL_HEIGHT = 3200; // for vertical levels
 
 // --- Add a simple UI toggle for level type ---
-const levelTypeToggle = document.createElement('button');
-levelTypeToggle.textContent = levelType === 'vertical' ? 'Mode: Vertical' : 'Mode: Horizontal';
-levelTypeToggle.style.position = 'fixed';
-levelTypeToggle.style.top = '16px';
-levelTypeToggle.style.right = '16px';
-levelTypeToggle.style.zIndex = '10000';
-levelTypeToggle.style.padding = '8px 16px';
-levelTypeToggle.style.background = '#0cf';
-levelTypeToggle.style.color = '#fff';
-levelTypeToggle.style.border = 'none';
-levelTypeToggle.style.borderRadius = '8px';
-levelTypeToggle.style.fontSize = '1em';
-levelTypeToggle.style.cursor = 'pointer';
-document.body.appendChild(levelTypeToggle);
-levelTypeToggle.onclick = () => {
-  levelType = levelType === 'horizontal' ? 'vertical' : 'horizontal';
-  localStorage.setItem('levelType', levelType);
-  levelTypeToggle.textContent = levelType === 'vertical' ? 'Mode: Vertical' : 'Mode: Horizontal';
-  resetGame();
-};
+let levelTypeToggle: HTMLInputElement | null = null;
 
 // --- Vertical Level Generation ---
 async function generateVerticalLevel() {
@@ -387,6 +370,7 @@ function resetGame() {
   score = 0;
   level = 1;
   lives = 3;
+  localStorage.setItem('levelType', 'horizontal');
   gameOver = false;
   platforms.length = 0;
   boxes.length = 0;
@@ -502,9 +486,26 @@ function generateNewLevel() {
   collectibles.length = 0;
   spikes.length = 0;
   movingPlatforms.length = 0;
+  level++;
+  // Manual override
+  if (manualLevelType) {
+    levelType = manualLevelTypeValue;
+  } else {
+    // Always start horizontal, then every third level is vertical
+    if (level === 1) {
+      levelType = 'horizontal';
+    } else if ((level - 1) % 3 === 2) {
+      levelType = 'vertical';
+    } else {
+      levelType = 'horizontal';
+    }
+  }
+  localStorage.setItem('levelType', levelType);
+  if (levelTypeToggle && levelTypeToggle instanceof HTMLInputElement) {
+    levelTypeToggle.checked = manualLevelType && manualLevelTypeValue === 'vertical';
+  }
   generateLevel();
   resetPlayer();
-  level++;
 
   // Change background per level
   if (fixedGradient) {
@@ -850,7 +851,8 @@ window.addEventListener('DOMContentLoaded', () => {
   const teslaModeToggle = document.getElementById('tesla-mode-toggle') as HTMLInputElement;
   const multiplayerToggle = document.getElementById('multiplayer-toggle') as HTMLInputElement;
   playerNameInput = document.getElementById('player-name-input') as HTMLInputElement;
-  if (settingsBtn && settingsModal && closeSettings && fixedGradientToggle && scrollGradientToggle && imageBgToggle && speedUnlockToggle && fpsCounterToggle && teslaModeToggle && multiplayerToggle && playerNameInput) {
+  levelTypeToggle = document.getElementById('level-type-toggle') as HTMLInputElement;
+  if (settingsBtn && settingsModal && closeSettings && fixedGradientToggle && scrollGradientToggle && imageBgToggle && speedUnlockToggle && fpsCounterToggle && teslaModeToggle && multiplayerToggle && playerNameInput && levelTypeToggle) {
     settingsBtn.addEventListener('click', () => {
       settingsModal.style.display = 'flex';
       fixedGradientToggle.checked = fixedGradient;
@@ -861,6 +863,8 @@ window.addEventListener('DOMContentLoaded', () => {
       teslaModeToggle.checked = teslaMode;
       multiplayerToggle.checked = multiplayerEnabled;
       if (playerNameInput) playerNameInput.value = playerName;
+      // Set the level type toggle state
+      if (levelTypeToggle) levelTypeToggle.checked = manualLevelType && manualLevelTypeValue === 'vertical';
     });
     closeSettings.addEventListener('click', () => {
       settingsModal.style.display = 'none';
@@ -922,6 +926,21 @@ window.addEventListener('DOMContentLoaded', () => {
       multiplayerEnabled = multiplayerToggle.checked;
       localStorage.setItem('multiplayerEnabled', String(multiplayerEnabled));
       window.location.reload(); // Reload to re-init multiplayer
+    });
+    levelTypeToggle.addEventListener('change', () => {
+      manualLevelType = levelTypeToggle!.checked;
+      if (manualLevelType) {
+        manualLevelTypeValue = 'vertical';
+        levelType = 'vertical';
+      } else {
+        // revert to auto mode and force horizontal immediately
+        manualLevelTypeValue = 'horizontal';
+        levelType = 'horizontal';
+      }
+      localStorage.setItem('manualLevelType', String(manualLevelType));
+      localStorage.setItem('manualLevelTypeValue', manualLevelTypeValue);
+      localStorage.setItem('levelType', levelType);
+      resetGame();
     });
     if (playerNameInput) {
       playerNameInput.addEventListener('input', () => {

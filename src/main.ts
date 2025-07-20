@@ -75,7 +75,165 @@ type Platform = Rect | SlopePlatform;
 const platforms: Platform[] = [];
 const boxes: Rect[] = [];
 
+// --- Level Type Toggle ---
+let levelType: 'horizontal' | 'vertical' = localStorage.getItem('levelType') as any || 'horizontal';
+
+// --- Camera for vertical levels ---
+let cameraY = 0;
+const LEVEL_HEIGHT = 3200; // for vertical levels
+
+// --- Add a simple UI toggle for level type ---
+const levelTypeToggle = document.createElement('button');
+levelTypeToggle.textContent = levelType === 'vertical' ? 'Mode: Vertical' : 'Mode: Horizontal';
+levelTypeToggle.style.position = 'fixed';
+levelTypeToggle.style.top = '16px';
+levelTypeToggle.style.right = '16px';
+levelTypeToggle.style.zIndex = '10000';
+levelTypeToggle.style.padding = '8px 16px';
+levelTypeToggle.style.background = '#0cf';
+levelTypeToggle.style.color = '#fff';
+levelTypeToggle.style.border = 'none';
+levelTypeToggle.style.borderRadius = '8px';
+levelTypeToggle.style.fontSize = '1em';
+levelTypeToggle.style.cursor = 'pointer';
+document.body.appendChild(levelTypeToggle);
+levelTypeToggle.onclick = () => {
+  levelType = levelType === 'horizontal' ? 'vertical' : 'horizontal';
+  localStorage.setItem('levelType', levelType);
+  levelTypeToggle.textContent = levelType === 'vertical' ? 'Mode: Vertical' : 'Mode: Horizontal';
+  resetGame();
+};
+
+// --- Vertical Level Generation ---
+async function generateVerticalLevel() {
+  let y = LEVEL_HEIGHT;
+  const platformSpacing = Math.min(JUMP_POWER * 8, 180); // always less than jump distance
+  const minPlatformWidth = 140;
+  const maxPlatformWidth = 320;
+  const platformHeight = 50;
+  platforms.length = 0;
+  boxes.length = 0;
+  collectibles.length = 0;
+  spikes.length = 0;
+  movingPlatforms.length = 0;
+  let heartPlaced = false;
+  let doubleJumpPlaced = false;
+  let growPlaced = false;
+  const platformCenters: { x: number, y: number }[] = [];
+  let lastX = 100 + Math.random() * (canvas.width - minPlatformWidth - 200);
+  let isFirst = true;
+  while (y > 0) {
+    let x, width;
+    if (isFirst) {
+      // Make the lowest bar screen wide
+      x = 0;
+      width = canvas.width;
+      isFirst = false;
+    } else {
+      // Randomize platform width
+      width = minPlatformWidth + Math.random() * (maxPlatformWidth - minPlatformWidth);
+      // Randomize horizontal position, but ensure overlap with previous
+      let minX = Math.max(0, lastX - width + 40);
+      let maxX = Math.min(canvas.width - width, lastX + width - 40);
+      if (minX > maxX) { minX = maxX = lastX; }
+      x = minX + Math.random() * (maxX - minX);
+    }
+    platforms.push({ x, y, width, height: platformHeight });
+    platformCenters.push({ x: x + width / 2, y: y - 30 });
+    // Add coin collectibles on some platforms
+    if (Math.random() < 0.5) {
+      collectibles.push({ x: x + width / 2 - 10, y: y - 30, width: 20, height: 20, collected: false, type: 'coin', id: generateCollectibleId('coin') });
+    }
+    // Add spikes on some platforms
+    if (Math.random() < 0.3 && y < LEVEL_HEIGHT - platformSpacing) {
+      spikes.push({ x: x + width / 2 - 20, y: y + platformHeight - 15, width: 40, height: 15 });
+    }
+    // Add moving platforms
+    if (Math.random() < 0.2 && y < LEVEL_HEIGHT - platformSpacing) {
+      movingPlatforms.push({ x: x - 60, y: y - 100, width: 80, height: 20, dx: 2, range: 120, startX: x - 60 });
+    }
+    y -= platformSpacing;
+    // Add boxes on some platforms
+    if (Math.random() < 0.5 && y > 50) {
+      boxes.push({ x: x + 10, y: y - 40, width: 40, height: 40 });
+    }
+    lastX = x;
+  }
+  // Place a heart collectible on a random platform (at most 1 per level)
+  if (platformCenters.length > 0) {
+    const idx: number = Math.floor(Math.random() * platformCenters.length);
+    const pos = platformCenters[idx];
+    collectibles.push({ x: pos.x - 10, y: pos.y, width: 20, height: 20, collected: false, type: 'heart', id: generateCollectibleId('heart') });
+  }
+  // Place a double jump power-up on a random platform (at most 1 per level, not on heart)
+  if (platformCenters.length > 1) {
+    let idx: number;
+    let attempts = 0;
+    const maxAttempts = platformCenters.length * 3;
+    do {
+      idx = Math.floor(Math.random() * platformCenters.length);
+      attempts++;
+    } while (
+      attempts < maxAttempts &&
+      collectibles.some(c => c.x === platformCenters[idx].x - 10 && c.y === platformCenters[idx].y)
+    );
+    if (attempts < maxAttempts) {
+      const pos = platformCenters[idx];
+      collectibles.push({ x: pos.x - 10, y: pos.y - 30, width: 20, height: 20, collected: false, type: 'doublejump', id: generateCollectibleId('doublejump') });
+    }
+  }
+  // Place a grow power-up on a random platform (at most 1 per level, not on heart or doublejump)
+  if (platformCenters.length > 2) {
+    let idx: number;
+    let attempts = 0;
+    const maxAttempts = platformCenters.length * 3;
+    do {
+      idx = Math.floor(Math.random() * platformCenters.length);
+      attempts++;
+    } while (
+      attempts < maxAttempts && (
+        collectibles.some(c => c.x === platformCenters[idx].x - 10 && c.y === platformCenters[idx].y) ||
+        collectibles.some(c => c.x === platformCenters[idx].x - 10 && c.y === platformCenters[idx].y - 30)
+      )
+    );
+    if (attempts < maxAttempts) {
+      const pos = platformCenters[idx];
+      collectibles.push({ x: pos.x - 10, y: pos.y - 60, width: 20, height: 20, collected: false, type: 'grow', id: generateCollectibleId('grow') });
+    }
+  }
+  // Ensure a platform at the player spawn point (y = LEVEL_HEIGHT)
+  const spawnY = LEVEL_HEIGHT;
+  const hasSpawnBlock = platforms.some(plat => plat.y <= spawnY && plat.y + plat.height >= spawnY - 40);
+  if (!hasSpawnBlock) {
+    platforms.unshift({ x: 100, y: LEVEL_HEIGHT, width: minPlatformWidth + Math.random() * (maxPlatformWidth - minPlatformWidth), height: platformHeight });
+  }
+  // Place finish flag at the topmost platform
+  const lastPlat = platforms[platforms.length - 1];
+  finishFlag.x = lastPlat.x + lastPlat.width / 2 - finishFlag.width / 2;
+  finishFlag.y = lastPlat.y - finishFlag.height;
+
+  // Register all collectibles with the server for multiplayer
+  if (multiplayerEnabled && collectibles.length > 0) {
+    const backendUrl =
+      window.location.port === '5173'
+        ? 'http://localhost:3001/register-collectibles'
+        : '/register-collectibles';
+    try {
+      await fetch(backendUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ collectibles: collectibles.map(c => ({ id: (c as any).id, type: c.type })) })
+      });
+    } catch (e) { /* ignore */ }
+  }
+}
+
+// Patch generateLevel and resetGame to use vertical if selected
 async function generateLevel() {
+  if (levelType === 'vertical') {
+    await generateVerticalLevel();
+    return;
+  }
   let x = 0;
   let heartPlaced = false;
   let doubleJumpPlaced = false;
@@ -197,7 +355,7 @@ async function generateLevel() {
     } catch (e) { /* ignore */ }
   }
 }
-generateLevel();
+generateLevel().then(() => resetPlayer());
 
 function rectsCollide(a: Rect, b: Rect) {
   return (
@@ -240,10 +398,29 @@ function resetGame() {
 }
 
 function resetPlayer() {
-  player.x = 100;
-  player.y = GROUND_Y - 175; // Start 125 pixels higher than ground
-  player.vx = 0;
-  player.vy = 0;
+  if (levelType === 'vertical') {
+    // Always use the first platform (lowest, screen-wide) for spawn
+    const bottomPlatform = platforms[0];
+    player.x = bottomPlatform.x + bottomPlatform.width / 2 - player.width / 2;
+    player.y = bottomPlatform.y - player.height;
+    player.vx = 0;
+    player.vy = 0;
+    // Calculate scale as in draw()
+    const widest = Math.max(...platforms.map(p => p.width));
+    const levelW = Math.max(canvas.width, widest);
+    const scale = canvas.width / levelW;
+    const visibleHeight = canvas.height / scale;
+    // Set cameraY so the player's feet are just above the bottom edge, but don't scroll past the bottom of the level
+    cameraY = Math.min(
+      Math.max(0, player.y + player.height - visibleHeight + 8),
+      LEVEL_HEIGHT - visibleHeight
+    );
+  } else {
+    player.x = 100;
+    player.y = GROUND_Y - 175;
+    player.vx = 0;
+    player.vy = 0;
+  }
   // Do NOT reset power-ups here; they persist across levels
   // player.hasDoubleJump = false;
   // player.growLevel = 0;
@@ -522,20 +699,45 @@ function update(deltaTime: number) {
     }
   }
   // Offscreen (falling)
-  if (player.y > canvas.height + 100) {
+  if (levelType === 'horizontal' && player.y > canvas.height + 100) {
     respawnPlayer();
   }
   // End of level
-  if (player.x + player.width >= levelEndX && !nextLevelPending) {
-    startNextLevelWithConfetti();
+  if (levelType === 'horizontal') {
+    if (player.x + player.width >= levelEndX && !nextLevelPending) {
+      startNextLevelWithConfetti();
+    }
+  } else if (levelType === 'vertical') {
+    // Check collision with finish flag
+    if (!nextLevelPending &&
+      player.x + player.width > finishFlag.x &&
+      player.x < finishFlag.x + finishFlag.width &&
+      player.y + player.height > finishFlag.y &&
+      player.y < finishFlag.y + finishFlag.height) {
+      startNextLevelWithConfetti();
+    }
   }
   // --- Camera follows player ---
-  cameraX = player.x - canvas.width / 2 + player.width / 2;
-  cameraX = Math.max(0, Math.min(cameraX, LEVEL_WIDTH - canvas.width));
+  if (levelType === 'vertical') {
+    cameraY = player.y - canvas.height / 2 + player.height / 2;
+    cameraY = Math.max(0, Math.min(cameraY, LEVEL_HEIGHT - canvas.height));
+    cameraX = 0;
+  } else {
+    cameraX = player.x - canvas.width / 2 + player.width / 2;
+    cameraX = Math.max(0, Math.min(cameraX, LEVEL_WIDTH - canvas.width));
+    cameraY = 0;
+  }
 
-  // Prevent going off screen
-  if (player.x < 0) player.x = 0;
-  if (player.x + player.width > LEVEL_WIDTH) player.x = LEVEL_WIDTH - player.width;
+  if (levelType === 'vertical') {
+    const widest = Math.max(...platforms.map(p => p.width));
+    const levelW = Math.max(canvas.width, widest);
+    const scale = canvas.width / levelW;
+    // Clamp player.x so they cannot move off screen
+    player.x = Math.max(0, Math.min(player.x, levelW - player.width));
+  } else {
+    if (player.x < 0) player.x = 0;
+    if (player.x + player.width > LEVEL_WIDTH) player.x = LEVEL_WIDTH - player.width;
+  }
   
   // Send multiplayer updates (throttled)
   if (multiplayerEnabled && Date.now() - lastPositionUpdate > 50) { // Update every 50ms
@@ -860,10 +1062,33 @@ function draw() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
   ctx.save();
-  ctx.translate(-cameraX, 0);
+  let scale = 1;
+  if (levelType === 'vertical') {
+    // Zoom out to fit the full horizontal level
+    const widest = Math.max(...platforms.map(p => p.width));
+    const levelW = Math.max(canvas.width, widest);
+    scale = canvas.width / levelW;
+    // Center cameraX on player, but clamp so player stays visible
+    cameraX = Math.max(0, Math.min(player.x + player.width / 2 - (canvas.width / (2 * scale)), levelW - canvas.width / scale));
+    // Clamp cameraY as before
+    cameraY = Math.max(0, Math.min(player.y + player.height / 2 - (canvas.height / (2 * scale)), LEVEL_HEIGHT - canvas.height / scale));
+    ctx.scale(scale, scale);
+  }
+  ctx.translate(-cameraX, -cameraY);
   // Draw platforms
   ctx.fillStyle = '#654321';
-  for (const plat of platforms) {
+  let lowestPlatformIndex = -1;
+  if (levelType === 'vertical' && platforms.length > 0) {
+    let maxY = -Infinity;
+    for (let i = 0; i < platforms.length; i++) {
+      if (platforms[i].y > maxY) {
+        maxY = platforms[i].y;
+        lowestPlatformIndex = i;
+      }
+    }
+  }
+  for (let i = 0; i < platforms.length; i++) {
+    const plat = platforms[i];
     if ('isSlope' in plat && plat.isSlope) {
       ctx.beginPath();
       ctx.moveTo(plat.x, plat.y);
@@ -874,6 +1099,18 @@ function draw() {
       ctx.fill();
     } else {
       ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
+    }
+    // Draw up-arrow on the visually lowest platform in vertical mode
+    if (levelType === 'vertical' && i === lowestPlatformIndex) {
+      ctx.save();
+      ctx.font = 'bold 48px sans-serif';
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.globalAlpha = 0.85;
+      ctx.fillText('↑', plat.x + plat.width / 2, plat.y + plat.height / 2);
+      ctx.globalAlpha = 1;
+      ctx.restore();
     }
   }
   // Draw moving platforms
@@ -963,7 +1200,7 @@ function draw() {
     ctx.globalAlpha = 1;
   }
   ctx.fillStyle = '#ff0';
-  ctx.fillRect(player.x - cameraX, player.y, player.width, player.height);
+  ctx.fillRect(player.x - cameraX, player.y - cameraY, player.width, player.height);
   ctx.globalAlpha = 1;
   // Draw other players
   ctx.save();
@@ -981,7 +1218,7 @@ function draw() {
   }
   if (score === highestScore) highestPlayerIds.push('self');
   for (const other of otherPlayers.values()) {
-    ctx.fillRect(other.x - cameraX, other.y, other.width, other.height);
+    ctx.fillRect(other.x - cameraX, other.y - cameraY, other.width, other.height);
     // Draw name and crown above player only in multiplayer mode
     if (multiplayerEnabled && otherPlayers.size > 0 && other.name) {
       ctx.save();
@@ -1153,7 +1390,7 @@ function draw() {
   }
   // Draw finish flag just before confetti
   ctx.save();
-  ctx.translate(-cameraX, 0);
+  ctx.translate(-cameraX, -cameraY);
   // Draw pole
   ctx.fillStyle = '#fff';
   ctx.fillRect(finishFlag.x, finishFlag.y, 8, finishFlag.height);

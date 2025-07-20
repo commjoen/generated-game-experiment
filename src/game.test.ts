@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, beforeAll, afterAll } from 'vitest';
 import { setupServer, teardownServer, getTestPort } from '../test/server-manager';
+import { generateVerticalLevel, VerticalLevel } from './verticalLevel';
 
 beforeAll(async () => {
   await setupServer();
@@ -357,5 +358,53 @@ describe('Player movement and game logic', () => {
     }
     respawnPlayer();
     expect(gameOver).toBe(true);
+  });
+});
+
+describe('Vertical level generation', () => {
+  it('should generate platforms from bottom to top', () => {
+    const canvasWidth = 800;
+    const level: VerticalLevel = generateVerticalLevel(canvasWidth);
+    expect(level.platforms.length).toBeGreaterThan(0);
+    // First platform should be at the bottom
+    expect(level.platforms[0].y).toBeGreaterThan(level.platforms[level.platforms.length - 1].y);
+    // Platforms should be within canvas width
+    for (const plat of level.platforms) {
+      expect(plat.x).toBeGreaterThanOrEqual(0);
+      expect(plat.x + plat.width).toBeLessThanOrEqual(canvasWidth + 1); // allow rounding
+    }
+  });
+
+  it('should place the finish flag at the topmost platform', () => {
+    const canvasWidth = 800;
+    const level: VerticalLevel = generateVerticalLevel(canvasWidth);
+    const topPlatform = level.platforms[level.platforms.length - 1];
+    expect(level.finishFlag.x).toBeGreaterThanOrEqual(topPlatform.x);
+    expect(level.finishFlag.x).toBeLessThanOrEqual(topPlatform.x + topPlatform.width);
+    expect(level.finishFlag.y).toBeLessThanOrEqual(topPlatform.y);
+  });
+
+  it('should always have a spawn platform at the bottom', () => {
+    const canvasWidth = 800;
+    const level: VerticalLevel = generateVerticalLevel(canvasWidth);
+    const spawnY = 3200;
+    const hasSpawnBlock = level.platforms.some(plat => plat.y <= spawnY && plat.y + plat.height >= spawnY - 40);
+    expect(hasSpawnBlock).toBe(true);
+  });
+
+  it('should generate at least one heart, doublejump, and grow collectible if enough platforms', () => {
+    const canvasWidth = 800;
+    const level: VerticalLevel = generateVerticalLevel(canvasWidth);
+    const types = level.collectibles.map(c => c.type);
+    expect(types).toContain('heart');
+    expect(types).toContain('doublejump');
+    expect(types).toContain('grow');
+  });
+
+  it('should not place collectibles on the same spot for heart, doublejump, and grow', () => {
+    const canvasWidth = 800;
+    const level: VerticalLevel = generateVerticalLevel(canvasWidth);
+    const positions = new Set(level.collectibles.map(c => `${c.x},${c.y}`));
+    expect(positions.size).toBe(level.collectibles.length);
   });
 }); 

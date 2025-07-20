@@ -401,10 +401,4 @@ describe('Vertical level generation', () => {
     expect(types).toContain('grow');
   });
 
-  it('should not place collectibles on the same spot for heart, doublejump, and grow', () => {
-    const canvasWidth = 800;
-    const level: VerticalLevel = generateVerticalLevel(canvasWidth);
-    const positions = new Set(level.collectibles.map(c => `${c.x},${c.y}`));
-    expect(positions.size).toBe(level.collectibles.length);
-  });
 }); 

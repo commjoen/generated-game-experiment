@@ -77,44 +77,37 @@ export function generateVerticalLevel(canvasWidth: number): VerticalLevel {
     }
     lastX = x;
   }
-  if (platformCenters.length > 0) {
-    const idx: number = Math.floor(Math.random() * platformCenters.length);
-    const pos = platformCenters[idx];
-    collectibles.push({ x: pos.x - 10, y: pos.y, width: 20, height: 20, collected: false, type: 'heart', id: generateCollectibleId('heart') });
-  }
-  if (platformCenters.length > 1) {
-    let idx: number;
-    let attempts = 0;
-    const maxAttempts = platformCenters.length * 3;
-    do {
-      idx = Math.floor(Math.random() * platformCenters.length);
-      attempts++;
-    } while (
-      attempts < maxAttempts &&
-      collectibles.some(c => c.x === platformCenters[idx].x - 10 && c.y === platformCenters[idx].y)
-    );
-    if (attempts < maxAttempts) {
-      const pos = platformCenters[idx];
-      collectibles.push({ x: pos.x - 10, y: pos.y - 30, width: 20, height: 20, collected: false, type: 'doublejump', id: generateCollectibleId('doublejump') });
+  // Ensure unique positions for heart, doublejump, and grow
+  function shuffle<T>(array: T[]): T[] {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
     }
+    return array;
   }
-  if (platformCenters.length > 2) {
-    let idx: number;
-    let attempts = 0;
-    const maxAttempts = platformCenters.length * 3;
-    do {
-      idx = Math.floor(Math.random() * platformCenters.length);
-      attempts++;
-    } while (
-      attempts < maxAttempts && (
-        collectibles.some(c => c.x === platformCenters[idx].x - 10 && c.y === platformCenters[idx].y) ||
-        collectibles.some(c => c.x === platformCenters[idx].x - 10 && c.y === platformCenters[idx].y - 30)
-      )
-    );
-    if (attempts < maxAttempts) {
-      const pos = platformCenters[idx];
-      collectibles.push({ x: pos.x - 10, y: pos.y - 60, width: 20, height: 20, collected: false, type: 'grow', id: generateCollectibleId('grow') });
-    }
+  // Place heart, doublejump, and grow only if enough platforms
+  if (platformCenters.length >= 3) {
+    const shuffled = shuffle([...platformCenters]);
+    // Heart
+    const heartPos = shuffled[0];
+    collectibles.push({ x: heartPos.x - 10, y: heartPos.y, width: 20, height: 20, collected: false, type: 'heart', id: generateCollectibleId('heart') });
+    // Doublejump
+    const doublejumpPos = shuffled[1];
+    collectibles.push({ x: doublejumpPos.x - 10, y: doublejumpPos.y - 30, width: 20, height: 20, collected: false, type: 'doublejump', id: generateCollectibleId('doublejump') });
+    // Grow
+    const growPos = shuffled[2];
+    collectibles.push({ x: growPos.x - 10, y: growPos.y - 60, width: 20, height: 20, collected: false, type: 'grow', id: generateCollectibleId('grow') });
+  } else if (platformCenters.length === 2) {
+    // Place only heart and doublejump
+    const shuffled = shuffle([...platformCenters]);
+    const heartPos = shuffled[0];
+    collectibles.push({ x: heartPos.x - 10, y: heartPos.y, width: 20, height: 20, collected: false, type: 'heart', id: generateCollectibleId('heart') });
+    const doublejumpPos = shuffled[1];
+    collectibles.push({ x: doublejumpPos.x - 10, y: doublejumpPos.y - 30, width: 20, height: 20, collected: false, type: 'doublejump', id: generateCollectibleId('doublejump') });
+  } else if (platformCenters.length === 1) {
+    // Place only heart
+    const heartPos = platformCenters[0];
+    collectibles.push({ x: heartPos.x - 10, y: heartPos.y, width: 20, height: 20, collected: false, type: 'heart', id: generateCollectibleId('heart') });
   }
   const spawnY = LEVEL_HEIGHT;
   const hasSpawnBlock = platforms.some(plat => plat.y <= spawnY && plat.y + plat.height >= spawnY - 40);

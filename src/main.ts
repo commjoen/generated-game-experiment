@@ -984,12 +984,12 @@ function setupOnscreenControls() {
   const btnRight = document.getElementById('btn-right');
   const btnJump = document.getElementById('btn-jump');
   if (btnLeft && btnRight && btnJump) {
-    btnLeft.addEventListener('touchstart', e => { e.preventDefault(); keys['ArrowLeft'] = true; });
-    btnLeft.addEventListener('touchend', e => { e.preventDefault(); keys['ArrowLeft'] = false; });
-    btnRight.addEventListener('touchstart', e => { e.preventDefault(); keys['ArrowRight'] = true; });
-    btnRight.addEventListener('touchend', e => { e.preventDefault(); keys['ArrowRight'] = false; });
-    btnJump.addEventListener('touchstart', e => { e.preventDefault(); keys['Space'] = true; });
-    btnJump.addEventListener('touchend', e => { e.preventDefault(); keys['Space'] = false; });
+    btnLeft.addEventListener('touchstart', e => { e.preventDefault(); keys['ArrowLeft'] = true; }, { passive: false });
+    btnLeft.addEventListener('touchend', e => { e.preventDefault(); keys['ArrowLeft'] = false; }, { passive: false });
+    btnRight.addEventListener('touchstart', e => { e.preventDefault(); keys['ArrowRight'] = true; }, { passive: false });
+    btnRight.addEventListener('touchend', e => { e.preventDefault(); keys['ArrowRight'] = false; }, { passive: false });
+    btnJump.addEventListener('touchstart', e => { e.preventDefault(); keys['Space'] = true; }, { passive: false });
+    btnJump.addEventListener('touchend', e => { e.preventDefault(); keys['Space'] = false; }, { passive: false });
     // Also support mouse for Tesla browser
     btnLeft.addEventListener('mousedown', e => { e.preventDefault(); keys['ArrowLeft'] = true; });
     btnLeft.addEventListener('mouseup', e => { e.preventDefault(); keys['ArrowLeft'] = false; });

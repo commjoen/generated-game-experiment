@@ -61,7 +61,7 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
 - Full game loop in TypeScript that updates and renders all game elements.
 - Player can move left, right, and jump using keyboard or touch controls.
 - Procedurally generated levels with platforms, obstacles, collectibles, and finish marker.
-- Settings modal for background customization, including gradients and random landscape images, and a persistent vertical/horizontal mode toggle.
+- Settings modal for background customization, including gradients and random landscape images.
 - Dockerfile and Nginx config for production deployment.
 - Automated deployment to GitHub Pages with SRI and security best practices.
 - Up-to-date documentation and changelog.

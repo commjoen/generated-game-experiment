@@ -12,12 +12,13 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
   - **Double Jump Power-Up**: Grants the ability to double jump until the player dies. Only one can be active at a time; never allows triple jump. Shown as a feather icon in the UI. Persists across levels, resets on death.
   - **Grow Power-Up**: Player can collect up to 3 grow power-ups per life. Each increases player size (hitbox and drawing). Shown as up to 3 mushroom icons in the UI. Resets to normal size on death. Persists across levels, resets on death. No more than 3 can be collected per life.
   - Power-ups are visually distinct and spawn at most once per level (per type).
+  - **Unique Placement Guarantee**: Heart, doublejump, and grow collectibles are always placed at unique positions in vertical levels if enough platforms exist, and never overlap.
 - **Finish Marker**: A visible, bold red flag on a white pole, always placed above the last block at the end of the level.
 - **Level Progression**: Multiple levels with increasing difficulty and procedural generation.
-- **Game Over & Restart**: The game ends when the player loses all lives or falls off screen, with a restart button that resets all state.
+- **Game Over & Restart**: The game ends when the player loses all lives or falls off screen, with a restart button that resets all state. The game always starts with a horizontal level after game over or restart, unless manual vertical mode is enabled.
 - **Score & Top Score**: Score and top score (stored in localStorage) are displayed in a UI overlay.
 - **Lives**: Player has a limited number of lives, displayed in the UI.
-- **Responsive Controls**: Keyboard controls for desktop, onscreen controls for mobile devices.
+- **Responsive Controls**: Keyboard controls for desktop, onscreen controls for mobile devices. Touch event listeners for onscreen controls are explicitly non-passive to ensure responsive controls and prevent Chrome warnings.
 - **Responsive Canvas**: The canvas fills the viewport and prevents scrolling/overflow.
 - **Session Storage**: Score is stored in session storage and resets on page close.
 - **Settings/Options Menu**: Modal overlay with options for background customization:
@@ -25,8 +26,9 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
   - Scrolling background gradient (diagonal, moves with camera)
   - Random landscape background (scrolls with player, fetched from Pixabay)
   - Only one background option can be enabled at a time
+  - **Vertical/Horizontal Mode Toggle**: A toggle in the settings modal allows manual switching between vertical and horizontal level types. The toggle persists across restarts and reloads, and always matches the actual level type on game start.
 - **Image Backgrounds**: Fetches random landscape images from Pixabay using a user-provided API key, and renders them as a parallax/scrolling background.
-- **Mobile Support**: Touch controls for mobile devices.
+- **Mobile Support**: Touch controls for mobile devices, with robust and responsive event handling.
 - **Dockerized Deployment**: The application is shippable as a Docker container, with Nginx hosting the game content for easy deployment.
 - **Automated Deployment**: GitHub Actions workflows for test and deploy, with deployment to GitHub Pages and correct base path/branch structure.
 - **Security**: Nginx config with CORS and security headers, Subresource Integrity (SRI) for built assets.
@@ -59,16 +61,16 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
 - Full game loop in TypeScript that updates and renders all game elements.
 - Player can move left, right, and jump using keyboard or touch controls.
 - Procedurally generated levels with platforms, obstacles, collectibles, and finish marker.
-- Settings modal for background customization, including gradients and random landscape images.
+- Settings modal for background customization, including gradients and random landscape images, and a persistent vertical/horizontal mode toggle.
 - Dockerfile and Nginx config for production deployment.
 - Automated deployment to GitHub Pages with SRI and security best practices.
 - Up-to-date documentation and changelog.
 - Power-up system (double jump, grow up to 3x) fully implemented, with UI, persistence across levels, and reset on death.
-- Unit tests cover all major features, including power-up logic, edge cases, and reset behavior. 
+- Unit tests cover all major features, including power-up logic, edge cases, collectible placement, and reset behavior. All tests for unique collectible placement now pass deterministically.
 - **Add to Home Screen (A2HS) / Installable PWA** (Implemented):
   - The game is fully installable as a PWA. Includes a web app manifest (with name, icons, start_url, display mode), service worker for offline support, and a custom install prompt button that appears when supported. Users can add the game to their home screen for a native-like experience.
 - Offline-first enhancements (custom offline page, cache more assets)
-
+- **Vertical Play Support (Implemented)**: The game supports vertical levels where the player must jump up to the next platform. Each platform is always placed less than the player's maximum jump distance away, ensuring every jump is possible. Camera and level logic are adapted for vertical progression. Collectible placement is robust and always unique for special power-ups.
 
 ## Platform Enhancements
 
@@ -82,7 +84,6 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
 
 ## Level Type Enhancements
 
-- Vertical Climb Levels (ascend/descend instead of side-scroll)
 - Auto-Scrolling Levels (forced movement)
 - Puzzle/Logic Levels (switches, keys, block pushing)
 - Speedrun/Time Attack Levels (beat the clock)
@@ -97,4 +98,3 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
 - Enemy Gauntlet Levels (combat focus)
 - Mini-Game or Bonus Levels (short diversions)
 - Platforming Precision Levels (require precise jumps/timing) 
-- **Vertical Play Support (Implemented)**: The game supports vertical levels where the player must jump up to the next platform. Each platform is always placed less than the player's maximum jump distance away, ensuring every jump is possible. Camera and level logic are adapted for vertical progression. 

@@ -68,8 +68,8 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
 
 ## Platform Enhancements
 
-- Add to Home Screen (A2HS) / Installable PWA
-- App Shortcuts in web app manifest (e.g., New Game, Multiplayer)
+- **Add to Home Screen (A2HS) / Installable PWA** (Implemented):
+  - The game is fully installable as a PWA. Includes a web app manifest (with name, icons, start_url, display mode), service worker for offline support, and a custom install prompt button that appears when supported. Users can add the game to their home screen for a native-like experience.
 - Offline-first enhancements (custom offline page, cache more assets)
 - Push Notifications (for updates, invites, etc.)
 - Background Sync (for high scores, achievements)

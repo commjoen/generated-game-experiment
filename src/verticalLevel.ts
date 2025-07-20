@@ -57,8 +57,19 @@ export function generateVerticalLevel(canvasWidth: number): VerticalLevel {
     if (Math.random() < 0.3 && y < LEVEL_HEIGHT - platformSpacing) {
       spikes.push({ x: x + width / 2 - 20, y: y + platformHeight - 15, width: 40, height: 15 });
     }
+    // Add moving platforms, but ensure they do not overlap with any box
     if (Math.random() < 0.2 && y < LEVEL_HEIGHT - platformSpacing) {
-      movingPlatforms.push({ x: x - 60, y: y - 100, width: 80, height: 20, dx: 2, range: 120, startX: x - 60 });
+      const movingPlat = { x: x - 60, y: y - 100, width: 80, height: 20, dx: 2, range: 120, startX: x - 60 };
+      // Check for overlap with any box
+      const overlapsBox = boxes.some(box =>
+        movingPlat.x < box.x + box.width &&
+        movingPlat.x + movingPlat.width > box.x &&
+        movingPlat.y < box.y + box.height &&
+        movingPlat.y + movingPlat.height > box.y
+      );
+      if (!overlapsBox) {
+        movingPlatforms.push(movingPlat);
+      }
     }
     y -= platformSpacing;
     if (Math.random() < 0.5 && y > 50) {

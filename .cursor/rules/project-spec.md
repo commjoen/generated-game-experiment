@@ -65,12 +65,13 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
 - Up-to-date documentation and changelog.
 - Power-up system (double jump, grow up to 3x) fully implemented, with UI, persistence across levels, and reset on death.
 - Unit tests cover all major features, including power-up logic, edge cases, and reset behavior. 
-
-## Platform Enhancements
-
 - **Add to Home Screen (A2HS) / Installable PWA** (Implemented):
   - The game is fully installable as a PWA. Includes a web app manifest (with name, icons, start_url, display mode), service worker for offline support, and a custom install prompt button that appears when supported. Users can add the game to their home screen for a native-like experience.
 - Offline-first enhancements (custom offline page, cache more assets)
+
+
+## Platform Enhancements
+
 - Push Notifications (for updates, invites, etc.)
 - Background Sync (for high scores, achievements)
 - Native-like UI features (fullscreen, hide browser UI, vibration)
@@ -96,3 +97,4 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
 - Enemy Gauntlet Levels (combat focus)
 - Mini-Game or Bonus Levels (short diversions)
 - Platforming Precision Levels (require precise jumps/timing) 
+- **Vertical Play Support (Implemented)**: The game supports vertical levels where the player must jump up to the next platform. Each platform is always placed less than the player's maximum jump distance away, ensuring every jump is possible. Camera and level logic are adapted for vertical progression. 

@@ -496,6 +496,7 @@ function generateNewLevel() {
   spikes.length = 0;
   movingPlatforms.length = 0;
   level++;
+  
   // Manual override
   if (manualLevelType) {
     levelType = manualLevelTypeValue;
@@ -505,6 +506,9 @@ function generateNewLevel() {
       levelType = 'horizontal';
     } else if (level % 3 === 0) {
       levelType = 'vertical';
+    }else if (level %5 == 0 ){
+      levelType = 'vertical';
+      generateBonusVerticalLevel();
     } else {
       levelType = 'horizontal';
     }
@@ -1550,3 +1554,113 @@ if (multiplayerEnabled) {
 }
 
 gameLoop(); 
+
+// --- Bonus Level Generation ---
+function generateBonusVerticalLevel() {
+  // Clear all arrays
+  platforms.length = 0;
+  boxes.length = 0;
+  collectibles.length = 0;
+  spikes.length = 0;
+  movingPlatforms.length = 0;
+
+  // Solid floor
+  platforms.push({ x: 0, y: LEVEL_HEIGHT, width: canvas.width, height: 50 });
+
+  // Fill the level with coins (grid)
+  const coinSpacingX = 60;
+  const coinSpacingY = 60;
+  for (let y = LEVEL_HEIGHT - 100; y > 0; y -= coinSpacingY) {
+    for (let x = 20; x < canvas.width - 20; x += coinSpacingX) {
+      collectibles.push({ x, y, width: 20, height: 20, collected: false, type: 'coin', id: generateCollectibleId('coin') });
+    }
+  }
+
+  // Only moving platforms, close to each other, including lower and middle platforms
+  const platWidth = 80;
+  const platHeight = 20;
+  const verticalGap = 60;
+  const startY = LEVEL_HEIGHT - 60; // start closer to the floor
+  const endY = 80;
+  const horizontalGaps = [40, canvas.width / 2 - platWidth / 2, canvas.width - platWidth - 40];
+  let platIndex = 0;
+  for (let y = startY; y > endY; y -= verticalGap) {
+    // More platforms per row in the lower and middle part of the level
+    let xs;
+    if (y > LEVEL_HEIGHT - 300) {
+      // Near the floor, add 3 platforms per row
+      xs = horizontalGaps;
+    } else if (y > LEVEL_HEIGHT / 2) {
+      // Middle, add 3 platforms per row for more density
+      xs = horizontalGaps;
+    } else {
+      // Higher up, alternate left/right
+      xs = [40 + (platIndex % 2) * (canvas.width - platWidth - 80)];
+    }
+    for (const x of xs) {
+      movingPlatforms.push({ x, y, width: platWidth, height: platHeight, dx: platIndex % 2 === 0 ? 2 : -2, range: 120, startX: x });
+      platIndex++;
+    }
+  }
+
+  // Add a very large stable beam at the top for the flag
+  const JUMP_POWER = 13;
+  const jumpLength = JUMP_POWER * 8; // 104
+  const topBeamHeight = 50;
+  const topBeamY = 40 + jumpLength; // Lowered by one jump length from the top
+  const topBeam = { x: 0, y: topBeamY, width: canvas.width, height: topBeamHeight };
+  platforms.push(topBeam); // Add to the end so the floor is still platforms[0]
+  finishFlag.x = canvas.width / 2 - finishFlag.width / 2;
+  finishFlag.y = topBeamY - 80 + topBeamHeight;
+
+  // Set player at the floor (bottom of the level)
+  player.x = canvas.width / 2 - player.width / 2;
+  player.y = LEVEL_HEIGHT - player.height - 10;
+  player.vx = 0;
+  player.vy = 0;
+  setPlayerSizeByGrowLevel();
+  cameraY = Math.max(0, LEVEL_HEIGHT - canvas.height);
+  levelType = 'vertical';
+}
+
+// Exportable version for tests (does not mutate global state)
+export function generateBonusVerticalLevelForTest(canvasWidth: number) {
+  const LEVEL_HEIGHT = 3200;
+  const platforms = [{ x: 0, y: LEVEL_HEIGHT, width: canvasWidth, height: 50 }];
+  const boxes: any[] = [];
+  const spikes: any[] = [];
+  const movingPlatforms: any[] = [];
+  const collectibles: any[] = [];
+  // Fill the level with coins (grid)
+  const coinSpacingX = 60;
+  const coinSpacingY = 60;
+  for (let y = LEVEL_HEIGHT - 100; y > 0; y -= coinSpacingY) {
+    for (let x = 20; x < canvasWidth - 20; x += coinSpacingX) {
+      collectibles.push({ x, y, width: 20, height: 20, collected: false, type: 'coin', id: `testcoin_${x}_${y}` });
+    }
+  }
+  // Only moving platforms, close to each other, including lower and middle platforms
+  const platWidth = 80;
+  const platHeight = 20;
+  const verticalGap = 60;
+  const startY = LEVEL_HEIGHT - 60;
+  const endY = 80;
+  const horizontalGaps = [40, canvasWidth / 2 - platWidth / 2, canvasWidth - platWidth - 40];
+  let platIndex = 0;
+  for (let y = startY; y > endY; y -= verticalGap) {
+    let xs;
+    if (y > LEVEL_HEIGHT - 300) {
+      xs = horizontalGaps;
+    } else if (y > LEVEL_HEIGHT / 2) {
+      xs = [40, canvasWidth - platWidth - 40];
+    } else {
+      xs = [40 + (platIndex % 2) * (canvasWidth - platWidth - 80)];
+    }
+    for (const x of xs) {
+      movingPlatforms.push({ x, y, width: platWidth, height: platHeight, dx: platIndex % 2 === 0 ? 2 : -2, range: 120, startX: x });
+      platIndex++;
+    }
+  }
+  const finishFlag = { x: canvasWidth / 2 - 12, y: 40, width: 24, height: 80 };
+  return { platforms, boxes, collectibles, spikes, movingPlatforms, finishFlag };
+}

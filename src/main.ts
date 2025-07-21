@@ -507,8 +507,8 @@ function generateNewLevel() {
     } else if (level % 3 === 0) {
       levelType = 'vertical';
     }else if (level %5 == 0 ){
-      levelType = 'vertical';
       generateBonusVerticalLevel();
+      return;
     } else {
       levelType = 'horizontal';
     }

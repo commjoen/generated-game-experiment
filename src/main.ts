@@ -508,6 +508,7 @@ function generateNewLevel() {
       levelType = 'vertical';
     }else if (level %5 == 0 ){
       generateBonusVerticalLevel();
+      resetPlayer();
       return;
     } else {
       levelType = 'horizontal';

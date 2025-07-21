@@ -1664,3 +1664,35 @@ export function generateBonusVerticalLevelForTest(canvasWidth: number) {
   const finishFlag = { x: canvasWidth / 2 - 12, y: 40, width: 24, height: 80 };
   return { platforms, boxes, collectibles, spikes, movingPlatforms, finishFlag };
 }
+
+function addStartBonusLevelButton() {
+  let btn = document.getElementById('start-bonus-level-btn');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'start-bonus-level-btn';
+    btn.textContent = 'Start Bonus Level';
+    btn.style.position = 'fixed';
+    btn.style.left = '16px';
+    btn.style.bottom = '16px';
+    btn.style.zIndex = '10001';
+    btn.style.padding = '10px 20px';
+    btn.style.background = '#0cf';
+    btn.style.color = '#fff';
+    btn.style.border = 'none';
+    btn.style.borderRadius = '8px';
+    btn.style.fontSize = '1em';
+    btn.style.cursor = 'pointer';
+    btn.onclick = () => {
+      generateBonusVerticalLevel();
+      gameOver = false;
+      nextLevelPending = false;
+      respawnTimer = 0;
+      lives = 3;
+      score = 0;
+      level = 1;
+      resetPlayer();
+    };
+    document.body.appendChild(btn);
+  }
+}
+addStartBonusLevelButton();

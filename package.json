@@ -27,7 +27,7 @@
   "homepage": "https://github.com/commjoen/generated-game-experiment#readme",
   "devDependencies": {
     "@types/jsdom": "^21.1.7",
-    "@types/node": "^24.0.13",
+    "@types/node": "^24.0.15",
     "@types/ws": "^8.18.1",
     "jsdom": "^26.1.0",
     "node-fetch": "^3.3.2",

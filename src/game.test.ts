@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, beforeAll, afterAll } from 'vitest';
 import { setupServer, teardownServer, getTestPort } from '../test/server-manager';
 import { generateVerticalLevel, VerticalLevel } from './verticalLevel';
+// For bonus level test
+import { generateBonusVerticalLevelForTest } from './bonusLevel';
 
 beforeAll(async () => {
   await setupServer();
@@ -401,4 +403,31 @@ describe('Vertical level generation', () => {
     expect(types).toContain('grow');
   });
 
+});
+
+describe('Bonus level generation', () => {
+  it('should generate a solid floor, coins filling the area, and only moving platforms close to each other', () => {
+    const LEVEL_HEIGHT = 3200;
+    const canvasWidth = 800;
+    const level = generateBonusVerticalLevelForTest(canvasWidth);
+    // Check for solid floor
+    const floor = level.platforms.find((p: any) => p.y === LEVEL_HEIGHT && p.x === 0 && p.width === canvasWidth);
+    expect(floor).toBeDefined();
+    // Check for lots of coins
+    expect(level.collectibles.filter((c: any) => c.type === 'coin').length).toBeGreaterThan(20);
+    // Check that all platforms except the floor are moving platforms
+    expect(level.movingPlatforms.length).toBeGreaterThan(5);
+    expect(level.platforms.length).toBe(2); // Floor and top beam
+    // Check that the top beam exists at the expected y position
+    const JUMP_POWER = 13;
+    const jumpLength = JUMP_POWER * 8;
+    const topBeamY = 40 + jumpLength;
+    const topBeam = level.platforms.find((p: any) => p.y === topBeamY && p.width === canvasWidth);
+    expect(topBeam).toBeDefined();
+    // Check that moving platforms are close to each other (vertical gap <= 80)
+    let sorted = level.movingPlatforms.slice().sort((a: any, b: any) => b.y - a.y);
+    for (let i = 1; i < sorted.length; i++) {
+      expect(Math.abs(sorted[i].y - sorted[i-1].y)).toBeLessThanOrEqual(80);
+    }
+  });
 }); 

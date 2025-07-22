@@ -51,7 +51,7 @@ export function generateBonusVerticalLevelForTest(canvasWidth: number): BonusLev
   const topBeamHeight = 50;
   const topBeamY = 40 + jumpLength; // Lowered by one jump length from the top
   const topBeam = { x: 0, y: topBeamY, width: canvasWidth, height: topBeamHeight };
-  platforms.unshift(topBeam); // Ensure it's the first (highest) platform
+  platforms.push(topBeam); // Add to the end so the floor is still platforms[0]
   const finishFlag = { x: canvasWidth / 2 - 12, y: topBeamY - 80 + topBeamHeight, width: 24, height: 80 };
   return { platforms, boxes, collectibles, spikes, movingPlatforms, finishFlag };
 } 

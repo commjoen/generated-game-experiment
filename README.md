@@ -1,3 +1,4 @@
+
 <!-- Build & Test Status -->
 [![Test](https://github.com/commjoen/generated-game-experiment/actions/workflows/test.yml/badge.svg)](https://github.com/commjoen/generated-game-experiment/actions/workflows/test.yml)
 [![Deploy to GitHub Pages](https://github.com/commjoen/generated-game-experiment/actions/workflows/deploy.yml/badge.svg)](https://github.com/commjoen/generated-game-experiment/actions/workflows/deploy.yml)
@@ -18,6 +19,12 @@
 [![Security: Trivy](https://img.shields.io/badge/Security-Trivy%20Scanned-green.svg)](https://github.com/commjoen/generated-game-experiment/actions)
 [![Code Quality](https://img.shields.io/badge/Code%20Quality-TypeScript-blue.svg)](tsconfig.json)
 [![Multiplayer](https://img.shields.io/badge/Multiplayer-WebSocket-orange.svg)](server.js)
+
+<!-- Social Media Sharing -->
+[![Share on Twitter](https://img.shields.io/badge/Share%20on-Twitter-1DA1F2.svg?logo=twitter)](https://twitter.com/intent/tweet?text=Check%20out%20this%20awesome%20browser-based%20platformer%20game!%20%F0%9F%8E%AE&url=https://commjoen.github.io/generated-game-experiment/&via=&hashtags=gamedev,typescript,opensource)
+[![Share on Mastodon](https://img.shields.io/badge/Share%20on-Mastodon-6364FF.svg?logo=mastodon)](https://mastodon.social/share?text=Check%20out%20this%20awesome%20browser-based%20platformer%20game!%20%F0%9F%8E%AE%20https://commjoen.github.io/generated-game-experiment/)
+[![Share on Bluesky](https://img.shields.io/badge/Share%20on-Bluesky-00A8E8.svg)](https://bsky.app/intent/compose?text=Check%20out%20this%20awesome%20browser-based%20platformer%20game!%20%F0%9F%8E%AE%20https://commjoen.github.io/generated-game-experiment/)
+[![Share on LinkedIn](https://img.shields.io/badge/Share%20on-LinkedIn-0077B5.svg?logo=linkedin)](https://www.linkedin.com/sharing/share-offsite/?url=https://commjoen.github.io/generated-game-experiment/)
 
 # generated-game-experiment
 

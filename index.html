@@ -92,6 +92,10 @@
   </div>
   <div id="rotate-overlay">Please rotate your device to portrait mode</div>
   <button id="settings-btn" style="position:fixed;top:20px;right:20px;z-index:30;font-size:1.5em;padding:8px 16px;border-radius:8px;border:none;background:#222;color:#0cf;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">⚙️</button>
+  <button id="github-star-btn" style="position:fixed;bottom:24px;left:24px;z-index:9999;padding:8px 12px;font-size:1em;border-radius:8px;background:#24292f;color:#fff;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.3);cursor:pointer;display:flex;align-items:center;gap:6px;transition:background-color 0.2s;" title="Star this project on GitHub">
+    <span>⭐</span>
+    <span id="star-count" style="background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;font-size:0.9em;min-width:20px;text-align:center;">...</span>
+  </button>
   <div id="settings-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:50;align-items:center;justify-content:center;">
     <div style="background:#222;padding:32px 40px;border-radius:16px;box-shadow:0 8px 32px #0008;min-width:280px;color:#fff;position:relative;">
       <button id="close-settings" style="position:absolute;top:12px;right:12px;font-size:1.2em;background:none;border:none;color:#fff;cursor:pointer;">✖️</button>
@@ -210,6 +214,49 @@
           }
           deferredPrompt = null;
         }
+      });
+    }
+  </script>
+  <script>
+    // GitHub Star Button
+    const githubStarBtn = document.getElementById('github-star-btn');
+    const starCountEl = document.getElementById('star-count');
+    
+    if (githubStarBtn) {
+      // Fetch star count from GitHub API
+      async function fetchStarCount() {
+        try {
+          const response = await fetch('https://api.github.com/repos/commjoen/generated-game-experiment');
+          if (response.ok) {
+            const data = await response.json();
+            const starCount = data.stargazers_count;
+            if (starCountEl) {
+              starCountEl.textContent = starCount >= 1000 
+                ? `${(starCount / 1000).toFixed(1)}k` 
+                : starCount.toString();
+            }
+          }
+        } catch (error) {
+          // If API fails, hide the counter or show a fallback
+          if (starCountEl) {
+            starCountEl.style.display = 'none';
+          }
+        }
+      }
+      
+      // Fetch star count on load
+      fetchStarCount();
+      
+      githubStarBtn.addEventListener('click', () => {
+        window.open('https://github.com/commjoen/generated-game-experiment', '_blank');
+      });
+      
+      // Add hover effect
+      githubStarBtn.addEventListener('mouseenter', () => {
+        githubStarBtn.style.backgroundColor = '#656d76';
+      });
+      githubStarBtn.addEventListener('mouseleave', () => {
+        githubStarBtn.style.backgroundColor = '#24292f';
       });
     }
   </script>

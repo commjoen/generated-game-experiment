@@ -508,7 +508,7 @@ function generateNewLevel() {
       levelType = 'vertical';
     }else if (level %5 == 0 ){
       generateBonusVerticalLevel();
-      resetPlayer();
+      // Don't call resetPlayer() since generateBonusVerticalLevel() already positions the player correctly
       return;
     } else {
       levelType = 'horizontal';

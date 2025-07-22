@@ -1691,7 +1691,7 @@ function addStartBonusLevelButton() {
       lives = 3;
       score = 0;
       level = 1;
-      resetPlayer();
+      // Don't call resetPlayer() since generateBonusVerticalLevel() already positions the player correctly
     };
     document.body.appendChild(btn);
   }

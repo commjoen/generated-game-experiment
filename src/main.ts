@@ -391,11 +391,15 @@ function resetGame() {
 }
 
 function resetPlayer() {
+  console.log('resetPlayer() called. Current levelType:', levelType);
+  console.trace('resetPlayer() call stack');
   if (levelType === 'vertical') {
     // Always use the first platform (lowest, screen-wide) for spawn
     const bottomPlatform = platforms[0];
+    console.log('Using platform[0] for spawn:', bottomPlatform);
     player.x = bottomPlatform.x + bottomPlatform.width / 2 - player.width / 2;
     player.y = bottomPlatform.y - player.height;
+    console.log('Player repositioned to:', { x: player.x, y: player.y });
     player.vx = 0;
     player.vy = 0;
     // Calculate scale as in draw()
@@ -497,28 +501,42 @@ function generateNewLevel() {
   movingPlatforms.length = 0;
   level++;
   
+  let isBonusLevel = false;
+  
   // Manual override
   if (manualLevelType) {
     levelType = manualLevelTypeValue;
   } else {
-    // Always start horizontal, then every third level is vertical
+    // Always start horizontal, then every fifth level is bonus, then every third level is vertical
     if (level === 1) {
       levelType = 'horizontal';
-    } else if (level % 3 === 0) {
-      levelType = 'vertical';
-    }else if (level %5 == 0 ){
+    } else if (level % 5 === 0) {
+      console.log('Bonus level condition triggered, calling generateBonusVerticalLevel()');
       generateBonusVerticalLevel();
       // Don't call resetPlayer() since generateBonusVerticalLevel() already positions the player correctly
-      return;
+      console.log('Setting isBonusLevel = true and returning early');
+      isBonusLevel = true;
+    } else if (level % 3 === 0) {
+      levelType = 'vertical';
     } else {
       levelType = 'horizontal';
     }
   }
+  
+  if (isBonusLevel) {
+    // Skip the rest of the function for bonus levels
+    launchConfetti();
+    nextLevelPending = false;
+    nextLevelTimer = 0;
+    return;
+  }
+  
   localStorage.setItem('levelType', levelType);
   if (levelTypeToggle && levelTypeToggle instanceof HTMLInputElement) {
     levelTypeToggle.checked = manualLevelType && manualLevelTypeValue === 'vertical';
   }
   generateLevel();
+  console.log('About to call resetPlayer() at line 528 - this should not happen after bonus level');
   resetPlayer();
 
   // Change background per level
@@ -729,6 +747,19 @@ function update(deltaTime: number) {
       player.x < finishFlag.x + finishFlag.width &&
       player.y + player.height > finishFlag.y &&
       player.y < finishFlag.y + finishFlag.height) {
+      console.log('Finish flag collision detected!');
+      console.log('Player bounds:', { 
+        left: player.x, 
+        right: player.x + player.width, 
+        top: player.y, 
+        bottom: player.y + player.height 
+      });
+      console.log('Flag bounds:', { 
+        left: finishFlag.x, 
+        right: finishFlag.x + finishFlag.width, 
+        top: finishFlag.y, 
+        bottom: finishFlag.y + finishFlag.height 
+      });
       startNextLevelWithConfetti();
     }
   }
@@ -1614,14 +1645,23 @@ function generateBonusVerticalLevel() {
   finishFlag.x = canvas.width / 2 - finishFlag.width / 2;
   finishFlag.y = topBeamY - 80 + topBeamHeight;
 
-  // Set player at the floor (bottom of the level)
-  player.x = canvas.width / 2 - player.width / 2;
+  // Set player at the floor (bottom of the level) - left side instead of center
+  player.x = 50; // Start near the left edge with some padding
   player.y = LEVEL_HEIGHT - player.height - 10;
   player.vx = 0;
   player.vy = 0;
   setPlayerSizeByGrowLevel();
   cameraY = Math.max(0, LEVEL_HEIGHT - canvas.height);
   levelType = 'vertical';
+  
+  // Debug logging
+  console.log('Bonus level generated:');
+  console.log('Player position:', { x: player.x, y: player.y, width: player.width, height: player.height });
+  console.log('Finish flag position:', { x: finishFlag.x, y: finishFlag.y, width: finishFlag.width, height: finishFlag.height });
+  console.log('Camera Y:', cameraY);
+  console.log('Level type:', levelType);
+  console.log('Platforms array:', platforms.map((p, i) => ({ index: i, x: p.x, y: p.y, width: p.width, height: p.height })));
+  console.log('Platform[0]:', platforms[0]);
 }
 
 // Exportable version for tests (does not mutate global state)
@@ -1666,34 +1706,34 @@ export function generateBonusVerticalLevelForTest(canvasWidth: number) {
   return { platforms, boxes, collectibles, spikes, movingPlatforms, finishFlag };
 }
 
-function addStartBonusLevelButton() {
-  let btn = document.getElementById('start-bonus-level-btn');
-  if (!btn) {
-    btn = document.createElement('button');
-    btn.id = 'start-bonus-level-btn';
-    btn.textContent = 'Start Bonus Level';
-    btn.style.position = 'fixed';
-    btn.style.left = '16px';
-    btn.style.bottom = '16px';
-    btn.style.zIndex = '10001';
-    btn.style.padding = '10px 20px';
-    btn.style.background = '#0cf';
-    btn.style.color = '#fff';
-    btn.style.border = 'none';
-    btn.style.borderRadius = '8px';
-    btn.style.fontSize = '1em';
-    btn.style.cursor = 'pointer';
-    btn.onclick = () => {
-      generateBonusVerticalLevel();
-      gameOver = false;
-      nextLevelPending = false;
-      respawnTimer = 0;
-      lives = 3;
-      score = 0;
-      level = 1;
-      // Don't call resetPlayer() since generateBonusVerticalLevel() already positions the player correctly
-    };
-    document.body.appendChild(btn);
-  }
-}
-addStartBonusLevelButton();
+// function addStartBonusLevelButton() {
+//   let btn = document.getElementById('start-bonus-level-btn');
+//   if (!btn) {
+//     btn = document.createElement('button');
+//     btn.id = 'start-bonus-level-btn';
+//     btn.textContent = 'Start Bonus Level';
+//     btn.style.position = 'fixed';
+//     btn.style.left = '16px';
+//     btn.style.bottom = '16px';
+//     btn.style.zIndex = '10001';
+//     btn.style.padding = '10px 20px';
+//     btn.style.background = '#0cf';
+//     btn.style.color = '#fff';
+//     btn.style.border = 'none';
+//     btn.style.borderRadius = '8px';
+//     btn.style.fontSize = '1em';
+//     btn.style.cursor = 'pointer';
+//     btn.onclick = () => {
+//       generateBonusVerticalLevel();
+//       gameOver = false;
+//       nextLevelPending = false;
+//       respawnTimer = 0;
+//       lives = 3;
+//       score = 0;
+//       level = 1;
+//       // Don't call resetPlayer() since generateBonusVerticalLevel() already positions the player correctly
+//     };
+//     document.body.appendChild(btn);
+//   }
+// }
+// addStartBonusLevelButton();

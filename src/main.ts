@@ -391,15 +391,15 @@ function resetGame() {
 }
 
 function resetPlayer() {
-  console.log('resetPlayer() called. Current levelType:', levelType);
-  console.trace('resetPlayer() call stack');
+  // console.log('resetPlayer() called. Current levelType:', levelType);
+  // console.trace('resetPlayer() call stack');
   if (levelType === 'vertical') {
     // Always use the first platform (lowest, screen-wide) for spawn
     const bottomPlatform = platforms[0];
-    console.log('Using platform[0] for spawn:', bottomPlatform);
+    // console.log('Using platform[0] for spawn:', bottomPlatform);
     player.x = bottomPlatform.x + bottomPlatform.width / 2 - player.width / 2;
     player.y = bottomPlatform.y - player.height;
-    console.log('Player repositioned to:', { x: player.x, y: player.y });
+    // console.log('Player repositioned to:', { x: player.x, y: player.y });
     player.vx = 0;
     player.vy = 0;
     // Calculate scale as in draw()
@@ -511,10 +511,10 @@ function generateNewLevel() {
     if (level === 1) {
       levelType = 'horizontal';
     } else if (level % 5 === 0) {
-      console.log('Bonus level condition triggered, calling generateBonusVerticalLevel()');
+      // console.log('Bonus level condition triggered, calling generateBonusVerticalLevel()');
       generateBonusVerticalLevel();
       // Don't call resetPlayer() since generateBonusVerticalLevel() already positions the player correctly
-      console.log('Setting isBonusLevel = true and returning early');
+      // console.log('Setting isBonusLevel = true and returning early');
       isBonusLevel = true;
     } else if (level % 3 === 0) {
       levelType = 'vertical';
@@ -536,7 +536,7 @@ function generateNewLevel() {
     levelTypeToggle.checked = manualLevelType && manualLevelTypeValue === 'vertical';
   }
   generateLevel();
-  console.log('About to call resetPlayer() at line 528 - this should not happen after bonus level');
+  // console.log('About to call resetPlayer() at line 528 - this should not happen after bonus level');
   resetPlayer();
 
   // Change background per level
@@ -747,19 +747,19 @@ function update(deltaTime: number) {
       player.x < finishFlag.x + finishFlag.width &&
       player.y + player.height > finishFlag.y &&
       player.y < finishFlag.y + finishFlag.height) {
-      console.log('Finish flag collision detected!');
-      console.log('Player bounds:', { 
-        left: player.x, 
-        right: player.x + player.width, 
-        top: player.y, 
-        bottom: player.y + player.height 
-      });
-      console.log('Flag bounds:', { 
-        left: finishFlag.x, 
-        right: finishFlag.x + finishFlag.width, 
-        top: finishFlag.y, 
-        bottom: finishFlag.y + finishFlag.height 
-      });
+      // console.log('Finish flag collision detected!');
+      // console.log('Player bounds:', { 
+      //   left: player.x, 
+      //   right: player.x + player.width, 
+      //   top: player.y, 
+      //   bottom: player.y + player.height 
+      // });
+      // console.log('Flag bounds:', { 
+      //   left: finishFlag.x, 
+      //   right: finishFlag.x + finishFlag.width, 
+      //   top: finishFlag.y, 
+      //   bottom: finishFlag.y + finishFlag.height 
+      // });
       startNextLevelWithConfetti();
     }
   }
@@ -1655,13 +1655,13 @@ function generateBonusVerticalLevel() {
   levelType = 'vertical';
   
   // Debug logging
-  console.log('Bonus level generated:');
-  console.log('Player position:', { x: player.x, y: player.y, width: player.width, height: player.height });
-  console.log('Finish flag position:', { x: finishFlag.x, y: finishFlag.y, width: finishFlag.width, height: finishFlag.height });
-  console.log('Camera Y:', cameraY);
-  console.log('Level type:', levelType);
-  console.log('Platforms array:', platforms.map((p, i) => ({ index: i, x: p.x, y: p.y, width: p.width, height: p.height })));
-  console.log('Platform[0]:', platforms[0]);
+  // console.log('Bonus level generated:');
+  // console.log('Player position:', { x: player.x, y: player.y, width: player.width, height: player.height });
+  // console.log('Finish flag position:', { x: finishFlag.x, y: finishFlag.y, width: finishFlag.width, height: finishFlag.height });
+  // console.log('Camera Y:', cameraY);
+  // console.log('Level type:', levelType);
+  // console.log('Platforms array:', platforms.map((p, i) => ({ index: i, x: p.x, y: p.y, width: p.width, height: p.height })));
+  // console.log('Platform[0]:', platforms[0]);
 }
 
 // Exportable version for tests (does not mutate global state)

@@ -36,7 +36,7 @@
   }
   </script>
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
-  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="manifest" href="site.webmanifest" />
   <meta name="theme-color" content="#ffffff" />
       <style>
       body { margin: 0; background: #222; overscroll-behavior: none; touch-action: none; }
@@ -191,7 +191,9 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/service-worker.js');
+        navigator.serviceWorker.register('service-worker.js').catch(function(error) {
+          console.log('ServiceWorker registration failed: ', error);
+        });
       });
     }
   </script>
@@ -226,7 +228,14 @@
       // Fetch star count from GitHub API
       async function fetchStarCount() {
         try {
-          const response = await fetch('https://api.github.com/repos/commjoen/generated-game-experiment');
+          // Use GitHub API with proper headers and error handling
+          const response = await fetch('https://api.github.com/repos/commjoen/generated-game-experiment', {
+            headers: {
+              'Accept': 'application/vnd.github.v3+json',
+              'User-Agent': 'generated-game-experiment'
+            }
+          });
+          
           if (response.ok) {
             const data = await response.json();
             const starCount = data.stargazers_count;
@@ -234,10 +243,20 @@
               starCountEl.textContent = starCount >= 1000 
                 ? `${(starCount / 1000).toFixed(1)}k` 
                 : starCount.toString();
+              starCountEl.title = `${starCount} stars`;
             }
+          } else if (response.status === 403) {
+            // Rate limited - hide counter or show fallback
+            if (starCountEl) {
+              starCountEl.textContent = '★';
+              starCountEl.title = 'Star count unavailable (rate limited)';
+            }
+          } else {
+            throw new Error(`HTTP ${response.status}`);
           }
         } catch (error) {
-          // If API fails, hide the counter or show a fallback
+          console.log('GitHub API unavailable, hiding star counter');
+          // If API fails, hide the counter gracefully
           if (starCountEl) {
             starCountEl.style.display = 'none';
           }

@@ -201,23 +201,42 @@
     // Add to Home Screen (A2HS) prompt
     let deferredPrompt;
     const a2hsBtn = document.getElementById('a2hs-btn');
+    
     window.addEventListener('beforeinstallprompt', (e) => {
+      // Prevent the default mini-infobar from appearing on mobile
       e.preventDefault();
+      // Store the event so it can be triggered later
       deferredPrompt = e;
-      if (a2hsBtn) a2hsBtn.style.display = 'block';
+      // Show our custom install button
+      if (a2hsBtn) {
+        a2hsBtn.style.display = 'block';
+      }
     });
+    
+    // Handle install button click
     if (a2hsBtn) {
       a2hsBtn.addEventListener('click', async () => {
         if (deferredPrompt) {
+          // Show the install prompt
           deferredPrompt.prompt();
+          // Wait for the user to respond to the prompt
           const { outcome } = await deferredPrompt.userChoice;
           if (outcome === 'accepted') {
             a2hsBtn.style.display = 'none';
           }
+          // Clear the deferredPrompt variable
           deferredPrompt = null;
         }
       });
     }
+    
+    // Hide the button if the app is already installed
+    window.addEventListener('appinstalled', () => {
+      if (a2hsBtn) {
+        a2hsBtn.style.display = 'none';
+      }
+      deferredPrompt = null;
+    });
   </script>
   <script>
     // GitHub Star Button

@@ -269,8 +269,19 @@
     window.addEventListener('resize', resizeCanvas);
     window.addEventListener('orientationchange', resizeCanvas);
     resizeCanvas();
-    // Prevent scrolling/zooming on mobile
-    document.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
+    // Prevent scrolling/zooming on mobile, but allow scrolling in modals
+    document.addEventListener('touchmove', function(e) { 
+      // Check if any modal is currently open
+      const shopModal = document.getElementById('shop-modal');
+      const settingsModal = document.getElementById('settings-modal');
+      const isModalOpen = (shopModal && shopModal.style.display !== 'none') || 
+                         (settingsModal && settingsModal.style.display !== 'none');
+      
+      // Only prevent scrolling if no modal is open
+      if (!isModalOpen) {
+        e.preventDefault();
+      }
+    }, { passive: false });
   </script>
   <script>
     // Show mobile controls only on mobile devices

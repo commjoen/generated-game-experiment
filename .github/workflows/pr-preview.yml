@@ -1,0 +1,84 @@
+name: PR Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Get version from tag
+        id: get_version
+        run: |
+          git fetch --tags --force
+          export VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          
+      - run: npm ci
+      
+      - name: Build for PR preview
+        env:
+          VITE_BASE_PATH: /generated-game-experiment/pr-${{ github.event.number }}/
+        run: npm run build
+        
+      - name: Deploy to GitHub Pages (PR Preview)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          destination_dir: pr-${{ github.event.number }}
+          
+      - name: Comment PR with preview URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.number;
+            const previewUrl = `https://commjoen.github.io/generated-game-experiment/pr-${prNumber}/`;
+            
+            // Check if we already commented with preview URL
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            
+            const existingComment = comments.data.find(comment => 
+              comment.body.includes('🚀 Preview deployed') && comment.user.login === 'github-actions[bot]'
+            );
+            
+            const commentBody = `🚀 **Preview deployed!**
+            
+            Your changes are now available at: ${previewUrl}
+            
+            *This preview will be automatically cleaned up when the PR is closed or merged.*`;
+            
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: commentBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: commentBody,
+              });
+            }

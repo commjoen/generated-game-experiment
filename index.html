@@ -47,6 +47,8 @@
       .modal-content {
         scrollbar-width: thin;
         scrollbar-color: #666 #333;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
       }
       .modal-content::-webkit-scrollbar {
         width: 6px;
@@ -71,9 +73,20 @@
         }
         #settings-modal .modal-content, #shop-modal .modal-content {
           padding: 0 20px;
+          -webkit-overflow-scrolling: touch;
+          touch-action: pan-y;
+          overflow-y: auto;
+          overscroll-behavior: contain;
         }
         #character-upgrades {
           grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important;
+        }
+        
+        /* Enhanced shop modal scrolling on mobile */
+        #shop-modal .modal-content {
+          padding: 0 16px;
+          max-height: calc(100vh - 160px);
+          min-height: 300px;
         }
       }
       

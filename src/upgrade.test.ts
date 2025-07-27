@@ -50,7 +50,8 @@ describe('Upgrade System', () => {
   it('should have correct upgrade prices', () => {
     const UPGRADES = {
       characters: [
-        { id: 'yellow_circle', emoji: '🟡', name: 'Yellow Circle', cost: 0, unlocked: true },
+        { id: 'yellow_square', emoji: 'SQUARE', name: 'Yellow Square', cost: 0, unlocked: true },
+        { id: 'yellow_circle', emoji: '🟡', name: 'Yellow Circle', cost: 10 },
         { id: 'red_circle', emoji: '🔴', name: 'Red Circle', cost: 50 },
         { id: 'smiley', emoji: '😊', name: 'Smiley Face', cost: 100 },
       ],
@@ -60,6 +61,8 @@ describe('Upgrade System', () => {
       ]
     };
 
+    expect(UPGRADES.characters.find(c => c.id === 'yellow_square')?.cost).toBe(0);
+    expect(UPGRADES.characters.find(c => c.id === 'yellow_circle')?.cost).toBe(10);
     expect(UPGRADES.characters.find(c => c.id === 'red_circle')?.cost).toBe(50);
     expect(UPGRADES.characters.find(c => c.id === 'smiley')?.cost).toBe(100);
     expect(UPGRADES.gameplay.find(u => u.id === 'extra_life')?.cost).toBe(100);

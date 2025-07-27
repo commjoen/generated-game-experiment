@@ -364,13 +364,14 @@ let nextLevelTimer = 0;
 
 // Total points system for upgrades
 let totalPoints = Number(localStorage.getItem('totalPoints') || '0');
-let playerCharacter = localStorage.getItem('playerCharacter') || '🟡'; // Default yellow circle emoji
+let playerCharacter = localStorage.getItem('playerCharacter') || 'SQUARE'; // Default yellow square (original)
 let purchasedUpgrades: Record<string, boolean> = JSON.parse(localStorage.getItem('purchasedUpgrades') || '{}');
 
 // Available upgrades and their costs
 const UPGRADES = {
   characters: [
-    { id: 'yellow_circle', emoji: '🟡', name: 'Yellow Circle', cost: 0, unlocked: true },
+    { id: 'yellow_square', emoji: 'SQUARE', name: 'Yellow Square', cost: 0, unlocked: true },
+    { id: 'yellow_circle', emoji: '🟡', name: 'Yellow Circle', cost: 10 },
     { id: 'red_circle', emoji: '🔴', name: 'Red Circle', cost: 50 },
     { id: 'blue_circle', emoji: '🔵', name: 'Blue Circle', cost: 50 },
     { id: 'green_circle', emoji: '🟢', name: 'Green Circle', cost: 50 },
@@ -500,7 +501,7 @@ function updateShopDisplay() {
       `;
       
       charDiv.innerHTML = `
-        <div style="font-size:2em;margin-bottom:8px;">${char.emoji}</div>
+        <div style="font-size:2em;margin-bottom:8px;">${char.emoji === 'SQUARE' ? '🟨' : char.emoji}</div>
         <div style="font-size:0.9em;text-align:center;margin-bottom:4px;">${char.name}</div>
         <div style="font-size:0.8em;color:${isOwned ? '#0cf' : (canAfford ? '#ffd700' : '#999')};">
           ${isOwned ? (isSelected ? 'Selected' : 'Owned') : `${char.cost} pts`}
@@ -1499,16 +1500,23 @@ function draw() {
     ctx.globalAlpha = 1;
   }
   
-  // Draw custom player character instead of rectangle
+  // Draw player character (original square or custom emoji)
   ctx.save();
-  ctx.font = `${Math.min(player.width, player.height)}px serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(
-    playerCharacter, 
-    player.x - cameraX + player.width / 2, 
-    player.y - cameraY + player.height / 2
-  );
+  if (playerCharacter === 'SQUARE') {
+    // Draw original yellow rectangle
+    ctx.fillStyle = '#ff0';
+    ctx.fillRect(player.x - cameraX, player.y - cameraY, player.width, player.height);
+  } else {
+    // Draw custom emoji character
+    ctx.font = `${Math.min(player.width, player.height)}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(
+      playerCharacter, 
+      player.x - cameraX + player.width / 2, 
+      player.y - cameraY + player.height / 2
+    );
+  }
   ctx.restore();
   
   ctx.globalAlpha = 1;

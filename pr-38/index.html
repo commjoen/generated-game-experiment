@@ -81,10 +81,19 @@
         }
         
         /* Enhanced shop modal scrolling on mobile */
+        #shop-modal > div {
+          height: calc(100vh - 20px);
+          display: flex;
+          flex-direction: column;
+        }
         #shop-modal .modal-content {
-          padding: 0 16px;
-          max-height: calc(100vh - 160px);
-          min-height: 300px;
+          padding: 0 16px 20px 16px;
+          overflow-y: auto;
+          flex: 1;
+          min-height: 0;
+          -webkit-overflow-scrolling: touch;
+          touch-action: pan-y;
+          overscroll-behavior: contain;
         }
       }
       
@@ -114,7 +123,7 @@
         pointer-events: auto;
       }
     </style>
-  <script type="module" crossorigin="" src="/generated-game-experiment/pr-38/assets/index-CvjlJ7Xl.js" integrity="sha384-iFaF/KTUpWrGAxU+dMMuIckHTadRPTtCPr+bmfygiJP4NWKoRn2RRF9Uf4g5fYKF"></script>
+  <script type="module" crossorigin="" src="/generated-game-experiment/pr-38/assets/index-DkX1mNW8.js" integrity="sha384-8L6n8GQ1lpHZKvvsTmZXkvlShNgaau0S8Ra0Jj4H++cuswo1p+zsli3jaSBsP6SC"></script>
 </head>
 <body>
   <main id="main-content" role="main" tabindex="-1">

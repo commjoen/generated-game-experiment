@@ -466,6 +466,9 @@ function openShopModal() {
   const shopModal = document.getElementById('shop-modal');
   if (shopModal) {
     shopModal.style.display = 'flex';
+    // Hide GitHub star button to prevent touch interference on mobile
+    const githubStarBtn = document.getElementById('github-star-btn');
+    if (githubStarBtn) githubStarBtn.style.display = 'none';
     updateShopDisplay();
   }
 }
@@ -1120,6 +1123,10 @@ window.addEventListener('DOMContentLoaded', () => {
   if (settingsBtn && settingsModal && closeSettings && fixedGradientToggle && scrollGradientToggle && imageBgToggle && speedUnlockToggle && fpsCounterToggle && teslaModeToggle && multiplayerToggle && playerNameInput && levelTypeToggle) {
     settingsBtn.addEventListener('click', () => {
       settingsModal.style.display = 'flex';
+      // Hide GitHub star button to prevent touch interference on mobile
+      const githubStarBtn = document.getElementById('github-star-btn');
+      if (githubStarBtn) githubStarBtn.style.display = 'none';
+      
       fixedGradientToggle.checked = fixedGradient;
       scrollGradientToggle.checked = scrollGradient;
       imageBgToggle.checked = imageBg;
@@ -1133,6 +1140,9 @@ window.addEventListener('DOMContentLoaded', () => {
     });
     closeSettings.addEventListener('click', () => {
       settingsModal.style.display = 'none';
+      // Show GitHub star button again
+      const githubStarBtn = document.getElementById('github-star-btn');
+      if (githubStarBtn) githubStarBtn.style.display = 'flex';
     });
     fixedGradientToggle.addEventListener('change', () => {
       if (fixedGradientToggle.checked) {
@@ -1227,6 +1237,9 @@ window.addEventListener('DOMContentLoaded', () => {
     
     closeShop.addEventListener('click', () => {
       shopModal.style.display = 'none';
+      // Show GitHub star button again
+      const githubStarBtn = document.getElementById('github-star-btn');
+      if (githubStarBtn) githubStarBtn.style.display = 'flex';
     });
   }
   

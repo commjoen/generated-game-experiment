@@ -45,6 +45,8 @@
       .modal-content {
         scrollbar-width: thin;
         scrollbar-color: #666 #333;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
       }
       .modal-content::-webkit-scrollbar {
         width: 6px;
@@ -69,9 +71,40 @@
         }
         #settings-modal .modal-content, #shop-modal .modal-content {
           padding: 0 20px;
+          -webkit-overflow-scrolling: touch;
+          touch-action: pan-y;
+          overflow-y: auto;
+          overscroll-behavior: contain;
         }
         #character-upgrades {
           grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important;
+        }
+        
+        /* Enhanced shop modal scrolling on mobile - robust approach */
+        #shop-modal {
+          align-items: flex-start !important;
+          padding: 0 !important;
+        }
+        #shop-modal > div {
+          margin: 0 !important;
+          max-width: 100vw !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          max-height: 100vh !important;
+          border-radius: 0 !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        #shop-modal .modal-content {
+          padding: 0 20px 20px 20px !important;
+          overflow-y: scroll !important;
+          flex: 1 1 auto !important;
+          min-height: 0 !important;
+          max-height: none !important;
+          -webkit-overflow-scrolling: touch !important;
+          touch-action: pan-y !important;
+          overscroll-behavior: contain !important;
+          position: relative !important;
         }
       }
       
@@ -101,7 +134,7 @@
         pointer-events: auto;
       }
     </style>
-  <script type="module" crossorigin="" src="/assets/index-CDS2kH9g.js" integrity="sha384-AkxMvYgsrrlHpSOggN35B8ONtiNmgqO3E1uR+eDVzDDCeo/OERfombL/WqpcOZM6"></script>
+  <script type="module" crossorigin="" src="/assets/index-CiqWx3qA.js" integrity="sha384-au6f5q7Y8fZCbOPteMJRL+u/KCwaddZYqGs7Xfv27qiC6UGBegYX/1TAaqdsOUdA"></script>
 </head>
 <body>
   <main id="main-content" role="main" tabindex="-1">

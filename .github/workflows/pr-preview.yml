@@ -8,6 +8,9 @@ on:
 jobs:
   deploy-preview:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: https://commjoen.github.io/generated-game-experiment/pr-${{ github.event.number }}/
     permissions:
       contents: read
       pages: write

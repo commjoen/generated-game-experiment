@@ -31,6 +31,7 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
 - **Mobile Support**: Touch controls for mobile devices, with robust and responsive event handling.
 - **Dockerized Deployment**: The application is shippable as a Docker container, with Nginx hosting the game content for easy deployment.
 - **Automated Deployment**: GitHub Actions workflows for test and deploy, with deployment to GitHub Pages and correct base path/branch structure.
+- **PR Preview Deployments**: Each pull request automatically gets its own preview deployment at `https://commjoen.github.io/generated-game-experiment/pr-{number}/` with automatic cleanup when PRs are closed or merged.
 - **Security**: Nginx config with CORS and security headers, Subresource Integrity (SRI) for built assets.
 - **Project Documentation**: Up-to-date README and changelog.
 - **Multiplayer (Fully Implemented)**: Users can enable or disable multiplayer via a toggle in the settings menu. When enabled, the game connects to a multiplayer server (Docker/Render supported) and synchronizes player state in real time. If the server is unavailable, the game automatically falls back to singleplayer mode. Robust tests cover both singleplayer and multiplayer scenarios.

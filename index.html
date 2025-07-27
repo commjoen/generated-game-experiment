@@ -83,10 +83,19 @@
         }
         
         /* Enhanced shop modal scrolling on mobile */
+        #shop-modal > div {
+          height: calc(100vh - 20px);
+          display: flex;
+          flex-direction: column;
+        }
         #shop-modal .modal-content {
-          padding: 0 16px;
-          max-height: calc(100vh - 160px);
-          min-height: 300px;
+          padding: 0 16px 20px 16px;
+          overflow-y: auto;
+          flex: 1;
+          min-height: 0;
+          -webkit-overflow-scrolling: touch;
+          touch-action: pan-y;
+          overscroll-behavior: contain;
         }
       }
       

@@ -12,6 +12,7 @@
 
 <!-- Deployment & Infrastructure -->
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-success.svg)](https://commjoen.github.io/generated-game-experiment/)
+[![PR Previews](https://img.shields.io/badge/PR%20Previews-Enabled-blue.svg)](https://github.com/commjoen/generated-game-experiment/actions/workflows/pr-preview.yml)
 [![Render Deployment](https://img.shields.io/badge/Render-Deployed-46E3B7.svg)](https://generated-game-experiment.onrender.com/)
 [![Docker](https://img.shields.io/badge/Docker-Available-2496ED.svg)](https://github.com/commjoen/generated-game-experiment/pkgs/container/generated-game-experiment)
 
@@ -97,6 +98,8 @@ A browser-based, side-scrolling platformer game built with TypeScript, Vite, and
 ## GitHub Pages
 - Auto-deployed on every push to `main`.
 - Live at: https://commjoen.github.io/generated-game-experiment/
+- **PR Previews**: Each pull request gets its own preview deployment at `https://commjoen.github.io/generated-game-experiment/pr-{number}/`
+- Preview deployments are automatically cleaned up when PRs are closed or merged
 
 ## Testing
 - Run all tests:

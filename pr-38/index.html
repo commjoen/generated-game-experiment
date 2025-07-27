@@ -45,6 +45,8 @@
       .modal-content {
         scrollbar-width: thin;
         scrollbar-color: #666 #333;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
       }
       .modal-content::-webkit-scrollbar {
         width: 6px;
@@ -69,9 +71,20 @@
         }
         #settings-modal .modal-content, #shop-modal .modal-content {
           padding: 0 20px;
+          -webkit-overflow-scrolling: touch;
+          touch-action: pan-y;
+          overflow-y: auto;
+          overscroll-behavior: contain;
         }
         #character-upgrades {
           grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important;
+        }
+        
+        /* Enhanced shop modal scrolling on mobile */
+        #shop-modal .modal-content {
+          padding: 0 16px;
+          max-height: calc(100vh - 160px);
+          min-height: 300px;
         }
       }
       
@@ -101,7 +114,7 @@
         pointer-events: auto;
       }
     </style>
-  <script type="module" crossorigin="" src="/generated-game-experiment/pr-38/assets/index-DuInvC6g.js" integrity="sha384-gpu6zI1JX1TPHnKJFtczPfqljV+u7+krUI0TqazZ085e+m+ZNlG1ifplMuMu2/1D"></script>
+  <script type="module" crossorigin="" src="/generated-game-experiment/pr-38/assets/index-CvjlJ7Xl.js" integrity="sha384-iFaF/KTUpWrGAxU+dMMuIckHTadRPTtCPr+bmfygiJP4NWKoRn2RRF9Uf4g5fYKF"></script>
 </head>
 <body>
   <main id="main-content" role="main" tabindex="-1">

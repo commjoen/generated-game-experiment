@@ -134,7 +134,7 @@
         pointer-events: auto;
       }
     </style>
-  <script type="module" crossorigin="" src="/generated-game-experiment/pr-38/assets/index-eDYBJHXE.js" integrity="sha384-KkA2ECyFqPB+t2tyu6O4SM1CdWTrfPv85Iuyz5SSHC0szZUEBzN23ZnV127Rkfcr"></script>
+  <script type="module" crossorigin="" src="/generated-game-experiment/pr-38/assets/index-CrdjgLWc.js" integrity="sha384-BuqDlW/x2ShlxgNw07+vN1EcYgUdVi4DKs6g08bmqeGYuOdlX+x7CA5qsnqfjlwN"></script>
 </head>
 <body>
   <main id="main-content" role="main" tabindex="-1">
@@ -267,8 +267,19 @@
     window.addEventListener('resize', resizeCanvas);
     window.addEventListener('orientationchange', resizeCanvas);
     resizeCanvas();
-    // Prevent scrolling/zooming on mobile
-    document.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
+    // Prevent scrolling/zooming on mobile, but allow scrolling in modals
+    document.addEventListener('touchmove', function(e) { 
+      // Check if any modal is currently open
+      const shopModal = document.getElementById('shop-modal');
+      const settingsModal = document.getElementById('settings-modal');
+      const isModalOpen = (shopModal && shopModal.style.display !== 'none') || 
+                         (settingsModal && settingsModal.style.display !== 'none');
+      
+      // Only prevent scrolling if no modal is open
+      if (!isModalOpen) {
+        e.preventDefault();
+      }
+    }, { passive: false });
   </script>
   <script>
     // Show mobile controls only on mobile devices

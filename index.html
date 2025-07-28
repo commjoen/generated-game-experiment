@@ -66,28 +66,16 @@
       
       /* Mobile responsive adjustments */
       @media (max-width: 480px) {
-        #settings-modal > div, #shop-modal > div {
-          margin: 10px;
-          max-width: calc(100vw - 20px);
-          max-height: calc(100vh - 20px);
-        }
-        #settings-modal .modal-content, #shop-modal .modal-content {
-          padding: 0 20px;
-          -webkit-overflow-scrolling: touch;
-          touch-action: pan-y;
-          overflow-y: auto;
-          overscroll-behavior: contain;
-        }
         #character-upgrades {
           grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important;
         }
         
-        /* Enhanced shop modal scrolling on mobile - robust approach */
-        #shop-modal {
+        /* Enhanced modal scrolling on mobile - robust approach for both modals */
+        #settings-modal, #shop-modal {
           align-items: flex-start !important;
           padding: 0 !important;
         }
-        #shop-modal > div {
+        #settings-modal > div, #shop-modal > div {
           margin: 0 !important;
           max-width: 100vw !important;
           width: 100vw !important;
@@ -97,7 +85,7 @@
           display: flex !important;
           flex-direction: column !important;
         }
-        #shop-modal .modal-content {
+        #settings-modal .modal-content, #shop-modal .modal-content {
           padding: 0 20px 20px 20px !important;
           overflow-y: scroll !important;
           flex: 1 1 auto !important;

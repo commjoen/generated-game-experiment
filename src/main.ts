@@ -1523,12 +1523,27 @@ function draw() {
     // Draw custom emoji character
     ctx.font = `${Math.min(player.width, player.height)}px serif`;
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(
-      playerCharacter, 
-      player.x - cameraX + player.width / 2, 
-      player.y - cameraY + player.height / 2
-    );
+    
+    // Check if this is a circle character that should "roll" on platforms
+    const isCircleCharacter = ['🟡', '🔴', '🔵', '🟢'].includes(playerCharacter);
+    
+    if (isCircleCharacter) {
+      // For circle characters, position them to sit on the platform surface
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(
+        playerCharacter, 
+        player.x - cameraX + player.width / 2, 
+        player.y - cameraY + player.height
+      );
+    } else {
+      // For other characters, keep them centered in the hitbox
+      ctx.textBaseline = 'middle';
+      ctx.fillText(
+        playerCharacter, 
+        player.x - cameraX + player.width / 2, 
+        player.y - cameraY + player.height / 2
+      );
+    }
   }
   ctx.restore();
   

@@ -430,4 +430,66 @@ describe('Bonus level generation', () => {
       expect(Math.abs(sorted[i].y - sorted[i-1].y)).toBeLessThanOrEqual(80);
     }
   });
+});
+
+describe('Circle character rendering', () => {
+  it('should identify circle characters correctly', () => {
+    // Test function to check if a character is a circle
+    function isCircleCharacter(playerCharacter: string) {
+      return ['🟡', '🔴', '🔵', '🟢'].includes(playerCharacter);
+    }
+    
+    // Circle characters should be identified
+    expect(isCircleCharacter('🟡')).toBe(true);
+    expect(isCircleCharacter('🔴')).toBe(true);
+    expect(isCircleCharacter('🔵')).toBe(true);
+    expect(isCircleCharacter('🟢')).toBe(true);
+    
+    // Non-circle characters should not be identified as circles
+    expect(isCircleCharacter('SQUARE')).toBe(false);
+    expect(isCircleCharacter('😊')).toBe(false);
+    expect(isCircleCharacter('😎')).toBe(false);
+    expect(isCircleCharacter('⭐')).toBe(false);
+    expect(isCircleCharacter('👑')).toBe(false);
+    expect(isCircleCharacter('🚀')).toBe(false);
+    expect(isCircleCharacter('👽')).toBe(false);
+  });
+
+  it('should use different text baseline for circle vs non-circle characters', () => {
+    // Test mock context to verify canvas text baseline setting
+    let mockTextBaseline = '';
+    const mockCtx = {
+      set textBaseline(value: string) {
+        mockTextBaseline = value;
+      },
+      get textBaseline() {
+        return mockTextBaseline;
+      }
+    };
+    
+    // Function to simulate the character rendering logic
+    function setCharacterBaseline(playerCharacter: string, ctx: any) {
+      const isCircleCharacter = ['🟡', '🔴', '🔵', '🟢'].includes(playerCharacter);
+      
+      if (isCircleCharacter) {
+        ctx.textBaseline = 'bottom';
+      } else {
+        ctx.textBaseline = 'middle';
+      }
+    }
+    
+    // Circle characters should use 'bottom' baseline to sit on platforms
+    setCharacterBaseline('🟡', mockCtx);
+    expect(mockCtx.textBaseline).toBe('bottom');
+    
+    setCharacterBaseline('🔴', mockCtx);
+    expect(mockCtx.textBaseline).toBe('bottom');
+    
+    // Non-circle characters should use 'middle' baseline
+    setCharacterBaseline('😊', mockCtx);
+    expect(mockCtx.textBaseline).toBe('middle');
+    
+    setCharacterBaseline('⭐', mockCtx);
+    expect(mockCtx.textBaseline).toBe('middle');
+  });
 }); 

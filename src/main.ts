@@ -362,6 +362,35 @@ let topScore = Number(localStorage.getItem('topScore') || '0');
 let nextLevelPending = false;
 let nextLevelTimer = 0;
 
+// Total points system for upgrades
+let totalPoints = Number(localStorage.getItem('totalPoints') || '0');
+let playerCharacter = localStorage.getItem('playerCharacter') || 'SQUARE'; // Default yellow square (original)
+let purchasedUpgrades: Record<string, boolean> = JSON.parse(localStorage.getItem('purchasedUpgrades') || '{}');
+
+// Available upgrades and their costs
+const UPGRADES = {
+  characters: [
+    { id: 'yellow_square', emoji: 'SQUARE', name: 'Yellow Square', cost: 0, unlocked: true },
+    { id: 'yellow_circle', emoji: '🟡', name: 'Yellow Circle', cost: 10 },
+    { id: 'red_circle', emoji: '🔴', name: 'Red Circle', cost: 50 },
+    { id: 'blue_circle', emoji: '🔵', name: 'Blue Circle', cost: 50 },
+    { id: 'green_circle', emoji: '🟢', name: 'Green Circle', cost: 50 },
+    { id: 'smiley', emoji: '😊', name: 'Smiley Face', cost: 100 },
+    { id: 'cool', emoji: '😎', name: 'Cool Face', cost: 150 },
+    { id: 'star', emoji: '⭐', name: 'Star', cost: 200 },
+    { id: 'crown', emoji: '👑', name: 'Crown', cost: 300 },
+    { id: 'rocket', emoji: '🚀', name: 'Rocket', cost: 500 },
+    { id: 'alien', emoji: '👽', name: 'Alien', cost: 750 },
+  ],
+  gameplay: [
+    { id: 'extra_life', name: 'Start with Extra Life', cost: 100, description: 'Begin each game with 4 lives instead of 3' },
+    { id: 'double_jump_start', name: 'Start with Double Jump', cost: 200, description: 'Begin each level with double jump ability' },
+    { id: 'speed_boost', name: 'Permanent Speed Boost', cost: 300, description: '1.5x movement speed permanently' },
+    { id: 'lucky_coins', name: 'Lucky Coins', cost: 400, description: 'Coins are worth 2 points each' },
+    { id: 'tough_skin', name: 'Tough Skin', cost: 500, description: 'Start each game with 5 lives instead of 3' },
+  ]
+};
+
 function setTopScore(newScore: number) {
   if (newScore > topScore) {
     topScore = newScore;
@@ -369,10 +398,195 @@ function setTopScore(newScore: number) {
   }
 }
 
+// Total points management
+function addTotalPoints(points: number) {
+  totalPoints += points;
+  localStorage.setItem('totalPoints', String(totalPoints));
+}
+
+function spendTotalPoints(points: number): boolean {
+  if (totalPoints >= points) {
+    totalPoints -= points;
+    localStorage.setItem('totalPoints', String(totalPoints));
+    return true;
+  }
+  return false;
+}
+
+function purchaseUpgrade(upgradeId: string): boolean {
+  if (purchasedUpgrades[upgradeId]) {
+    return false; // Already purchased
+  }
+  
+  // Find upgrade cost
+  let cost = 0;
+  let found = false;
+  
+  // Check character upgrades
+  for (const char of UPGRADES.characters) {
+    if (char.id === upgradeId) {
+      cost = char.cost;
+      found = true;
+      break;
+    }
+  }
+  
+  // Check gameplay upgrades
+  if (!found) {
+    for (const upgrade of UPGRADES.gameplay) {
+      if (upgrade.id === upgradeId) {
+        cost = upgrade.cost;
+        found = true;
+        break;
+      }
+    }
+  }
+  
+  if (!found || !spendTotalPoints(cost)) {
+    return false;
+  }
+  
+  purchasedUpgrades[upgradeId] = true;
+  localStorage.setItem('purchasedUpgrades', JSON.stringify(purchasedUpgrades));
+  
+  // Handle character purchases
+  if (UPGRADES.characters.some(c => c.id === upgradeId)) {
+    const character = UPGRADES.characters.find(c => c.id === upgradeId);
+    if (character) {
+      playerCharacter = character.emoji;
+      localStorage.setItem('playerCharacter', playerCharacter);
+    }
+  }
+  
+  return true;
+}
+
+// Shop modal functions
+function openShopModal() {
+  const shopModal = document.getElementById('shop-modal');
+  if (shopModal) {
+    shopModal.style.display = 'flex';
+    // Hide GitHub star button to prevent touch interference on mobile
+    const githubStarBtn = document.getElementById('github-star-btn');
+    if (githubStarBtn) githubStarBtn.style.display = 'none';
+    updateShopDisplay();
+  }
+}
+
+function updateShopDisplay() {
+  // Update points display
+  const pointsEl = document.getElementById('shop-points');
+  if (pointsEl) {
+    pointsEl.textContent = String(totalPoints);
+  }
+  
+  // Update character upgrades
+  const characterContainer = document.getElementById('character-upgrades');
+  if (characterContainer) {
+    characterContainer.innerHTML = '';
+    
+    UPGRADES.characters.forEach(char => {
+      const isOwned = char.unlocked || purchasedUpgrades[char.id];
+      const isSelected = playerCharacter === char.emoji;
+      const canAfford = totalPoints >= char.cost;
+      
+      const charDiv = document.createElement('div');
+      charDiv.style.cssText = `
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        padding:12px;
+        border-radius:8px;
+        border:2px solid ${isSelected ? '#ffd700' : (isOwned ? '#0cf' : '#666')};
+        background:${isSelected ? 'rgba(255,215,0,0.1)' : (isOwned ? 'rgba(0,204,255,0.1)' : '#333')};
+        cursor:pointer;
+        transition:all 0.2s;
+      `;
+      
+      charDiv.innerHTML = `
+        <div style="font-size:2em;margin-bottom:8px;">${char.emoji === 'SQUARE' ? '🟨' : char.emoji}</div>
+        <div style="font-size:0.9em;text-align:center;margin-bottom:4px;">${char.name}</div>
+        <div style="font-size:0.8em;color:${isOwned ? '#0cf' : (canAfford ? '#ffd700' : '#999')};">
+          ${isOwned ? (isSelected ? 'Selected' : 'Owned') : `${char.cost} pts`}
+        </div>
+      `;
+      
+      charDiv.addEventListener('click', () => {
+        if (isOwned) {
+          // Select this character
+          playerCharacter = char.emoji;
+          localStorage.setItem('playerCharacter', playerCharacter);
+          updateShopDisplay();
+        } else if (canAfford) {
+          // Purchase this character
+          if (purchaseUpgrade(char.id)) {
+            updateShopDisplay();
+          }
+        }
+      });
+      
+      characterContainer.appendChild(charDiv);
+    });
+  }
+  
+  // Update gameplay upgrades
+  const gameplayContainer = document.getElementById('gameplay-upgrades');
+  if (gameplayContainer) {
+    gameplayContainer.innerHTML = '';
+    
+    UPGRADES.gameplay.forEach(upgrade => {
+      const isOwned = purchasedUpgrades[upgrade.id];
+      const canAfford = totalPoints >= upgrade.cost;
+      
+      const upgradeDiv = document.createElement('div');
+      upgradeDiv.style.cssText = `
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        padding:16px;
+        border-radius:8px;
+        border:2px solid ${isOwned ? '#0cf' : '#666'};
+        background:${isOwned ? 'rgba(0,204,255,0.1)' : '#333'};
+        ${!isOwned && canAfford ? 'cursor:pointer;' : ''}
+        transition:all 0.2s;
+      `;
+      
+      upgradeDiv.innerHTML = `
+        <div>
+          <div style="font-weight:bold;margin-bottom:4px;">${upgrade.name}</div>
+          <div style="font-size:0.9em;color:#ccc;">${upgrade.description}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:1.2em;color:${isOwned ? '#0cf' : (canAfford ? '#ffd700' : '#999')};">
+            ${isOwned ? '✓ Owned' : `${upgrade.cost} pts`}
+          </div>
+        </div>
+      `;
+      
+      if (!isOwned && canAfford) {
+        upgradeDiv.addEventListener('click', () => {
+          if (purchaseUpgrade(upgrade.id)) {
+            updateShopDisplay();
+          }
+        });
+      }
+      
+      gameplayContainer.appendChild(upgradeDiv);
+    });
+  }
+}
+
 function resetGame() {
   score = 0;
   level = 1;
+  // Apply purchased upgrades to starting lives
   lives = 3;
+  if (purchasedUpgrades['extra_life']) {
+    lives = 4;
+  }
+  if (purchasedUpgrades['tough_skin']) {
+    lives = 5;
+  }
   localStorage.setItem('levelType', 'horizontal');
   gameOver = false;
   platforms.length = 0;
@@ -387,6 +601,12 @@ function resetGame() {
     levelType = 'horizontal';
   }
   generateLevel();
+  
+  // Apply purchased upgrades
+  if (purchasedUpgrades['double_jump_start']) {
+    player.hasDoubleJump = true;
+  }
+  
   resetPlayer();
 }
 
@@ -576,8 +796,9 @@ function update(deltaTime: number) {
   }
   // Horizontal movement (frame-rate independent)
   player.vx = 0;
-  if (keys['ArrowLeft'] || keys['KeyA']) player.vx = -MOVE_SPEED * currentSpeedMultiplier * deltaTime * 60;
-  if (keys['ArrowRight'] || keys['KeyD']) player.vx = MOVE_SPEED * currentSpeedMultiplier * deltaTime * 60;
+  const speedMultiplier = currentSpeedMultiplier * (purchasedUpgrades['speed_boost'] ? 1.5 : 1);
+  if (keys['ArrowLeft'] || keys['KeyA']) player.vx = -MOVE_SPEED * speedMultiplier * deltaTime * 60;
+  if (keys['ArrowRight'] || keys['KeyD']) player.vx = MOVE_SPEED * speedMultiplier * deltaTime * 60;
 
   // Jump (continuous while key is held)
   const jumpKey = keys['ArrowUp'] || keys['Space'] || keys['KeyW'];
@@ -711,7 +932,9 @@ function update(deltaTime: number) {
         multiplayerManager.collectItem((c as any).id);
       }
       if (c.type === 'coin') {
+        const coinValue = purchasedUpgrades['lucky_coins'] ? 2 : 1;
         score++;
+        addTotalPoints(coinValue);
         setTopScore(score);
       } else if (c.type === 'heart') {
         if (lives < 5) lives++;
@@ -900,6 +1123,10 @@ window.addEventListener('DOMContentLoaded', () => {
   if (settingsBtn && settingsModal && closeSettings && fixedGradientToggle && scrollGradientToggle && imageBgToggle && speedUnlockToggle && fpsCounterToggle && teslaModeToggle && multiplayerToggle && playerNameInput && levelTypeToggle) {
     settingsBtn.addEventListener('click', () => {
       settingsModal.style.display = 'flex';
+      // Hide GitHub star button to prevent touch interference on mobile
+      const githubStarBtn = document.getElementById('github-star-btn');
+      if (githubStarBtn) githubStarBtn.style.display = 'none';
+      
       fixedGradientToggle.checked = fixedGradient;
       scrollGradientToggle.checked = scrollGradient;
       imageBgToggle.checked = imageBg;
@@ -913,6 +1140,9 @@ window.addEventListener('DOMContentLoaded', () => {
     });
     closeSettings.addEventListener('click', () => {
       settingsModal.style.display = 'none';
+      // Show GitHub star button again
+      const githubStarBtn = document.getElementById('github-star-btn');
+      if (githubStarBtn) githubStarBtn.style.display = 'flex';
     });
     fixedGradientToggle.addEventListener('change', () => {
       if (fixedGradientToggle.checked) {
@@ -994,6 +1224,25 @@ window.addEventListener('DOMContentLoaded', () => {
       });
     }
   }
+  
+  // Shop modal handling
+  const shopBtn = document.getElementById('shop-btn');
+  const shopModal = document.getElementById('shop-modal');
+  const closeShop = document.getElementById('close-shop');
+  
+  if (shopBtn && shopModal && closeShop) {
+    shopBtn.addEventListener('click', () => {
+      openShopModal();
+    });
+    
+    closeShop.addEventListener('click', () => {
+      shopModal.style.display = 'none';
+      // Show GitHub star button again
+      const githubStarBtn = document.getElementById('github-star-btn');
+      if (githubStarBtn) githubStarBtn.style.display = 'flex';
+    });
+  }
+  
   // Set version in settings modal if present
   const versionEl = document.querySelector('.version-string, #version, .version, #version-string') as HTMLElement;
   if (versionEl) {
@@ -1263,8 +1512,26 @@ function draw() {
   } else {
     ctx.globalAlpha = 1;
   }
-  ctx.fillStyle = '#ff0';
-  ctx.fillRect(player.x - cameraX, player.y - cameraY, player.width, player.height);
+  
+  // Draw player character (original square or custom emoji)
+  ctx.save();
+  if (playerCharacter === 'SQUARE') {
+    // Draw original yellow rectangle
+    ctx.fillStyle = '#ff0';
+    ctx.fillRect(player.x - cameraX, player.y - cameraY, player.width, player.height);
+  } else {
+    // Draw custom emoji character
+    ctx.font = `${Math.min(player.width, player.height)}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(
+      playerCharacter, 
+      player.x - cameraX + player.width / 2, 
+      player.y - cameraY + player.height / 2
+    );
+  }
+  ctx.restore();
+  
   ctx.globalAlpha = 1;
   // Draw other players
   ctx.save();
@@ -1321,13 +1588,18 @@ function draw() {
   ctx.fillText(`Score: ${score}`, 20, 30);
   ctx.fillText(`Top Score: ${topScore}`, 20, 60);
   ctx.fillText(`Level: ${level}`, 20, 90);
+  ctx.fillStyle = '#ffd700'; // Gold color for total points
+  ctx.fillText(`Total Points: ${totalPoints}`, 20, 120);
+  ctx.fillStyle = '#fff'; // Reset color
+  let nextY = 150;
   if (showFpsCounter) {
-    ctx.fillText(`FPS: ${fpsDisplay}`, 20, 120);
+    ctx.fillText(`FPS: ${fpsDisplay}`, 20, nextY);
+    nextY += 30;
   }
   if (speedUnlocked) {
     ctx.fillStyle = '#0cf';
-    const speedY = showFpsCounter ? 150 : 120;
-    ctx.fillText(`Speed: ${currentSpeedMultiplier}x`, 20, speedY);
+    ctx.fillText(`Speed: ${currentSpeedMultiplier}x`, 20, nextY);
+    ctx.fillStyle = '#fff';
   }
   // Draw leaderboard (top-right) only in multiplayer mode with >1 player
   if (multiplayerEnabled && otherPlayers.size > 0) {

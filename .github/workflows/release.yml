@@ -31,6 +31,15 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    - name: Check authorized user
+      run: |
+        if [ "${{ github.actor }}" != "commjoen" ]; then
+          echo "❌ Unauthorized user: ${{ github.actor }}"
+          echo "This workflow can only be triggered by @commjoen"
+          exit 1
+        fi
+        echo "✅ Authorized user: ${{ github.actor }}"
+
     - name: Checkout repository
       uses: actions/checkout@v4
       with:

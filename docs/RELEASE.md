@@ -4,7 +4,7 @@ This document explains how to use the release workflow to create tagged releases
 
 ## 🚀 How to Create a Release
 
-The release workflow can only be triggered manually by authorized repository maintainers (primarily @commjoen).
+The release workflow can only be triggered manually by @commjoen. The workflow has built-in security to prevent unauthorized access.
 
 ### Steps to Create a Release
 
@@ -53,8 +53,9 @@ Release notes are generated automatically and include:
 
 ## 🔒 Security & Access
 
-- Only repository maintainers can trigger this workflow
-- Requires `workflow_dispatch` permissions
+- **Restricted Access**: Only @commjoen can trigger this workflow
+- The workflow validates the user before proceeding
+- Requires `workflow_dispatch` permissions in GitHub Actions
 - All changes are committed with the official GitHub Actions bot
 
 ## 🐳 Docker Images

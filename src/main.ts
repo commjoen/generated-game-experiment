@@ -1530,11 +1530,13 @@ function draw() {
     if (isCircleCharacter) {
       // For circle characters, position them to sit on the platform surface
       // Use 'middle' baseline but adjust Y position downward to account for emoji rendering
+      // Scale the offset proportionally with character size to handle growth levels
+      const offset = Math.round(player.height * 0.4);
       ctx.textBaseline = 'middle';
       ctx.fillText(
         playerCharacter, 
         player.x - cameraX + player.width / 2, 
-        player.y - cameraY + player.height - 20  // Move down by 20 pixels to sit on platform
+        player.y - cameraY + player.height - offset
       );
     } else {
       // For other characters, keep them centered in the hitbox

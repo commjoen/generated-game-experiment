@@ -49,3 +49,6 @@ logs
 # Temporary folders
 tmp/
 temp/
+
+# Test files
+circle-test.html

@@ -34,6 +34,12 @@
 ## Overview
 A browser-based, side-scrolling platformer game built with TypeScript, Vite, and Docker. Features procedural levels, collectibles, power-ups, a settings modal, and robust multiplayer support. Containerized with nginx for easy deployment to Render and GitHub Pages.
 
+## 🎮 Play the Game
+
+[![Play Multiplayer on Render](https://img.shields.io/badge/🎮%20Play%20Multiplayer-on%20Render-46E3B7?style=for-the-badge&logo=render)](https://generated-game-experiment.onrender.com/)
+
+[![Play Singleplayer on GitHub Pages](https://img.shields.io/badge/🎮%20Play%20Singleplayer-on%20GitHub%20Pages-238636?style=for-the-badge&logo=github)](https://commjoen.github.io/generated-game-experiment/)
+
 ## Features
 - **Procedural Levels**: Each run generates a new level with platforms, spikes, moving platforms, and boxes.
 - **Collectibles & Power-Ups**: Coins (score), hearts (lives), double jump (feather), and grow (mushroom, up to 3x size per life).

@@ -5,7 +5,7 @@
 ### 1. Rollup Native Dependencies Issue
 **Problem**: The tests were failing with a missing `@rollup/rollup-linux-x64-gnu` module error.
 
-**Solution**: 
+**Solution**:
 - Removed `node_modules` and `package-lock.json`
 - Reinstalled dependencies with `npm install`
 - This resolved the Rollup native module compatibility issue
@@ -16,7 +16,7 @@
 Error: done() callback is deprecated, use promise instead
 ```
 
-**Solution**: 
+**Solution**:
 - Converted all WebSocket tests from `done()` callback pattern to modern `async/await` with Promises
 - Added proper error handling with try/catch blocks
 - Added timeouts to prevent hanging tests
@@ -25,7 +25,7 @@ Error: done() callback is deprecated, use promise instead
 ### 3. Node-fetch Import Issue
 **Problem**: The tests were importing `node-fetch` which is not needed in Node.js 18+ as `fetch` is built-in.
 
-**Solution**: 
+**Solution**:
 - Removed the `import fetch from 'node-fetch'` line
 - Used the built-in global `fetch` function instead
 

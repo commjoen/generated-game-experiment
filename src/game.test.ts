@@ -438,13 +438,13 @@ describe('Circle character rendering', () => {
     function isCircleCharacter(playerCharacter: string) {
       return ['🟡', '🔴', '🔵', '🟢'].includes(playerCharacter);
     }
-    
+
     // Circle characters should be identified
     expect(isCircleCharacter('🟡')).toBe(true);
     expect(isCircleCharacter('🔴')).toBe(true);
     expect(isCircleCharacter('🔵')).toBe(true);
     expect(isCircleCharacter('🟢')).toBe(true);
-    
+
     // Non-circle characters should not be identified as circles
     expect(isCircleCharacter('SQUARE')).toBe(false);
     expect(isCircleCharacter('😊')).toBe(false);
@@ -466,30 +466,30 @@ describe('Circle character rendering', () => {
         return mockTextBaseline;
       }
     };
-    
+
     // Function to simulate the character rendering logic
     function setCharacterBaseline(playerCharacter: string, ctx: any) {
       const isCircleCharacter = ['🟡', '🔴', '🔵', '🟢'].includes(playerCharacter);
-      
+
       if (isCircleCharacter) {
         ctx.textBaseline = 'bottom';
       } else {
         ctx.textBaseline = 'middle';
       }
     }
-    
+
     // Circle characters should use 'bottom' baseline to sit on platforms
     setCharacterBaseline('🟡', mockCtx);
     expect(mockCtx.textBaseline).toBe('bottom');
-    
+
     setCharacterBaseline('🔴', mockCtx);
     expect(mockCtx.textBaseline).toBe('bottom');
-    
+
     // Non-circle characters should use 'middle' baseline
     setCharacterBaseline('😊', mockCtx);
     expect(mockCtx.textBaseline).toBe('middle');
-    
+
     setCharacterBaseline('⭐', mockCtx);
     expect(mockCtx.textBaseline).toBe('middle');
   });
-}); 
+});

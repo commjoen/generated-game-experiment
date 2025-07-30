@@ -57,4 +57,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:80 && curl -f http://localhost:3001/health || exit 1
 
 # Use startup script to run both services
-CMD ["/start.sh"] 
+CMD ["/start.sh"]

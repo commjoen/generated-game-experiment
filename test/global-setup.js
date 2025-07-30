@@ -26,4 +26,4 @@ module.exports = async function setup() {
       serverProcess.kill();
     }
   };
-}; 
+};

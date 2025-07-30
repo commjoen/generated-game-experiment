@@ -40,4 +40,4 @@ export default defineConfig({
     __GITTAG__: JSON.stringify(tag),
     __BUILDDATE__: JSON.stringify(buildDate),
   },
-}); 
+});

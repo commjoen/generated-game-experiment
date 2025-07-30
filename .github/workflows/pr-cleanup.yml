@@ -18,7 +18,7 @@ jobs:
         with:
           ref: gh-pages
           fetch-depth: 0
-          
+
       - name: Remove PR preview directory
         run: |
           if [ -d "pr-${{ github.event.number }}" ]; then
@@ -27,7 +27,7 @@ jobs:
           else
             echo "No preview directory found for PR #${{ github.event.number }}"
           fi
-          
+
       - name: Commit cleanup
         run: |
           git config --local user.email "action@github.com"
@@ -40,7 +40,7 @@ jobs:
           else
             echo "No changes to commit - preview directory was not found"
           fi
-          
+
       - name: Comment on PR about cleanup
         uses: actions/github-script@v7
         with:
@@ -51,6 +51,6 @@ jobs:
               repo: context.repo.repo,
               issue_number: prNumber,
               body: `🧹 **Preview cleaned up!**
-              
+
               The preview deployment for this PR has been automatically removed from GitHub Pages.`,
             });

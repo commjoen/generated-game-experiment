@@ -116,4 +116,4 @@ describe('Multiplayer server', () => {
     ws1.close();
     ws2.close();
   });
-}); 
+});

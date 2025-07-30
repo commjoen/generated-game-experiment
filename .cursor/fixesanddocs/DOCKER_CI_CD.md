@@ -17,7 +17,7 @@ Automated Docker container builds and releases for the multiplayer platformer ga
 
 **Triggers:**
 - ✅ Pull requests to `main` branch
-- ✅ Pushes to `main` branch  
+- ✅ Pushes to `main` branch
 - ✅ GitHub releases
 
 **What it does:**
@@ -81,7 +81,7 @@ No setup required! Works automatically with GitHub permissions.
 2. **Add GitHub Secrets:**
    ```
    Repository Settings → Secrets and Variables → Actions
-   
+
    DOCKERHUB_USERNAME=your-dockerhub-username
    DOCKERHUB_TOKEN=your-access-token
    ```
@@ -115,7 +115,7 @@ Each build includes automated tests:
 ```bash
 # Container functionality tests
 ✅ Game client loads on port 80
-✅ Multiplayer server starts on port 3001  
+✅ Multiplayer server starts on port 3001
 ✅ Health checks respond correctly
 ✅ Container starts and stops cleanly
 ```
@@ -167,7 +167,7 @@ docker run -p 8080:80 -p 3001:3001 username/platformer-game:v1.0.0
 When you create a PR:
 
 1. **Automatic Build** triggers on PR creation/update
-2. **Multi-platform Build** (amd64, arm64) 
+2. **Multi-platform Build** (amd64, arm64)
 3. **Container Testing** runs automatically
 4. **PR Comment** added with build results:
 
@@ -268,7 +268,7 @@ docker run -p 8080:80 -p 3001:3001 test-image
 
 **Docker Hub:**
 - Verify DOCKERHUB_USERNAME secret
-- Verify DOCKERHUB_TOKEN secret  
+- Verify DOCKERHUB_TOKEN secret
 - Check token permissions (Read/Write)
 
 ### Security Scan Failures

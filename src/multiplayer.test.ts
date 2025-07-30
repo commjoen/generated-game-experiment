@@ -173,4 +173,58 @@ describe('Multiplayer server', () => {
     
     ws.close();
   });
+
+  it('should handle score updates correctly for the collecting player', async () => {
+    // This test simulates the proper client behavior where score comes from server
+    await fetch(getBaseUrl() + '/register-collectibles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ collectibles: [{ id: 'coin4', type: 'coin' }] })
+    });
+
+    const ws = new WebSocket(getWsUrl());
+    let receivedScore = 0;
+    let scoreUpdateCount = 0;
+    
+    ws.on('open', () => {
+      ws.send(JSON.stringify({ type: 'join', playerId: 'scoretest', name: 'ScoreTest', timestamp: Date.now() }));
+    });
+    
+    ws.on('message', (data: any) => {
+      const msg = JSON.parse(data.toString());
+      
+      // Count all score updates for this player
+      if ((msg.type === 'itemCollected' || msg.type === 'playerUpdate' || msg.type === 'gameState') && 
+          typeof msg.score === 'number') {
+        if (msg.type === 'itemCollected' && msg.playerId === 'scoretest') {
+          receivedScore = msg.score;
+          scoreUpdateCount++;
+        }
+        if (msg.type === 'playerUpdate' && msg.playerId === 'scoretest') {
+          receivedScore = msg.score;
+          scoreUpdateCount++;
+        }
+        if (msg.type === 'gameState') {
+          const selfPlayer = msg.gameState.players.find((p: any) => p.id === 'scoretest');
+          if (selfPlayer && typeof selfPlayer.score === 'number') {
+            receivedScore = selfPlayer.score;
+            scoreUpdateCount++;
+          }
+        }
+      }
+    });
+
+    // Wait for connection
+    await wait(200);
+
+    // Collect coin
+    ws.send(JSON.stringify({ type: 'collectItem', playerId: 'scoretest', collectibleId: 'coin4' }));
+    await wait(300);
+
+    // Verify score was updated correctly
+    expect(receivedScore).toBe(1);
+    expect(scoreUpdateCount).toBeGreaterThan(0);
+    
+    ws.close();
+  });
 }); 

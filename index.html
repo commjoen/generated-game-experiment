@@ -40,7 +40,7 @@
       body { margin: 0; background: #222; overscroll-behavior: none; touch-action: none; }
       html, body { height: 100%; width: 100%; overflow: hidden; }
       canvas { display: block; margin: 0 auto; background: #87ceeb; width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh; touch-action: none; }
-      
+
       /* Mobile-optimized modal scrolling */
       .modal-content {
         scrollbar-width: thin;
@@ -61,13 +61,13 @@
       .modal-content::-webkit-scrollbar-thumb:hover {
         background: #888;
       }
-      
+
       /* Mobile responsive adjustments */
       @media (max-width: 480px) {
         #character-upgrades {
           grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important;
         }
-        
+
         /* Enhanced modal scrolling on mobile - robust approach for both modals */
         #settings-modal, #shop-modal {
           align-items: flex-start !important;
@@ -95,14 +95,14 @@
           position: relative !important;
         }
       }
-      
+
       /* Ensure proper icon centering on iOS Chrome */
       button {
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
       }
-      
+
       /* Specific fixes for emoji icons on iOS */
       button:has(span), button {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -122,7 +122,7 @@
         pointer-events: auto;
       }
     </style>
-  <script type="module" crossorigin="" src="/generated-game-experiment/assets/index-DtgturxA.js" integrity="sha384-JZyJPm4TSJK9yBOsRnVB68hpRfrUd9EILxCRpj3RIiuZjPKvgZfEJGh/55kO8kYK"></script>
+  <script type="module" crossorigin="" src="/generated-game-experiment/assets/index-Ch1GVudc.js" integrity="sha384-ptACt7n7vpvbkjAj4EBQl2+J0LWxSwoRdgydiKrKHzbq3QRJ33Ujm9K/Lxfc0IBk"></script>
 </head>
 <body>
   <main id="main-content" role="main" tabindex="-1">
@@ -206,7 +206,7 @@
       </div>
     </div>
   </div>
-  
+
   <!-- Upgrade Shop Modal -->
   <div id="shop-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:50;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
     <div style="background:#222;border-radius:16px;box-shadow:0 8px 32px #0008;max-width:600px;max-height:90vh;color:#fff;position:relative;display:flex;flex-direction:column;width:100%;overflow:hidden;">
@@ -217,13 +217,13 @@
           Total Points: <span id="shop-points">0</span>
         </div>
       </div>
-      
+
       <div style="padding:0 32px;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;" class="modal-content">
         <h3 style="color:#0cf;margin:20px 0 16px 0;">Player Characters</h3>
         <div id="character-upgrades" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:24px;">
           <!-- Character options will be populated by JavaScript -->
         </div>
-        
+
         <h3 style="color:#0cf;margin:20px 0 16px 0;">Gameplay Upgrades</h3>
         <div id="gameplay-upgrades" style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
           <!-- Gameplay upgrades will be populated by JavaScript -->
@@ -231,7 +231,7 @@
       </div>
     </div>
   </div>
-  
+
   <button id="a2hs-btn" style="display:none;position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;font-size:1.1em;border-radius:8px;background:#0cf;color:#fff;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.2);cursor:pointer;">Install Game</button>
   <script>
     // Responsive canvas sizing and landscape overlay
@@ -256,13 +256,13 @@
     window.addEventListener('orientationchange', resizeCanvas);
     resizeCanvas();
     // Prevent scrolling/zooming on mobile, but allow scrolling in modals
-    document.addEventListener('touchmove', function(e) { 
+    document.addEventListener('touchmove', function(e) {
       // Check if any modal is currently open
       const shopModal = document.getElementById('shop-modal');
       const settingsModal = document.getElementById('settings-modal');
-      const isModalOpen = (shopModal && shopModal.style.display !== 'none') || 
+      const isModalOpen = (shopModal && shopModal.style.display !== 'none') ||
                          (settingsModal && settingsModal.style.display !== 'none');
-      
+
       // Only prevent scrolling if no modal is open
       if (!isModalOpen) {
         e.preventDefault();
@@ -298,7 +298,7 @@
     // Add to Home Screen (A2HS) prompt
     let deferredPrompt;
     const a2hsBtn = document.getElementById('a2hs-btn');
-    
+
     window.addEventListener('beforeinstallprompt', (e) => {
       // Prevent the default mini-infobar from appearing on mobile
       e.preventDefault();
@@ -309,7 +309,7 @@
         a2hsBtn.style.display = 'block';
       }
     });
-    
+
     // Handle install button click
     if (a2hsBtn) {
       a2hsBtn.addEventListener('click', async () => {
@@ -326,7 +326,7 @@
         }
       });
     }
-    
+
     // Hide the button if the app is already installed
     window.addEventListener('appinstalled', () => {
       if (a2hsBtn) {
@@ -339,7 +339,7 @@
     // GitHub Star Button
     const githubStarBtn = document.getElementById('github-star-btn');
     const starCountEl = document.getElementById('star-count');
-    
+
     if (githubStarBtn) {
       // Fetch star count from GitHub API
       async function fetchStarCount() {
@@ -351,13 +351,13 @@
               'User-Agent': 'generated-game-experiment'
             }
           });
-          
+
           if (response.ok) {
             const data = await response.json();
             const starCount = data.stargazers_count;
             if (starCountEl) {
-              starCountEl.textContent = starCount >= 1000 
-                ? `${(starCount / 1000).toFixed(1)}k` 
+              starCountEl.textContent = starCount >= 1000
+                ? `${(starCount / 1000).toFixed(1)}k`
                 : starCount.toString();
               starCountEl.title = `${starCount} stars`;
             }
@@ -378,14 +378,14 @@
           }
         }
       }
-      
+
       // Fetch star count on load
       fetchStarCount();
-      
+
       githubStarBtn.addEventListener('click', () => {
         window.open('https://github.com/commjoen/generated-game-experiment', '_blank');
       });
-      
+
       // Add hover effect
       githubStarBtn.addEventListener('mouseenter', () => {
         githubStarBtn.style.backgroundColor = '#656d76';
@@ -402,4 +402,4 @@
     </div>
   </noscript>
 
- </body></html>
+</body></html>

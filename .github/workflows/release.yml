@@ -29,7 +29,6 @@ permissions:
   contents: write
   pull-requests: read
   actions: read
-  metadata: read
   id-token: write
 
 jobs:

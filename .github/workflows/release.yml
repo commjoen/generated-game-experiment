@@ -34,7 +34,7 @@ permissions:
 jobs:
   create-release:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Check authorized user
       run: |
@@ -87,7 +87,7 @@ jobs:
         CURRENT_VERSION="${{ steps.current_version.outputs.version }}"
         CUSTOM_VERSION="${{ github.event.inputs.custom_version }}"
         VERSION_TYPE="${{ github.event.inputs.version_type }}"
-        
+
         if [ -n "$CUSTOM_VERSION" ]; then
           # Use custom version if provided
           NEW_VERSION="$CUSTOM_VERSION"
@@ -98,7 +98,7 @@ jobs:
           MAJOR=${VERSION_PARTS[0]}
           MINOR=${VERSION_PARTS[1]}
           PATCH=${VERSION_PARTS[2]}
-          
+
           case "$VERSION_TYPE" in
             "major")
               MAJOR=$((MAJOR + 1))
@@ -113,11 +113,11 @@ jobs:
               PATCH=$((PATCH + 1))
               ;;
           esac
-          
+
           NEW_VERSION="$MAJOR.$MINOR.$PATCH"
           echo "Calculated $VERSION_TYPE version bump: $NEW_VERSION"
         fi
-        
+
         echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
         echo "New version will be: $NEW_VERSION"
 
@@ -140,10 +140,10 @@ jobs:
       run: |
         NEW_VERSION="${{ steps.new_version.outputs.version }}"
         TAG_NAME="v$NEW_VERSION"
-        
+
         # Configure git to use the token for authentication
         git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
-        
+
         git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
         git push origin "$TAG_NAME"
         git push origin main
@@ -151,13 +151,15 @@ jobs:
 
     - name: Generate release notes
       id: release_notes
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         NEW_VERSION="${{ steps.new_version.outputs.version }}"
         TAG_NAME="v$NEW_VERSION"
-        
+
         # Get the previous tag (if any)
         PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
-        
+
         if [ -z "$PREVIOUS_TAG" ]; then
           echo "## What's New in $TAG_NAME" > release_notes.md
           echo "" >> release_notes.md
@@ -179,17 +181,73 @@ jobs:
         else
           echo "## What's Changed in $TAG_NAME" > release_notes.md
           echo "" >> release_notes.md
-          echo "### 📋 Commits since $PREVIOUS_TAG" >> release_notes.md
-          git log "$PREVIOUS_TAG..HEAD" --pretty=format:"- %s (%h)" >> release_notes.md
+          echo "### 🔄 Merged Pull Requests since $PREVIOUS_TAG" >> release_notes.md
+          echo "" >> release_notes.md
+
+          # Get merge commits since the previous tag and extract PR information
+          # Get merge commits since the previous tag and extract PR information
+          if git log "$PREVIOUS_TAG..HEAD" --merges --oneline | grep -q .; then
+            # Process merge commits
+            git log "$PREVIOUS_TAG..HEAD" --merges --pretty=format:"%H|%s" > /tmp/merge_commits.txt
+
+            while IFS='|' read -r commit_hash commit_msg; do
+              # Try to extract PR number from merge commit message
+              pr_number=$(echo "$commit_msg" | grep -oE 'Merge pull request #[0-9]+' | grep -oE '[0-9]+' || echo "")
+
+              if [ -n "$pr_number" ]; then
+                # Get PR title and info using GitHub CLI if available
+                if command -v gh >/dev/null 2>&1; then
+                  pr_info=$(gh pr view "$pr_number" --json title,author,number,url 2>/dev/null || echo "")
+
+                  if [ -n "$pr_info" ] && echo "$pr_info" | jq -e . >/dev/null 2>&1; then
+                    pr_title=$(echo "$pr_info" | jq -r '.title // "Unknown PR"')
+                    pr_author=$(echo "$pr_info" | jq -r '.author.login // "Unknown"')
+                    pr_url="https://github.com/${{ github.repository }}/pull/$pr_number"
+
+                    echo "- **[#$pr_number]($pr_url)** $pr_title by @$pr_author" >> release_notes.md
+                  else
+                    # Fallback when GitHub CLI fails: extract info from commit message
+                    clean_msg=$(echo "$commit_msg" | sed 's/Merge pull request #[0-9]* from [^[:space:]]*//')
+                    clean_msg=$(echo "$clean_msg" | sed 's/^[[:space:]]*//')
+                    pr_url="https://github.com/${{ github.repository }}/pull/$pr_number"
+                    echo "- **[#$pr_number]($pr_url)** $clean_msg" >> release_notes.md
+                  fi
+                else
+                  # Fallback when GitHub CLI is not available: extract info from commit message
+                  clean_msg=$(echo "$commit_msg" | sed 's/Merge pull request #[0-9]* from [^[:space:]]*//')
+                  clean_msg=$(echo "$clean_msg" | sed 's/^[[:space:]]*//')
+                  pr_url="https://github.com/${{ github.repository }}/pull/$pr_number"
+                  echo "- **[#$pr_number]($pr_url)** $clean_msg" >> release_notes.md
+                fi
+              else
+                # Handle non-PR merge commits (e.g., branch merges)
+                if echo "$commit_msg" | grep -q "Merge"; then
+                  clean_msg=$(echo "$commit_msg" | sed 's/Merge branch .*/Branch merge/' | sed 's/Merge .*/Merge commit/')
+                  if [ -n "$clean_msg" ] && [ "$clean_msg" != "Merge commit" ]; then
+                    echo "- $clean_msg (${commit_hash:0:7})" >> release_notes.md
+                  fi
+                else
+                  echo "- $commit_msg (${commit_hash:0:7})" >> release_notes.md
+                fi
+              fi
+            done < /tmp/merge_commits.txt
+
+            rm -f /tmp/merge_commits.txt
+          else
+            # No merge commits found, fall back to regular commits
+            echo "" >> release_notes.md
+            echo "### 📝 Commits since $PREVIOUS_TAG" >> release_notes.md
+            git log "$PREVIOUS_TAG..HEAD" --pretty=format:"- %s (%h)" >> release_notes.md
+          fi
         fi
-        
+
         echo "" >> release_notes.md
         echo "### 🔧 Technical Details" >> release_notes.md
         echo "- **Version:** $NEW_VERSION" >> release_notes.md
         echo "- **Node.js:** $(node --version)" >> release_notes.md
         echo "- **Built:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> release_notes.md
         echo "- **Commit:** ${{ github.sha }}" >> release_notes.md
-        
+
         # Store the release notes content
         {
           echo 'notes<<EOF'
@@ -204,11 +262,11 @@ jobs:
         NEW_VERSION="${{ steps.new_version.outputs.version }}"
         TAG_NAME="v$NEW_VERSION"
         PRERELEASE_FLAG=""
-        
+
         if [ "${{ github.event.inputs.prerelease }}" = "true" ]; then
           PRERELEASE_FLAG="--prerelease"
         fi
-        
+
         gh release create "$TAG_NAME" \
           --title "Release $TAG_NAME" \
           --notes-file release_notes.md \
@@ -218,7 +276,7 @@ jobs:
       run: |
         NEW_VERSION="${{ steps.new_version.outputs.version }}"
         TAG_NAME="v$NEW_VERSION"
-        
+
         echo "## 🎉 Release Created Successfully!" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "**Version:** \`$NEW_VERSION\`" >> $GITHUB_STEP_SUMMARY

@@ -106,11 +106,11 @@ jobs:
         # Extract the first tag from the metadata output
         FIRST_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -n1)
         echo "DEPLOY_URL=${FIRST_TAG}" >> $GITHUB_OUTPUT
-        
+
         # Extract just the tag part for display
         TAG_ONLY=$(echo "${FIRST_TAG}" | cut -d':' -f2)
         echo "DEPLOY_TAG=${TAG_ONLY}" >> $GITHUB_OUTPUT
-        
+
         echo "Using image: ${FIRST_TAG}"
 
     - name: Test Docker image
@@ -118,13 +118,13 @@ jobs:
         echo "Testing Docker image..."
         # Pull the built image
         docker pull ${{ steps.deployment.outputs.DEPLOY_URL }}
-        
+
         # Run container in background
         docker run -d --name test-container -p 8080:80 -p 3001:3001 ${{ steps.deployment.outputs.DEPLOY_URL }}
-        
+
         # Wait for container to start
         sleep 20
-        
+
         # Test game client (retry a few times)
         for i in {1..5}; do
           if curl -f http://localhost:8080; then
@@ -135,18 +135,18 @@ jobs:
             sleep 5
           fi
         done
-        
+
         # Test multiplayer health check (optional, don't fail on this)
         curl -f http://localhost:3001/health && echo "✅ Multiplayer server responding" || echo "⚠️ Multiplayer server not ready"
-        
+
         # Show container logs for debugging
         echo "=== Container Logs ==="
         docker logs test-container --tail 20
-        
+
         # Cleanup
         docker stop test-container
         docker rm test-container
-        
+
         echo "✅ Docker image test completed!"
 
     - name: Comment on PR
@@ -163,7 +163,7 @@ jobs:
           # Pull and run the PR image
           docker pull ${{ steps.deployment.outputs.DEPLOY_URL }}
           docker run -p 8080:80 -p 3001:3001 ${{ steps.deployment.outputs.DEPLOY_URL }}
-          
+
           # Access the game
           open http://localhost:8080
           \`\`\`

@@ -23,24 +23,24 @@ describe('Upgrade System', () => {
     // Simulate adding points
     let totalPoints = Number(localStorage.getItem('totalPoints') || '0');
     expect(totalPoints).toBe(0);
-    
+
     totalPoints += 10;
     localStorage.setItem('totalPoints', String(totalPoints));
-    
+
     expect(Number(localStorage.getItem('totalPoints'))).toBe(10);
   });
 
   it('should save player character choice', () => {
     const playerCharacter = '😊';
     localStorage.setItem('playerCharacter', playerCharacter);
-    
+
     expect(localStorage.getItem('playerCharacter')).toBe('😊');
   });
 
   it('should track purchased upgrades', () => {
     const purchasedUpgrades = { 'red_circle': true, 'extra_life': true };
     localStorage.setItem('purchasedUpgrades', JSON.stringify(purchasedUpgrades));
-    
+
     const loaded = JSON.parse(localStorage.getItem('purchasedUpgrades') || '{}');
     expect(loaded.red_circle).toBe(true);
     expect(loaded.extra_life).toBe(true);
@@ -72,27 +72,27 @@ describe('Upgrade System', () => {
   it('should handle coin collection with lucky coins upgrade', () => {
     const purchasedUpgrades = { 'lucky_coins': true };
     let totalPoints = 0;
-    
+
     // Simulate collecting a coin with lucky coins upgrade
     const coinValue = purchasedUpgrades['lucky_coins'] ? 2 : 1;
     totalPoints += coinValue;
-    
+
     expect(totalPoints).toBe(2);
-    
+
     // Without the upgrade
-    const normalUpgrades = {};
+    const normalUpgrades: Record<string, boolean> = {};
     const normalCoinValue = normalUpgrades['lucky_coins'] ? 2 : 1;
     expect(normalCoinValue).toBe(1);
   });
 
   it('should apply gameplay upgrades correctly', () => {
-    const purchasedUpgrades = { 
-      'extra_life': true, 
+    const purchasedUpgrades = {
+      'extra_life': true,
       'tough_skin': true,
       'speed_boost': true,
-      'double_jump_start': true 
+      'double_jump_start': true
     };
-    
+
     // Test starting lives calculation
     let lives = 3;
     if (purchasedUpgrades['extra_life']) lives = 4;

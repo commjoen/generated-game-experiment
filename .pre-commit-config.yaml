@@ -1,0 +1,64 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^(node_modules/|dist/)
+      - id: end-of-file-fixer
+        exclude: ^(node_modules/|dist/)
+      - id: check-yaml
+        args: ['--unsafe']  # Allow custom YAML tags used in GitHub Actions
+        exclude: ^(node_modules/|dist/)
+      - id: check-json
+        exclude: ^(node_modules/|dist/)
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-added-large-files
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.1
+    hooks:
+      - id: actionlint-docker
+        name: Lint GitHub Actions workflows
+        description: Runs actionlint to validate GitHub Actions workflow files
+        files: ^\.github/workflows/.*\.ya?ml$
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        name: Format YAML files
+        types: [yaml]
+        exclude: ^(\.pre-commit-config\.yaml|node_modules/|dist/)
+      - id: prettier
+        name: Format TypeScript and JavaScript files
+        types_or: [ts, tsx, javascript]
+        exclude: ^(node_modules/|dist/)
+
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v9.17.0
+    hooks:
+      - id: eslint
+        name: Lint TypeScript and JavaScript files
+        files: \.(ts|tsx|js|jsx)$
+        exclude: ^(node_modules/|dist/)
+        args: [--fix, --max-warnings=0]
+        additional_dependencies:
+          - '@typescript-eslint/eslint-plugin@^8.0.0'
+          - '@typescript-eslint/parser@^8.0.0'
+          - '@eslint/js@^9.0.0'
+
+  - repo: local
+    hooks:
+      - id: typescript-check
+        name: TypeScript type checking
+        entry: npx tsc --noEmit
+        language: system
+        files: \.(ts|tsx)$
+        pass_filenames: false
+      - id: vitest-related
+        name: Run tests for changed files
+        entry: npm test
+        language: system
+        files: \.(ts|tsx)$
+        pass_filenames: false

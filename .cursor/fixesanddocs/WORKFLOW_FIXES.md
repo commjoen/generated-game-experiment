@@ -16,7 +16,7 @@
 
 ### 4. **Improved Test Reliability**
 ❌ **Problem**: Container tests were timing out or failing due to startup time.
-✅ **Fix**: 
+✅ **Fix**:
 - Increased startup wait time (20s)
 - Added retry logic for health checks
 - Made multiplayer health check non-blocking
@@ -42,7 +42,7 @@ build-args: # removed
 # Fixed tag generation
 tags: |
   type=ref,event=branch
-  type=ref,event=pr  
+  type=ref,event=pr
   type=raw,value=latest,enable={{is_default_branch}}
   type=sha,format=short
 
@@ -58,7 +58,7 @@ if: github.event_name != 'pull_request'
 ## Expected Behavior After Fixes
 
 1. ✅ **Build**: Docker image builds successfully
-2. ✅ **Push**: Image pushed to GitHub Container Registry 
+2. ✅ **Push**: Image pushed to GitHub Container Registry
 3. ✅ **Test**: Container starts and responds to health checks
 4. ✅ **Comment**: PR comment added with image details
 5. ⏭️ **Security**: Skipped for PRs (runs on main branch only)

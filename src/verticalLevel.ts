@@ -118,4 +118,4 @@ export function generateVerticalLevel(canvasWidth: number): VerticalLevel {
   finishFlag.x = lastPlat.x + lastPlat.width / 2 - finishFlag.width / 2;
   finishFlag.y = lastPlat.y - finishFlag.height;
   return { platforms, boxes, collectibles, spikes, movingPlatforms, finishFlag };
-} 
+}

@@ -98,4 +98,4 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
 - Reverse/Backwards Levels (return to start)
 - Enemy Gauntlet Levels (combat focus)
 - Mini-Game or Bonus Levels (short diversions)
-- Platforming Precision Levels (require precise jumps/timing) 
+- Platforming Precision Levels (require precise jumps/timing)

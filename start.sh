@@ -8,7 +8,7 @@ if [ -n "$RENDER" ] || [ -n "$RENDER_EXTERNAL_HOSTNAME" ]; then
     export IS_RENDER=true
     # Use Render-optimized nginx config
     cp /etc/nginx/nginx-render.conf /etc/nginx/nginx.conf 2>/dev/null || echo "Using default nginx config"
-    
+
     # Set WebSocket URL for Render
     export WS_URL="wss://${RENDER_EXTERNAL_HOSTNAME:-$RENDER_EXTERNAL_URL}/ws"
     echo "🔗 WebSocket URL: $WS_URL"

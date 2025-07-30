@@ -15,6 +15,6 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: node server.js &
-      - run: npm run test:ci 
+      - run: npm run test:ci
       - name: Fetch full git history for version injection
-        run: git fetch --unshallow || true 
+        run: git fetch --unshallow || true

@@ -1,1 +1,1 @@
-declare module 'vite-plugin-sri'; 
+declare module 'vite-plugin-sri';

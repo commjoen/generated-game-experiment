@@ -90,7 +90,7 @@ export class MultiplayerManager {
       }
 
       this.ws = new WebSocket(serverUrl);
-      
+
       return new Promise<boolean>((resolve) => {
         if (!this.ws) {
           resolve(false);
@@ -154,7 +154,7 @@ export class MultiplayerManager {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
       console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
-      
+
       setTimeout(() => {
         this.initialize(serverUrl);
       }, this.reconnectDelay * this.reconnectAttempts);

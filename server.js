@@ -268,7 +268,7 @@ wss.on('connection', (ws) => {
   ws.on('message', (data) => {
     try {
       const message = JSON.parse(data);
-      
+
       switch (message.type) {
         case 'join':
           playerId = message.playerId;

@@ -116,4 +116,61 @@ describe('Multiplayer server', () => {
     ws1.close();
     ws2.close();
   });
+
+  it('should ensure score updates are properly received by the collecting player', async () => {
+    // Register a new coin collectible
+    await fetch(getBaseUrl() + '/register-collectibles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ collectibles: [{ id: 'coin3', type: 'coin' }] })
+    });
+
+    // Player joins
+    const ws = new WebSocket(getWsUrl());
+    let playerScore = 0;
+    let itemCollectedReceived = false;
+    let playerUpdateReceived = false;
+    let gameStateReceived = false;
+    
+    ws.on('open', () => {
+      ws.send(JSON.stringify({ type: 'join', playerId: 'collector', name: 'Collector', timestamp: Date.now() }));
+    });
+    
+    ws.on('message', (data: any) => {
+      const msg = JSON.parse(data.toString());
+      if (msg.type === 'gameState') {
+        gameStateReceived = true;
+        // Find self in the gameState
+        const selfPlayer = msg.gameState.players.find((p: any) => p.id === 'collector');
+        if (selfPlayer && typeof selfPlayer.score === 'number') {
+          playerScore = selfPlayer.score;
+        }
+      }
+      if (msg.type === 'itemCollected' && msg.collectibleId === 'coin3' && msg.playerId === 'collector') {
+        itemCollectedReceived = true;
+        if (typeof msg.score === 'number') {
+          playerScore = msg.score;
+        }
+      }
+      if (msg.type === 'playerUpdate' && msg.playerId === 'collector') {
+        playerUpdateReceived = true;
+        if (typeof msg.score === 'number') {
+          playerScore = msg.score;
+        }
+      }
+    });
+
+    // Wait for connection to be ready
+    await wait(200);
+
+    // Player collects the coin
+    ws.send(JSON.stringify({ type: 'collectItem', playerId: 'collector', collectibleId: 'coin3' }));
+    await wait(300);
+
+    // The player should receive their own score update through itemCollected or subsequent messages
+    expect(playerScore).toBe(1);
+    expect(itemCollectedReceived).toBe(true);
+    
+    ws.close();
+  });
 }); 

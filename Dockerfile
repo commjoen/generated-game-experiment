@@ -1,5 +1,5 @@
 # Stage 1: Build the game client
-FROM node:22 AS builder
+FROM node:24 AS builder
 WORKDIR /app
 RUN apt-get update
 COPY package.json package-lock.json ./

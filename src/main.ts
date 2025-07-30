@@ -1130,9 +1130,16 @@ function update(deltaTime: number) {
       }
       if (c.type === 'coin') {
         const coinValue = purchasedUpgrades['lucky_coins'] ? 2 : 1;
-        score++;
-        addTotalPoints(coinValue);
-        setTopScore(score);
+        if (multiplayerEnabled) {
+          // In multiplayer mode, only update total points locally.
+          // Score will be updated by the server through multiplayer events.
+          addTotalPoints(coinValue);
+        } else {
+          // In single-player mode, update both score and total points locally.
+          score++;
+          addTotalPoints(coinValue);
+          setTopScore(score);
+        }
       } else if (c.type === 'heart') {
         if (lives < 5) lives++;
       } else if (c.type === 'doublejump') {
@@ -2229,6 +2236,7 @@ if (multiplayerEnabled) {
               }
               if (typeof playerData.score === 'number') {
                 score = playerData.score;
+                setTopScore(score);
               }
             }
           });
@@ -2259,7 +2267,10 @@ if (multiplayerEnabled) {
             }
             // If this is you, update your score and name
             if (playerId === multiplayerManager.currentPlayerId) {
-              if (typeof scoreFromServer === 'number') score = scoreFromServer;
+              if (typeof scoreFromServer === 'number') {
+                score = scoreFromServer;
+                setTopScore(score);
+              }
               if (
                 typeof nameFromServer === 'string' &&
                 nameFromServer !== playerName

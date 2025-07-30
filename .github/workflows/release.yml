@@ -151,6 +151,8 @@ jobs:
 
     - name: Generate release notes
       id: release_notes
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         NEW_VERSION="${{ steps.new_version.outputs.version }}"
         TAG_NAME="v$NEW_VERSION"
@@ -179,8 +181,64 @@ jobs:
         else
           echo "## What's Changed in $TAG_NAME" > release_notes.md
           echo "" >> release_notes.md
-          echo "### 📋 Commits since $PREVIOUS_TAG" >> release_notes.md
-          git log "$PREVIOUS_TAG..HEAD" --pretty=format:"- %s (%h)" >> release_notes.md
+          echo "### 🔄 Merged Pull Requests since $PREVIOUS_TAG" >> release_notes.md
+          echo "" >> release_notes.md
+          
+          # Get merge commits since the previous tag and extract PR information
+          # Get merge commits since the previous tag and extract PR information
+          if git log "$PREVIOUS_TAG..HEAD" --merges --oneline | grep -q .; then
+            # Process merge commits
+            git log "$PREVIOUS_TAG..HEAD" --merges --pretty=format:"%H|%s" > /tmp/merge_commits.txt
+            
+            while IFS='|' read -r commit_hash commit_msg; do
+              # Try to extract PR number from merge commit message
+              pr_number=$(echo "$commit_msg" | grep -oE 'Merge pull request #[0-9]+' | grep -oE '[0-9]+' || echo "")
+              
+              if [ -n "$pr_number" ]; then
+                # Get PR title and info using GitHub CLI if available
+                if command -v gh >/dev/null 2>&1; then
+                  pr_info=$(gh pr view "$pr_number" --json title,author,number,url 2>/dev/null || echo "")
+                  
+                  if [ -n "$pr_info" ] && echo "$pr_info" | jq -e . >/dev/null 2>&1; then
+                    pr_title=$(echo "$pr_info" | jq -r '.title // "Unknown PR"')
+                    pr_author=$(echo "$pr_info" | jq -r '.author.login // "Unknown"')
+                    pr_url="https://github.com/${{ github.repository }}/pull/$pr_number"
+                    
+                    echo "- **[#$pr_number]($pr_url)** $pr_title by @$pr_author" >> release_notes.md
+                  else
+                    # Fallback when GitHub CLI fails: extract info from commit message
+                    clean_msg=$(echo "$commit_msg" | sed 's/Merge pull request #[0-9]* from [^[:space:]]*//')
+                    clean_msg=$(echo "$clean_msg" | sed 's/^[[:space:]]*//')
+                    pr_url="https://github.com/${{ github.repository }}/pull/$pr_number"
+                    echo "- **[#$pr_number]($pr_url)** $clean_msg" >> release_notes.md
+                  fi
+                else
+                  # Fallback when GitHub CLI is not available: extract info from commit message
+                  clean_msg=$(echo "$commit_msg" | sed 's/Merge pull request #[0-9]* from [^[:space:]]*//')
+                  clean_msg=$(echo "$clean_msg" | sed 's/^[[:space:]]*//')
+                  pr_url="https://github.com/${{ github.repository }}/pull/$pr_number"
+                  echo "- **[#$pr_number]($pr_url)** $clean_msg" >> release_notes.md
+                fi
+              else
+                # Handle non-PR merge commits (e.g., branch merges)
+                if echo "$commit_msg" | grep -q "Merge"; then
+                  clean_msg=$(echo "$commit_msg" | sed 's/Merge branch .*/Branch merge/' | sed 's/Merge .*/Merge commit/')
+                  if [ -n "$clean_msg" ] && [ "$clean_msg" != "Merge commit" ]; then
+                    echo "- $clean_msg (${commit_hash:0:7})" >> release_notes.md
+                  fi
+                else
+                  echo "- $commit_msg (${commit_hash:0:7})" >> release_notes.md
+                fi
+              fi
+            done < /tmp/merge_commits.txt
+            
+            rm -f /tmp/merge_commits.txt
+          else
+            # No merge commits found, fall back to regular commits
+            echo "" >> release_notes.md
+            echo "### 📝 Commits since $PREVIOUS_TAG" >> release_notes.md
+            git log "$PREVIOUS_TAG..HEAD" --pretty=format:"- %s (%h)" >> release_notes.md
+          fi
         fi
         
         echo "" >> release_notes.md

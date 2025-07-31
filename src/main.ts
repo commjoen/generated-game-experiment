@@ -2389,6 +2389,28 @@ function generateBonusVerticalLevel() {
   cameraY = Math.max(0, LEVEL_HEIGHT - canvas.height);
   levelType = 'vertical';
 
+  // Register all collectibles with the server for multiplayer
+  if (multiplayerEnabled && collectibles.length > 0) {
+    const backendUrl =
+      window.location.port === '5173'
+        ? 'http://localhost:3001/register-collectibles'
+        : '/register-collectibles';
+    try {
+      fetch(backendUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          collectibles: collectibles.map((c) => ({
+            id: (c as any).id,
+            type: c.type,
+          })),
+        }),
+      });
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
   // Debug logging
   // console.log('Bonus level generated:');
   // console.log('Player position:', { x: player.x, y: player.y, width: player.width, height: player.height });

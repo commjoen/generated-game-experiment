@@ -227,4 +227,61 @@ describe('Multiplayer server', () => {
     
     ws.close();
   });
+
+  it('should handle bonus level collectibles correctly when registered', async () => {
+    // Test that bonus level collectibles work the same as regular level collectibles
+    // Register multiple bonus level coins (simulating a lot of coins in bonus level)
+    const bonusCoins = Array.from({length: 10}, (_, i) => ({ id: `bonus_coin_${i}`, type: 'coin' }));
+    await fetch(getBaseUrl() + '/register-collectibles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ collectibles: bonusCoins })
+    });
+
+    // Player joins
+    const ws = new WebSocket(getWsUrl());
+    let playerScore = 0;
+    let scoreUpdates = 0;
+
+    ws.on('open', () => {
+      ws.send(JSON.stringify({ type: 'join', playerId: 'bonustest', name: 'BonusTest', timestamp: Date.now() }));
+    });
+
+    ws.on('message', (data: any) => {
+      const msg = JSON.parse(data.toString());
+      
+      if (msg.type === 'itemCollected' && msg.playerId === 'bonustest') {
+        playerScore = msg.score;
+        scoreUpdates++;
+      }
+      
+      if (msg.type === 'playerUpdate' && msg.playerId === 'bonustest') {
+        playerScore = msg.score;
+        scoreUpdates++;
+      }
+      
+      if (msg.type === 'gameState') {
+        const selfPlayer = msg.gameState.players.find((p: any) => p.id === 'bonustest');
+        if (selfPlayer && typeof selfPlayer.score === 'number') {
+          playerScore = selfPlayer.score;
+        }
+      }
+    });
+
+    await wait(200); // Wait for connection
+
+    // Collect multiple coins rapidly (simulating bonus level collection)
+    for (let i = 0; i < 5; i++) {
+      ws.send(JSON.stringify({ type: 'collectItem', playerId: 'bonustest', collectibleId: `bonus_coin_${i}` }));
+      await wait(50); // Small delay between collections
+    }
+
+    await wait(300); // Wait for all updates
+
+    // Verify the score increased correctly for multiple coins
+    expect(playerScore).toBe(5);
+    expect(scoreUpdates).toBeGreaterThan(0);
+    
+    ws.close();
+  });
 });

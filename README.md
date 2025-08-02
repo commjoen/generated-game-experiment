@@ -24,9 +24,13 @@
 
 <!-- Social Media Sharing -->
 [![Share on Twitter](https://img.shields.io/badge/Share%20on-Twitter-1DA1F2.svg?logo=twitter)](https://twitter.com/intent/tweet?text=Check%20out%20this%20awesome%20browser-based%20platformer%20game!%20%F0%9F%8E%AE&url=https://commjoen.github.io/generated-game-experiment/&via=&hashtags=gamedev,typescript,opensource)
+[![Share on Facebook](https://img.shields.io/badge/Share%20on-Facebook-1877F2.svg?logo=facebook)](https://www.facebook.com/sharer/sharer.php?u=https://commjoen.github.io/generated-game-experiment/)
 [![Share on Mastodon](https://img.shields.io/badge/Share%20on-Mastodon-6364FF.svg?logo=mastodon)](https://mastodon.social/share?text=Check%20out%20this%20awesome%20browser-based%20platformer%20game!%20%F0%9F%8E%AE%20https://commjoen.github.io/generated-game-experiment/)
 [![Share on Bluesky](https://img.shields.io/badge/Share%20on-Bluesky-00A8E8.svg)](https://bsky.app/intent/compose?text=Check%20out%20this%20awesome%20browser-based%20platformer%20game!%20%F0%9F%8E%AE%20https://commjoen.github.io/generated-game-experiment/)
 [![Share on LinkedIn](https://img.shields.io/badge/Share%20on-LinkedIn-0077B5.svg?logo=linkedin)](https://www.linkedin.com/sharing/share-offsite/?url=https://commjoen.github.io/generated-game-experiment/)
+[![Share on Reddit](https://img.shields.io/badge/Share%20on-Reddit-FF4500.svg?logo=reddit)](https://reddit.com/submit?url=https://commjoen.github.io/generated-game-experiment/&title=Check%20out%20this%20awesome%20browser-based%20platformer%20game!%20🎮)
+[![Share on WhatsApp](https://img.shields.io/badge/Share%20on-WhatsApp-25D366.svg?logo=whatsapp)](https://wa.me/?text=Check%20out%20this%20awesome%20browser-based%20platformer%20game!%20🎮%20https://commjoen.github.io/generated-game-experiment/)
+[![Share on Discord](https://img.shields.io/badge/Share%20on-Discord-5865F2.svg?logo=discord)](https://discord.com/channels/@me)
 
 # generated-game-experiment
 

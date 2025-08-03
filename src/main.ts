@@ -33,6 +33,13 @@ interface MovingPlatform extends Rect {
   range: number;
   startX: number;
 }
+interface Enemy extends Rect {
+  dx: number;
+  range: number;
+  startX: number;
+  alive: boolean;
+  id: string;
+}
 
 // Unique collectible id generator
 let collectibleIdCounter = 0;
@@ -40,9 +47,16 @@ function generateCollectibleId(type: string) {
   return `${type}_${Date.now()}_${collectibleIdCounter++}`;
 }
 
+// Unique enemy id generator
+let enemyIdCounter = 0;
+function generateEnemyId() {
+  return `enemy_${Date.now()}_${enemyIdCounter++}`;
+}
+
 const collectibles: Collectible[] = [];
 const spikes: Rect[] = [];
 const movingPlatforms: MovingPlatform[] = [];
+const enemies: Enemy[] = [];
 
 // --- Finish Flag ---
 let finishFlag = { x: 0, y: 0, width: 24, height: 80 };
@@ -116,6 +130,7 @@ async function generateVerticalLevel() {
   collectibles.length = 0;
   spikes.length = 0;
   movingPlatforms.length = 0;
+  enemies.length = 0;
   let heartPlaced = false;
   let doubleJumpPlaced = false;
   let growPlaced = false;
@@ -175,6 +190,20 @@ async function generateVerticalLevel() {
         dx: 2,
         range: 120,
         startX: x - 60,
+      });
+    }
+    // Add enemies on some platforms
+    if (Math.random() < 0.3 && y < LEVEL_HEIGHT - platformSpacing && width > 120) {
+      enemies.push({
+        x: x + 20,
+        y: y - 30,
+        width: 30,
+        height: 30,
+        dx: 1 + Math.random() * 2, // Random speed between 1-3
+        range: Math.min(width - 60, 100), // Stay within platform bounds
+        startX: x + 20,
+        alive: true,
+        id: generateEnemyId(),
       });
     }
     y -= platformSpacing;
@@ -365,6 +394,20 @@ async function generateLevel() {
         dx: 2,
         range: 120,
         startX: x - 60,
+      });
+    }
+    // Add enemies on some platforms  
+    if (Math.random() < 0.3 && platformWidth > 120) {
+      enemies.push({
+        x: x + 20,
+        y: GROUND_Y - 30,
+        width: 30,
+        height: 30,
+        dx: 1 + Math.random() * 2, // Random speed between 1-3
+        range: Math.min(platformWidth - 60, 120), // Stay within platform bounds
+        startX: x + 20,
+        alive: true,
+        id: generateEnemyId(),
       });
     }
     x += platformWidth;
@@ -781,6 +824,7 @@ function resetGame() {
   collectibles.length = 0;
   spikes.length = 0;
   movingPlatforms.length = 0;
+  enemies.length = 0;
   // Do not reset manualLevelType or manualLevelTypeValue here
   if (manualLevelType) {
     levelType = manualLevelTypeValue;
@@ -906,6 +950,7 @@ function generateNewLevel() {
   collectibles.length = 0;
   spikes.length = 0;
   movingPlatforms.length = 0;
+  enemies.length = 0;
   level++;
 
   let isBonusLevel = false;
@@ -1102,6 +1147,15 @@ function update(deltaTime: number) {
     }
   }
 
+  // Move enemies
+  for (const enemy of enemies) {
+    if (!enemy.alive) continue;
+    enemy.x += enemy.dx;
+    if (enemy.x > enemy.startX + enemy.range || enemy.x < enemy.startX) {
+      enemy.dx *= -1;
+    }
+  }
+
   // Moving platform collision
   for (const plat of movingPlatforms) {
     if (
@@ -1156,6 +1210,30 @@ function update(deltaTime: number) {
     if (rectsCollide(player, spike)) {
       respawnPlayer();
       break;
+    }
+  }
+  // Enemy collision
+  for (const enemy of enemies) {
+    if (!enemy.alive) continue;
+    if (rectsCollide(player, enemy)) {
+      // Check if player is landing on top of enemy (jumped on it)
+      if (player.vy > 0 && player.y < enemy.y) {
+        // Player jumped on enemy - kill enemy and bounce player
+        enemy.alive = false;
+        player.vy = -8; // Small bounce
+        // Add some score for killing enemy
+        if (multiplayerEnabled) {
+          addTotalPoints(1);
+        } else {
+          score++;
+          addTotalPoints(1);
+          setTopScore(score);
+        }
+      } else {
+        // Player touched enemy from side - respawn player
+        respawnPlayer();
+        break;
+      }
     }
   }
   // Offscreen (falling)
@@ -1852,6 +1930,19 @@ function draw() {
     ctx.closePath();
     ctx.fill();
   }
+  // Draw enemies
+  ctx.fillStyle = '#f90'; // Orange color for enemies
+  for (const enemy of enemies) {
+    if (enemy.alive) {
+      ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+      // Add simple eyes to make it look more enemy-like
+      ctx.fillStyle = '#000';
+      const eyeSize = 4;
+      ctx.fillRect(enemy.x + 6, enemy.y + 8, eyeSize, eyeSize);
+      ctx.fillRect(enemy.x + enemy.width - 10, enemy.y + 8, eyeSize, eyeSize);
+      ctx.fillStyle = '#f90'; // Reset color
+    }
+  }
   // Draw player (flash if respawning)
   ctx.restore();
   if (respawnTimer > 0 && Math.floor(respawnTimer / 5) % 2 === 0) {
@@ -2305,6 +2396,7 @@ function generateBonusVerticalLevel() {
   collectibles.length = 0;
   spikes.length = 0;
   movingPlatforms.length = 0;
+  enemies.length = 0;
 
   // Solid floor
   platforms.push({ x: 0, y: LEVEL_HEIGHT, width: canvas.width, height: 50 });

@@ -493,3 +493,120 @@ describe('Circle character rendering', () => {
     expect(mockCtx.textBaseline).toBe('middle');
   });
 });
+
+describe('Enemy mechanics', () => {
+  let player: any;
+  let enemy: any;
+
+  beforeEach(() => {
+    player = {
+      x: 100,
+      y: 350,
+      width: 40,
+      height: 50,
+      vx: 0,
+      vy: 0,
+      onGround: true,
+    };
+    enemy = {
+      x: 200,
+      y: 370,
+      width: 30,
+      height: 30,
+      dx: 2,
+      range: 100,
+      startX: 150,
+      alive: true,
+      id: 'test_enemy_1',
+    };
+  });
+
+  function rectsCollide(a: any, b: any) {
+    return (
+      a.x < b.x + b.width &&
+      a.x + a.width > b.x &&
+      a.y < b.y + b.height &&
+      a.y + a.height > b.y
+    );
+  }
+
+  it('should move enemies within their range', () => {
+    const initialX = enemy.x;
+    // Move enemy
+    enemy.x += enemy.dx;
+    expect(enemy.x).toBe(initialX + enemy.dx);
+
+    // Test boundary collision - move to edge and check if direction reverses
+    enemy.x = enemy.startX + enemy.range + 1; // Move past the boundary
+    if (enemy.x > enemy.startX + enemy.range || enemy.x < enemy.startX) {
+      enemy.dx *= -1;
+    }
+    expect(enemy.dx).toBe(-2); // Should reverse direction
+  });
+
+  it('should kill enemy when player jumps on top', () => {
+    // Position player above enemy, falling down
+    player.x = enemy.x;
+    player.y = enemy.y - player.height + 5; // Slightly overlapping from above
+    player.vy = 5; // Falling down
+
+    let score = 0;
+    if (rectsCollide(player, enemy)) {
+      // Check if player is landing on top of enemy
+      if (player.vy > 0 && player.y < enemy.y) {
+        enemy.alive = false;
+        player.vy = -8; // Bounce
+        score++;
+      }
+    }
+
+    expect(enemy.alive).toBe(false);
+    expect(player.vy).toBe(-8);
+    expect(score).toBe(1);
+  });
+
+  it('should kill player when touching enemy from side', () => {
+    // Position player to the side of enemy
+    player.x = enemy.x - player.width + 5; // Slightly overlapping
+    player.y = enemy.y;
+    player.vy = 0; // Not falling
+
+    let playerDied = false;
+    if (rectsCollide(player, enemy)) {
+      // Check if player is landing on top of enemy
+      if (player.vy > 0 && player.y < enemy.y) {
+        // Player jumped on enemy - don't die
+      } else {
+        // Player touched from side - die
+        playerDied = true;
+      }
+    }
+
+    expect(playerDied).toBe(true);
+  });
+
+  it('should not affect dead enemies', () => {
+    enemy.alive = false;
+    const initialX = enemy.x;
+    
+    // Dead enemies should not move
+    if (enemy.alive) {
+      enemy.x += enemy.dx;
+    }
+    
+    expect(enemy.x).toBe(initialX); // Should not have moved
+  });
+
+  it('should not collide with dead enemies', () => {
+    enemy.alive = false;
+    player.x = enemy.x;
+    player.y = enemy.y;
+
+    let playerDied = false;
+    if (enemy.alive && rectsCollide(player, enemy)) {
+      playerDied = true;
+    }
+
+    expect(playerDied).toBe(false); // Dead enemy should not kill player
+  });
+});

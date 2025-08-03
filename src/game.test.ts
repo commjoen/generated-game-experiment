@@ -836,4 +836,225 @@ describe('Eat/Spit enemy functionality', () => {
     const hasIndicator = player.eatenEnemy !== null;
     expect(hasIndicator).toBe(true);
   });
+
+  // Rope animation tests
+  describe('Rope Animation', () => {
+    let ropeAnimation: any;
+
+    beforeEach(() => {
+      ropeAnimation = {
+        type: 'none',
+        progress: 0,
+        duration: 1000,
+        startTime: 0,
+        targetEnemy: null,
+        startX: 0,
+        startY: 0,
+        endX: 0,
+        endY: 0,
+      };
+    });
+
+    function startRopeEatingAnimation(enemy: any) {
+      ropeAnimation.type = 'eating';
+      ropeAnimation.progress = 0;
+      ropeAnimation.startTime = Date.now();
+      ropeAnimation.targetEnemy = enemy;
+      ropeAnimation.startX = enemy.x + enemy.width / 2;
+      ropeAnimation.startY = enemy.y + enemy.height / 2;
+      ropeAnimation.endX = player.x + player.width / 2;
+      ropeAnimation.endY = player.y + player.height / 2;
+    }
+
+    function startRopeSpittingAnimation() {
+      if (!player.eatenEnemy) return;
+      
+      ropeAnimation.type = 'spitting';
+      ropeAnimation.progress = 0;
+      ropeAnimation.startTime = Date.now();
+      ropeAnimation.startX = player.x + player.width / 2;
+      ropeAnimation.startY = player.y + player.height / 2;
+      
+      const spitDirection = player.vx >= 0 ? 1 : -1;
+      const screenEdgeX = spitDirection > 0 ? 800 : -50; // Mock canvas width
+      ropeAnimation.endX = screenEdgeX;
+      ropeAnimation.endY = player.y + player.height / 2;
+      
+      ropeAnimation.targetEnemy = {
+        x: player.x + player.width / 2,
+        y: player.y + player.height / 2,
+        width: 30,
+        height: 30,
+        dx: 0,
+        dy: 0,
+        range: 0,
+        startX: 0,
+        alive: true,
+        id: 'temp_spit',
+        isJumpingOut: false,
+        type: player.eatenEnemy.type,
+      };
+    }
+
+    function updateRopeAnimation() {
+      if (ropeAnimation.type === 'none') return;
+      
+      const elapsed = Date.now() - ropeAnimation.startTime;
+      ropeAnimation.progress = Math.min(elapsed / ropeAnimation.duration, 1);
+      
+      if (ropeAnimation.type === 'eating' && ropeAnimation.targetEnemy) {
+        const enemyX = ropeAnimation.startX + (ropeAnimation.endX - ropeAnimation.startX) * ropeAnimation.progress;
+        const enemyY = ropeAnimation.startY + (ropeAnimation.endY - ropeAnimation.startY) * ropeAnimation.progress;
+        
+        ropeAnimation.targetEnemy.x = enemyX - ropeAnimation.targetEnemy.width / 2;
+        ropeAnimation.targetEnemy.y = enemyY - ropeAnimation.targetEnemy.height / 2;
+        
+        if (ropeAnimation.progress >= 1) {
+          player.eatenEnemy = { ...ropeAnimation.targetEnemy };
+          ropeAnimation.targetEnemy.alive = false;
+          ropeAnimation.type = 'none';
+          ropeAnimation.targetEnemy = null;
+        }
+      } else if (ropeAnimation.type === 'spitting' && ropeAnimation.targetEnemy) {
+        const enemyX = ropeAnimation.startX + (ropeAnimation.endX - ropeAnimation.startX) * ropeAnimation.progress;
+        const enemyY = ropeAnimation.startY + (ropeAnimation.endY - ropeAnimation.startY) * ropeAnimation.progress;
+        
+        ropeAnimation.targetEnemy.x = enemyX - ropeAnimation.targetEnemy.width / 2;
+        ropeAnimation.targetEnemy.y = enemyY - ropeAnimation.targetEnemy.height / 2;
+        
+        if (ropeAnimation.progress >= 1) {
+          player.eatenEnemy = null;
+          ropeAnimation.type = 'none';
+          ropeAnimation.targetEnemy = null;
+        }
+      }
+    }
+
+    it('should start rope eating animation when player touches circle enemy', () => {
+      const circleEnemy = {
+        type: 'circle',
+        x: 100,
+        y: 350,
+        width: 30,
+        height: 30,
+        alive: true,
+      };
+      
+      startRopeEatingAnimation(circleEnemy);
+      
+      expect(ropeAnimation.type).toBe('eating');
+      expect(ropeAnimation.targetEnemy).toBe(circleEnemy);
+      expect(ropeAnimation.progress).toBe(0);
+    });
+
+    it('should animate enemy moving toward player during eating', () => {
+      const circleEnemy = {
+        type: 'circle',
+        x: 200,
+        y: 300,
+        width: 30,
+        height: 30,
+        alive: true,
+      };
+      
+      startRopeEatingAnimation(circleEnemy);
+      
+      // Manually set progress to halfway and update
+      ropeAnimation.progress = 0.5;
+      const elapsed = ropeAnimation.duration * 0.5;
+      ropeAnimation.startTime = Date.now() - elapsed;
+      
+      updateRopeAnimation();
+      
+      // Enemy should be moving toward player
+      const expectedX = ropeAnimation.startX + (ropeAnimation.endX - ropeAnimation.startX) * 0.5;
+      expect(ropeAnimation.targetEnemy.x).toBe(expectedX - circleEnemy.width / 2);
+    });
+
+    it('should complete eating when rope animation finishes', () => {
+      const circleEnemy = {
+        type: 'circle',
+        x: 200,
+        y: 300,
+        width: 30,
+        height: 30,
+        alive: true,
+      };
+      
+      startRopeEatingAnimation(circleEnemy);
+      
+      // Manually set progress to complete and update
+      ropeAnimation.progress = 1;
+      const elapsed = ropeAnimation.duration;
+      ropeAnimation.startTime = Date.now() - elapsed;
+      
+      updateRopeAnimation();
+      
+      expect(player.eatenEnemy).not.toBeNull();
+      expect(player.eatenEnemy.type).toBe('circle');
+      expect(ropeAnimation.type).toBe('none');
+      expect(circleEnemy.alive).toBe(false);
+    });
+
+    it('should start rope spitting animation when spitting enemy', () => {
+      player.eatenEnemy = { type: 'circle' };
+      player.vx = 5; // Moving right
+      
+      startRopeSpittingAnimation();
+      
+      expect(ropeAnimation.type).toBe('spitting');
+      expect(ropeAnimation.targetEnemy).not.toBeNull();
+      expect(ropeAnimation.targetEnemy.type).toBe('circle');
+    });
+
+    it('should animate enemy moving toward screen edge during spitting', () => {
+      player.eatenEnemy = { type: 'circle' };
+      player.vx = 5; // Moving right
+      
+      startRopeSpittingAnimation();
+      
+      // Manually set progress to halfway and update
+      ropeAnimation.progress = 0.5;
+      const elapsed = ropeAnimation.duration * 0.5;
+      ropeAnimation.startTime = Date.now() - elapsed;
+      
+      updateRopeAnimation();
+      
+      // Enemy should be moving toward screen edge
+      const expectedX = ropeAnimation.startX + (ropeAnimation.endX - ropeAnimation.startX) * 0.5;
+      expect(ropeAnimation.targetEnemy.x).toBe(expectedX - ropeAnimation.targetEnemy.width / 2);
+    });
+
+    it('should remove enemy when rope spitting animation completes', () => {
+      player.eatenEnemy = { type: 'circle' };
+      
+      startRopeSpittingAnimation();
+      
+      // Manually set progress to complete and update
+      ropeAnimation.progress = 1;
+      const elapsed = ropeAnimation.duration;
+      ropeAnimation.startTime = Date.now() - elapsed;
+      
+      updateRopeAnimation();
+      
+      expect(player.eatenEnemy).toBeNull();
+      expect(ropeAnimation.type).toBe('none');
+      expect(ropeAnimation.targetEnemy).toBeNull();
+    });
+
+    it('should calculate correct spit direction based on player movement', () => {
+      player.eatenEnemy = { type: 'circle' };
+      player.vx = -3; // Moving left
+      
+      startRopeSpittingAnimation();
+      
+      expect(ropeAnimation.endX).toBe(-50); // Left edge of screen
+      
+      // Reset and test right direction
+      player.vx = 3; // Moving right
+      startRopeSpittingAnimation();
+      
+      expect(ropeAnimation.endX).toBe(800); // Right edge of screen
+    });
+  });
 });

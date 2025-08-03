@@ -40,6 +40,9 @@ interface Enemy extends Rect {
   alive: boolean;
   id: string;
 }
+interface Tube extends Rect {
+  id: string;
+}
 
 // Unique collectible id generator
 let collectibleIdCounter = 0;
@@ -53,10 +56,17 @@ function generateEnemyId() {
   return `enemy_${Date.now()}_${enemyIdCounter++}`;
 }
 
+// Unique tube id generator
+let tubeIdCounter = 0;
+function generateTubeId() {
+  return `tube_${Date.now()}_${tubeIdCounter++}`;
+}
+
 const collectibles: Collectible[] = [];
 const spikes: Rect[] = [];
 const movingPlatforms: MovingPlatform[] = [];
 const enemies: Enemy[] = [];
+const tubes: Tube[] = [];
 
 // --- Finish Flag ---
 let finishFlag = { x: 0, y: 0, width: 24, height: 80 };
@@ -131,6 +141,7 @@ async function generateVerticalLevel() {
   spikes.length = 0;
   movingPlatforms.length = 0;
   enemies.length = 0;
+  tubes.length = 0;
   let heartPlaced = false;
   let doubleJumpPlaced = false;
   let growPlaced = false;
@@ -192,20 +203,7 @@ async function generateVerticalLevel() {
         startX: x - 60,
       });
     }
-    // Add enemies on some platforms
-    if (Math.random() < 0.3 && y < LEVEL_HEIGHT - platformSpacing && width > 120) {
-      enemies.push({
-        x: x + 20,
-        y: y - 30,
-        width: 30,
-        height: 30,
-        dx: 1 + Math.random() * 2, // Random speed between 1-3
-        range: Math.min(width - 60, 100), // Stay within platform bounds
-        startX: x + 20,
-        alive: true,
-        id: generateEnemyId(),
-      });
-    }
+    // Note: Enemies are disabled in vertical levels as requested
     y -= platformSpacing;
     // Add boxes on some platforms
     if (Math.random() < 0.5 && y > 50) {
@@ -340,6 +338,15 @@ async function generateLevel() {
     await generateVerticalLevel();
     return;
   }
+  // Clear all arrays for horizontal level generation
+  platforms.length = 0;
+  boxes.length = 0;
+  collectibles.length = 0;
+  spikes.length = 0;
+  movingPlatforms.length = 0;
+  enemies.length = 0;
+  tubes.length = 0;
+  
   let x = 0;
   let heartPlaced = false;
   let doubleJumpPlaced = false;
@@ -396,16 +403,31 @@ async function generateLevel() {
         startX: x - 60,
       });
     }
-    // Add enemies on some platforms  
+    // Add enemies on some platforms with spawn tubes 
     if (Math.random() < 0.3 && platformWidth > 120) {
+      const tubeX = x + 40;
+      const tubeY = GROUND_Y - 60;
+      const tubeWidth = 20;
+      const tubeHeight = 30;
+      
+      // Add the spawn tube first
+      tubes.push({
+        x: tubeX,
+        y: tubeY,
+        width: tubeWidth,
+        height: tubeHeight,
+        id: generateTubeId(),
+      });
+      
+      // Add enemy that spawns from the tube
       enemies.push({
-        x: x + 20,
+        x: tubeX - 5, // Enemy is slightly wider than tube
         y: GROUND_Y - 30,
         width: 30,
         height: 30,
         dx: 1 + Math.random() * 2, // Random speed between 1-3
-        range: Math.min(platformWidth - 60, 120), // Stay within platform bounds
-        startX: x + 20,
+        range: Math.min(platformWidth - 80, 100), // Stay within platform bounds
+        startX: tubeX - 5,
         alive: true,
         id: generateEnemyId(),
       });
@@ -825,6 +847,7 @@ function resetGame() {
   spikes.length = 0;
   movingPlatforms.length = 0;
   enemies.length = 0;
+  tubes.length = 0;
   // Do not reset manualLevelType or manualLevelTypeValue here
   if (manualLevelType) {
     levelType = manualLevelTypeValue;
@@ -951,6 +974,7 @@ function generateNewLevel() {
   spikes.length = 0;
   movingPlatforms.length = 0;
   enemies.length = 0;
+  tubes.length = 0;
   level++;
 
   let isBonusLevel = false;
@@ -1930,6 +1954,23 @@ function draw() {
     ctx.closePath();
     ctx.fill();
   }
+  // Draw spawn tubes
+  ctx.fillStyle = '#0a8000'; // Dark green for tubes
+  for (const tube of tubes) {
+    // Draw tube body
+    ctx.fillRect(tube.x, tube.y, tube.width, tube.height);
+    
+    // Draw tube opening (darker green)
+    ctx.fillStyle = '#064000';
+    ctx.fillRect(tube.x + 2, tube.y + tube.height - 8, tube.width - 4, 8);
+    
+    // Draw pipe details (light green lines)
+    ctx.fillStyle = '#0c8000';
+    ctx.fillRect(tube.x + 4, tube.y + 5, 2, tube.height - 10);
+    ctx.fillRect(tube.x + tube.width - 6, tube.y + 5, 2, tube.height - 10);
+    
+    ctx.fillStyle = '#0a8000'; // Reset to main tube color
+  }
   // Draw enemies
   ctx.fillStyle = '#f90'; // Orange color for enemies
   for (const enemy of enemies) {
@@ -2397,6 +2438,7 @@ function generateBonusVerticalLevel() {
   spikes.length = 0;
   movingPlatforms.length = 0;
   enemies.length = 0;
+  tubes.length = 0;
 
   // Solid floor
   platforms.push({ x: 0, y: LEVEL_HEIGHT, width: canvas.width, height: 50 });

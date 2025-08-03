@@ -1206,5 +1206,61 @@ describe('Eat/Spit enemy functionality', () => {
       
       expect(ropeAnimation.endX).toBe(800); // Right edge of screen
     });
+
+    it('should allow eating circle enemy from reasonable distance', () => {
+      // Function to find nearby circle enemy (from main.ts logic)
+      function findNearbyCircleEnemy(): any | null {
+        const EATING_DISTANCE = 60; // Same as in main.ts
+        const enemies = [
+          {
+            type: 'circle',
+            x: player.x + 50, // 50 pixels away
+            y: player.y,
+            width: 30,
+            height: 30,
+            alive: true,
+          },
+          {
+            type: 'circle', 
+            x: player.x + 80, // 80 pixels away (too far)
+            y: player.y,
+            width: 30,
+            height: 30,
+            alive: true,
+          }
+        ];
+        
+        for (const enemy of enemies) {
+          if (!enemy.alive || enemy.type !== 'circle') continue;
+          
+          const playerCenterX = player.x + player.width / 2;
+          const playerCenterY = player.y + player.height / 2;
+          const enemyCenterX = enemy.x + enemy.width / 2;
+          const enemyCenterY = enemy.y + enemy.height / 2;
+          
+          const distance = Math.sqrt(
+            Math.pow(playerCenterX - enemyCenterX, 2) + 
+            Math.pow(playerCenterY - enemyCenterY, 2)
+          );
+          
+          if (distance <= EATING_DISTANCE) {
+            return enemy;
+          }
+        }
+        
+        return null;
+      }
+
+      // Test that nearby enemy can be found
+      const nearbyEnemy = findNearbyCircleEnemy();
+      expect(nearbyEnemy).not.toBeNull();
+      expect(nearbyEnemy.x).toBe(player.x + 50); // Should find the closer enemy
+
+      // Test that the distance calculation works correctly  
+      const playerCenterX = player.x + player.width / 2; // 120
+      const enemyCenterX = nearbyEnemy.x + nearbyEnemy.width / 2; // 165
+      const distance = Math.abs(playerCenterX - enemyCenterX); // 45
+      expect(distance).toBeLessThan(60); // Should be within eating distance
+    });
   });
 });

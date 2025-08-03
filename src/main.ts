@@ -988,6 +988,32 @@ function spitOutEnemy() {
   player.eatenEnemy = null;
 }
 
+// Find nearby circle enemy that can be eaten
+function findNearbyCircleEnemy(): Enemy | null {
+  const EATING_DISTANCE = 60; // Allow eating from a reasonable distance
+  
+  for (const enemy of enemies) {
+    if (!enemy.alive || enemy.type !== 'circle') continue;
+    
+    // Calculate distance between player center and enemy center
+    const playerCenterX = player.x + player.width / 2;
+    const playerCenterY = player.y + player.height / 2;
+    const enemyCenterX = enemy.x + enemy.width / 2;
+    const enemyCenterY = enemy.y + enemy.height / 2;
+    
+    const distance = Math.sqrt(
+      Math.pow(playerCenterX - enemyCenterX, 2) + 
+      Math.pow(playerCenterY - enemyCenterY, 2)
+    );
+    
+    if (distance <= EATING_DISTANCE) {
+      return enemy;
+    }
+  }
+  
+  return null;
+}
+
 function startRopeEatingAnimation(enemy: Enemy) {
   ropeAnimation.type = 'eating';
   ropeAnimation.progress = 0;
@@ -1303,8 +1329,22 @@ function update(deltaTime: number) {
     if (player.eatenEnemy && ropeAnimation.type === 'none') {
       // Start rope spitting animation
       startRopeSpittingAnimation();
+    } else if (ropeAnimation.type === 'none') {
+      // Try to eat a nearby circle enemy
+      const nearbyEnemy = findNearbyCircleEnemy();
+      if (nearbyEnemy) {
+        // Start rope eating animation (replace any existing eaten enemy)
+        startRopeEatingAnimation(nearbyEnemy);
+        // Add some score for eating enemy
+        if (multiplayerEnabled) {
+          addTotalPoints(1);
+        } else {
+          score++;
+          addTotalPoints(1);
+          setTopScore(score);
+        }
+      }
     }
-    // Eating happens in collision detection below
   }
   prevActionKey = actionKey;
 
@@ -1518,18 +1558,7 @@ function update(deltaTime: number) {
   for (const enemy of enemies) {
     if (!enemy.alive) continue;
     if (rectsCollide(player, enemy)) {
-      if (enemy.type === 'circle' && keys['KeyE'] && ropeAnimation.type === 'none') {
-        // Start rope eating animation (replace any existing eaten enemy)
-        startRopeEatingAnimation(enemy);
-        // Add some score for eating enemy
-        if (multiplayerEnabled) {
-          addTotalPoints(1);
-        } else {
-          score++;
-          addTotalPoints(1);
-          setTopScore(score);
-        }
-      } else if (enemy.type === 'square') {
+      if (enemy.type === 'square') {
         // Square enemies: check if player is landing on top (can jump on them)
         if (player.vy > 0 && player.y < enemy.y) {
           // Player jumped on square enemy - kill enemy and bounce player
@@ -1559,8 +1588,7 @@ function update(deltaTime: number) {
           break;
         }
       } else if (enemy.type === 'circle') {
-        // Circle enemy collision without eating (if not pressing E)
-        // Handle damage based on player size
+        // Circle enemy collision - handle damage based on player size
         if (player.growLevel > 0) {
           // Big player hit - shrink without losing life
           player.growLevel = 0;

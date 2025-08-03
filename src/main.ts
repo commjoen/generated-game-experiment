@@ -35,13 +35,16 @@ interface MovingPlatform extends Rect {
 }
 interface Enemy extends Rect {
   dx: number;
+  dy: number; // Add vertical velocity for jumping out
   range: number;
   startX: number;
   alive: boolean;
   id: string;
+  isJumpingOut: boolean; // Track if enemy is in jumping animation
 }
 interface Tube extends Rect {
   id: string;
+  hasSpawnedEnemy: boolean;
 }
 
 // Unique collectible id generator
@@ -403,33 +406,21 @@ async function generateLevel() {
         startX: x - 60,
       });
     }
-    // Add enemies on some platforms with spawn tubes 
+    // Add spawn tubes on some platforms (no immediate enemies)
     if (Math.random() < 0.3 && platformWidth > 120) {
       const tubeX = x + 40;
-      const tubeY = GROUND_Y - 60;
-      const tubeWidth = 20;
-      const tubeHeight = 30;
+      const tubeY = GROUND_Y - 80; // Adjusted for larger tube
+      const tubeWidth = 40; // Larger tube
+      const tubeHeight = 50; // Larger tube
       
-      // Add the spawn tube first
+      // Add the spawn tube
       tubes.push({
         x: tubeX,
         y: tubeY,
         width: tubeWidth,
         height: tubeHeight,
         id: generateTubeId(),
-      });
-      
-      // Add enemy that spawns from the tube
-      enemies.push({
-        x: tubeX - 5, // Enemy is slightly wider than tube
-        y: GROUND_Y - 30,
-        width: 30,
-        height: 30,
-        dx: 1 + Math.random() * 2, // Random speed between 1-3
-        range: Math.min(platformWidth - 80, 100), // Stay within platform bounds
-        startX: tubeX - 5,
-        alive: true,
-        id: generateEnemyId(),
+        hasSpawnedEnemy: false,
       });
     }
     x += platformWidth;
@@ -1171,12 +1162,70 @@ function update(deltaTime: number) {
     }
   }
 
+  // Check for tube proximity and spawn enemies
+  for (const tube of tubes) {
+    if (!tube.hasSpawnedEnemy) {
+      // Check if player is within proximity of the tube (100 pixels)
+      const distanceToTube = Math.sqrt(
+        Math.pow(player.x + player.width/2 - (tube.x + tube.width/2), 2) +
+        Math.pow(player.y + player.height/2 - (tube.y + tube.height/2), 2)
+      );
+      
+      if (distanceToTube < 100) {
+        // Spawn enemy jumping out of tube
+        const platformUnderTube = platforms.find(p => 
+          p.x <= tube.x + tube.width/2 && 
+          p.x + p.width >= tube.x + tube.width/2 &&
+          p.y >= tube.y + tube.height
+        );
+        
+        if (platformUnderTube) {
+          enemies.push({
+            x: tube.x + tube.width/2 - 15, // Center enemy on tube
+            y: tube.y + tube.height - 30, // Start at tube opening
+            width: 30,
+            height: 30,
+            dx: 1 + Math.random() * 2, // Random speed between 1-3
+            dy: -8, // Jump out with upward velocity
+            range: Math.min(platformUnderTube.width - 80, 120), // Stay within platform bounds
+            startX: tube.x + tube.width/2 - 15,
+            alive: true,
+            id: generateEnemyId(),
+            isJumpingOut: true,
+          });
+          tube.hasSpawnedEnemy = true;
+        }
+      }
+    }
+  }
+
   // Move enemies
   for (const enemy of enemies) {
     if (!enemy.alive) continue;
-    enemy.x += enemy.dx;
-    if (enemy.x > enemy.startX + enemy.range || enemy.x < enemy.startX) {
-      enemy.dx *= -1;
+    
+    // Handle jumping out animation
+    if (enemy.isJumpingOut) {
+      enemy.y += enemy.dy;
+      enemy.dy += 0.5; // Gravity effect during jump
+      
+      // Check if enemy has landed on platform
+      for (const plat of platforms) {
+        if (enemy.y + enemy.height >= plat.y && 
+            enemy.y + enemy.height <= plat.y + plat.height &&
+            enemy.x + enemy.width > plat.x &&
+            enemy.x < plat.x + plat.width) {
+          enemy.y = plat.y - enemy.height;
+          enemy.dy = 0;
+          enemy.isJumpingOut = false;
+          break;
+        }
+      }
+    } else {
+      // Normal horizontal movement
+      enemy.x += enemy.dx;
+      if (enemy.x > enemy.startX + enemy.range || enemy.x < enemy.startX) {
+        enemy.dx *= -1;
+      }
     }
   }
 
@@ -1960,14 +2009,18 @@ function draw() {
     // Draw tube body
     ctx.fillRect(tube.x, tube.y, tube.width, tube.height);
     
-    // Draw tube opening (darker green)
+    // Draw tube opening (darker green) - larger opening for bigger tubes
     ctx.fillStyle = '#064000';
-    ctx.fillRect(tube.x + 2, tube.y + tube.height - 8, tube.width - 4, 8);
+    ctx.fillRect(tube.x + 4, tube.y + tube.height - 12, tube.width - 8, 12);
     
-    // Draw pipe details (light green lines)
+    // Draw pipe details (light green lines) - adjusted for larger tubes
     ctx.fillStyle = '#0c8000';
-    ctx.fillRect(tube.x + 4, tube.y + 5, 2, tube.height - 10);
-    ctx.fillRect(tube.x + tube.width - 6, tube.y + 5, 2, tube.height - 10);
+    ctx.fillRect(tube.x + 8, tube.y + 8, 3, tube.height - 16);
+    ctx.fillRect(tube.x + tube.width - 11, tube.y + 8, 3, tube.height - 16);
+    
+    // Add horizontal bands for more detail
+    ctx.fillRect(tube.x + 4, tube.y + tube.height / 3, tube.width - 8, 2);
+    ctx.fillRect(tube.x + 4, tube.y + (2 * tube.height) / 3, tube.width - 8, 2);
     
     ctx.fillStyle = '#0a8000'; // Reset to main tube color
   }

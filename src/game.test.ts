@@ -656,26 +656,28 @@ describe('Enemy mechanics', () => {
     expect(playerDied).toBe(true);
   });
 
-  it('should not eat circle enemies when already has eaten enemy', () => {
+  it('should allow eating circle enemies even when already has eaten enemy', () => {
     enemy.type = 'circle';
     player.x = enemy.x;
     player.y = enemy.y;
-    player.eatenEnemy = { type: 'circle' } as any; // Already has eaten enemy
+    player.eatenEnemy = { type: 'circle', id: 'old_enemy' } as any; // Already has eaten enemy
     
     let actionKeyPressed = true;
-    let playerDied = false;
+    let score = 0;
     
     if (rectsCollide(player, enemy)) {
-      if (enemy.type === 'circle' && actionKeyPressed && !player.eatenEnemy) {
+      if (enemy.type === 'circle' && actionKeyPressed) {
+        // Start eating animation (replaces any existing eaten enemy)
         player.eatenEnemy = { ...enemy };
         enemy.alive = false;
-      } else if (enemy.type === 'circle') {
-        playerDied = true;
+        score++;
       }
     }
     
-    expect(enemy.alive).toBe(true); // Enemy should remain alive
-    expect(playerDied).toBe(true); // Player should die
+    expect(player.eatenEnemy).not.toBeNull();
+    expect(player.eatenEnemy?.type).toBe('circle');
+    expect(enemy.alive).toBe(false);
+    expect(score).toBe(1);
   });
 
   it('should allow jumping on square enemies', () => {

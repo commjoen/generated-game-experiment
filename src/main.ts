@@ -1514,8 +1514,8 @@ function update(deltaTime: number) {
   for (const enemy of enemies) {
     if (!enemy.alive) continue;
     if (rectsCollide(player, enemy)) {
-      if (enemy.type === 'circle' && keys['KeyE'] && !player.eatenEnemy && ropeAnimation.type === 'none') {
-        // Start rope eating animation
+      if (enemy.type === 'circle' && keys['KeyE'] && ropeAnimation.type === 'none') {
+        // Start rope eating animation (replace any existing eaten enemy)
         startRopeEatingAnimation(enemy);
         // Add some score for eating enemy
         if (multiplayerEnabled) {

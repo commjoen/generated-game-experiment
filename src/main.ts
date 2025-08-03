@@ -41,6 +41,7 @@ interface Enemy extends Rect {
   alive: boolean;
   id: string;
   isJumpingOut: boolean; // Track if enemy is in jumping animation
+  type: 'square' | 'circle'; // Add enemy type
 }
 interface Tube extends Rect {
   id: string;
@@ -86,6 +87,7 @@ const player = {
   hasDoubleJump: false,
   growLevel: 0, // 0-3
   canDoubleJump: false, // for in-air jump
+  eatenEnemy: null as Enemy | null, // Track eaten enemy
 };
 
 // Multiplayer state
@@ -887,6 +889,7 @@ function resetPlayer() {
   // player.hasDoubleJump = false;
   // player.growLevel = 0;
   player.canDoubleJump = false;
+  // Note: eatenEnemy persists across levels unless explicitly reset
   setPlayerSizeByGrowLevel();
 }
 
@@ -906,6 +909,60 @@ function setPlayerSizeByGrowLevel() {
   }
 }
 
+function spitOutEnemy() {
+  if (!player.eatenEnemy) return;
+  
+  // Create a new enemy in front of the player
+  const spitDirection = player.vx >= 0 ? 1 : -1; // Spit in direction player was moving, default right
+  const spitX = player.x + (spitDirection > 0 ? player.width + 10 : -40);
+  const spitY = player.y + 10;
+  
+  // Find a safe position on a platform
+  let finalX = spitX;
+  let finalY = spitY;
+  
+  // Try to place on current platform or ground
+  for (const plat of platforms) {
+    if ('isSlope' in plat && plat.isSlope) {
+      // Handle slope platforms
+      if (spitX + 15 > plat.x && spitX + 15 < plat.x + plat.width) {
+        const t = (spitX + 15 - plat.x) / plat.width;
+        const yAtX = plat.y + (plat.endY - plat.y) * t;
+        if (Math.abs(player.y + player.height - yAtX) < 20) {
+          finalY = yAtX - 30;
+          break;
+        }
+      }
+    } else {
+      // Handle flat platforms
+      if (spitX + 15 > plat.x && spitX + 15 < plat.x + plat.width && 
+          Math.abs(player.y + player.height - plat.y) < 20) {
+        finalY = plat.y - 30;
+        break;
+      }
+    }
+  }
+  
+  // Add the spit enemy back to the world
+  const spitEnemy: Enemy = {
+    x: finalX,
+    y: finalY,
+    width: 30,
+    height: 30,
+    dx: spitDirection * (2 + Math.random()), // Random speed in spit direction
+    dy: 0,
+    range: 120,
+    startX: finalX,
+    alive: true,
+    id: generateEnemyId(),
+    isJumpingOut: false,
+    type: player.eatenEnemy.type,
+  };
+  
+  enemies.push(spitEnemy);
+  player.eatenEnemy = null;
+}
+
 function respawnPlayer() {
   lives--;
   if (lives <= 0) {
@@ -918,6 +975,7 @@ function respawnPlayer() {
   player.hasDoubleJump = false;
   player.growLevel = 0;
   player.canDoubleJump = false;
+  player.eatenEnemy = null; // Reset eaten enemy on death
   setPlayerSizeByGrowLevel();
   resetPlayer();
   respawnTimer = 30; // frames to pause/flash
@@ -1088,6 +1146,17 @@ function update(deltaTime: number) {
   }
   prevSpeedToggleKey = speedToggleKey;
 
+  // Action key for eat/spit (only on new key press)
+  const actionKey = keys['KeyE'];
+  if (actionKey && !prevActionKey) {
+    if (player.eatenEnemy) {
+      // Spit out the enemy
+      spitOutEnemy();
+    }
+    // Eating happens in collision detection below
+  }
+  prevActionKey = actionKey;
+
   // Apply gravity (frame-rate independent)
   player.vy += GRAVITY * deltaTime * 60;
 
@@ -1180,6 +1249,9 @@ function update(deltaTime: number) {
         );
         
         if (platformUnderTube) {
+          // Randomly choose enemy type (50% chance for each)
+          const enemyType: 'square' | 'circle' = Math.random() < 0.5 ? 'square' : 'circle';
+          
           enemies.push({
             x: tube.x + tube.width/2 - 15, // Center enemy on tube
             y: tube.y + 10, // Start enemy inside the tube, near the bottom
@@ -1192,6 +1264,7 @@ function update(deltaTime: number) {
             alive: true,
             id: generateEnemyId(),
             isJumpingOut: true,
+            type: enemyType,
           });
           tube.hasSpawnedEnemy = true;
         }
@@ -1290,12 +1363,11 @@ function update(deltaTime: number) {
   for (const enemy of enemies) {
     if (!enemy.alive) continue;
     if (rectsCollide(player, enemy)) {
-      // Check if player is landing on top of enemy (jumped on it)
-      if (player.vy > 0 && player.y < enemy.y) {
-        // Player jumped on enemy - kill enemy and bounce player
+      if (enemy.type === 'circle' && keys['KeyE'] && !player.eatenEnemy) {
+        // Eat the circle enemy
+        player.eatenEnemy = { ...enemy }; // Store a copy of the enemy
         enemy.alive = false;
-        player.vy = -8; // Small bounce
-        // Add some score for killing enemy
+        // Add some score for eating enemy
         if (multiplayerEnabled) {
           addTotalPoints(1);
         } else {
@@ -1303,8 +1375,28 @@ function update(deltaTime: number) {
           addTotalPoints(1);
           setTopScore(score);
         }
-      } else {
-        // Player touched enemy from side - respawn player
+      } else if (enemy.type === 'square') {
+        // Square enemies: check if player is landing on top (can jump on them)
+        if (player.vy > 0 && player.y < enemy.y) {
+          // Player jumped on square enemy - kill enemy and bounce player
+          enemy.alive = false;
+          player.vy = -8; // Small bounce
+          // Add some score for killing enemy
+          if (multiplayerEnabled) {
+            addTotalPoints(1);
+          } else {
+            score++;
+            addTotalPoints(1);
+            setTopScore(score);
+          }
+        } else {
+          // Player touched square enemy from side - respawn player
+          respawnPlayer();
+          break;
+        }
+      } else if (enemy.type === 'circle') {
+        // Circle enemy collision without eating (if not pressing E or already have eaten enemy)
+        // Player touched circle enemy - respawn player
         respawnPlayer();
         break;
       }
@@ -1685,7 +1777,8 @@ function setupOnscreenControls() {
   const btnLeft = document.getElementById('btn-left');
   const btnRight = document.getElementById('btn-right');
   const btnJump = document.getElementById('btn-jump');
-  if (btnLeft && btnRight && btnJump) {
+  const btnAction = document.getElementById('btn-action');
+  if (btnLeft && btnRight && btnJump && btnAction) {
     btnLeft.addEventListener(
       'touchstart',
       (e) => {
@@ -1758,6 +1851,32 @@ function setupOnscreenControls() {
     btnJump.addEventListener('mouseup', (e) => {
       e.preventDefault();
       keys['Space'] = false;
+    });
+    
+    // Action button events
+    btnAction.addEventListener(
+      'touchstart',
+      (e) => {
+        e.preventDefault();
+        keys['KeyE'] = true;
+      },
+      { passive: false }
+    );
+    btnAction.addEventListener(
+      'touchend',
+      (e) => {
+        e.preventDefault();
+        keys['KeyE'] = false;
+      },
+      { passive: false }
+    );
+    btnAction.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      keys['KeyE'] = true;
+    });
+    btnAction.addEventListener('mouseup', (e) => {
+      e.preventDefault();
+      keys['KeyE'] = false;
     });
   }
 }
@@ -2028,16 +2147,29 @@ function draw() {
     ctx.fillStyle = '#0a8000'; // Reset to main tube color
   }
   // Draw enemies
-  ctx.fillStyle = '#f90'; // Orange color for enemies
   for (const enemy of enemies) {
     if (enemy.alive) {
-      ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
-      // Add simple eyes to make it look more enemy-like
-      ctx.fillStyle = '#000';
-      const eyeSize = 4;
-      ctx.fillRect(enemy.x + 6, enemy.y + 8, eyeSize, eyeSize);
-      ctx.fillRect(enemy.x + enemy.width - 10, enemy.y + 8, eyeSize, eyeSize);
-      ctx.fillStyle = '#f90'; // Reset color
+      if (enemy.type === 'circle') {
+        // Draw circle enemies as circles
+        ctx.fillStyle = '#f06'; // Pink color for circle enemies
+        ctx.beginPath();
+        ctx.arc(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, enemy.width / 2, 0, 2 * Math.PI);
+        ctx.fill();
+        // Add simple eyes to make it look more enemy-like
+        ctx.fillStyle = '#000';
+        const eyeSize = 3;
+        ctx.fillRect(enemy.x + 8, enemy.y + 8, eyeSize, eyeSize);
+        ctx.fillRect(enemy.x + enemy.width - 11, enemy.y + 8, eyeSize, eyeSize);
+      } else {
+        // Draw square enemies as rectangles (original behavior)
+        ctx.fillStyle = '#f90'; // Orange color for square enemies
+        ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+        // Add simple eyes to make it look more enemy-like
+        ctx.fillStyle = '#000';
+        const eyeSize = 4;
+        ctx.fillRect(enemy.x + 6, enemy.y + 8, eyeSize, eyeSize);
+        ctx.fillRect(enemy.x + enemy.width - 10, enemy.y + 8, eyeSize, eyeSize);
+      }
     }
   }
   // Draw player (flash if respawning)
@@ -2287,6 +2419,24 @@ function draw() {
     ctx.restore();
     iconX += 36;
   }
+  // Show eaten enemy indicator
+  if (player.eatenEnemy) {
+    ctx.save();
+    ctx.translate(iconX, 120);
+    if (player.eatenEnemy.type === 'circle') {
+      // Show small circle icon
+      ctx.fillStyle = '#f06';
+      ctx.beginPath();
+      ctx.arc(0, 0, 10, 0, 2 * Math.PI);
+      ctx.fill();
+      // Add border to show it's "stored"
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    ctx.restore();
+    iconX += 36;
+  }
   ctx.restore();
   if (gameOver) {
     ctx.save();
@@ -2373,6 +2523,7 @@ function gameLoop() {
 const keys: Record<string, boolean> = {};
 let prevJumpKey = false;
 let prevSpeedToggleKey = false;
+let prevActionKey = false;
 let jumpCooldown = 0; // Cooldown for continuous jumping
 window.addEventListener('keydown', (e) => {
   keys[e.code] = true;

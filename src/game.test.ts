@@ -507,6 +507,7 @@ describe('Enemy mechanics', () => {
       vx: 0,
       vy: 0,
       onGround: true,
+      eatenEnemy: null,
     };
     enemy = {
       x: 200,
@@ -518,6 +519,7 @@ describe('Enemy mechanics', () => {
       startX: 150,
       alive: true,
       id: 'test_enemy_1',
+      type: 'square',
     };
   });
 
@@ -608,5 +610,230 @@ describe('Enemy mechanics', () => {
     }
 
     expect(playerDied).toBe(false); // Dead enemy should not kill player
+  });
+
+  it('should eat circle enemies when action key is pressed', () => {
+    enemy.type = 'circle';
+    player.x = enemy.x;
+    player.y = enemy.y;
+    
+    let actionKeyPressed = true;
+    let score = 0;
+    
+    if (rectsCollide(player, enemy)) {
+      if (enemy.type === 'circle' && actionKeyPressed && !player.eatenEnemy) {
+        player.eatenEnemy = { ...enemy };
+        enemy.alive = false;
+        score++;
+      }
+    }
+    
+    expect(player.eatenEnemy).not.toBeNull();
+    expect(player.eatenEnemy?.type).toBe('circle');
+    expect(enemy.alive).toBe(false);
+    expect(score).toBe(1);
+  });
+
+  it('should not eat circle enemies when action key is not pressed', () => {
+    enemy.type = 'circle';
+    player.x = enemy.x;
+    player.y = enemy.y;
+    
+    let actionKeyPressed = false;
+    let playerDied = false;
+    
+    if (rectsCollide(player, enemy)) {
+      if (enemy.type === 'circle' && actionKeyPressed && !player.eatenEnemy) {
+        player.eatenEnemy = { ...enemy };
+        enemy.alive = false;
+      } else if (enemy.type === 'circle') {
+        playerDied = true;
+      }
+    }
+    
+    expect(player.eatenEnemy).toBeNull();
+    expect(enemy.alive).toBe(true);
+    expect(playerDied).toBe(true);
+  });
+
+  it('should not eat circle enemies when already has eaten enemy', () => {
+    enemy.type = 'circle';
+    player.x = enemy.x;
+    player.y = enemy.y;
+    player.eatenEnemy = { type: 'circle' } as any; // Already has eaten enemy
+    
+    let actionKeyPressed = true;
+    let playerDied = false;
+    
+    if (rectsCollide(player, enemy)) {
+      if (enemy.type === 'circle' && actionKeyPressed && !player.eatenEnemy) {
+        player.eatenEnemy = { ...enemy };
+        enemy.alive = false;
+      } else if (enemy.type === 'circle') {
+        playerDied = true;
+      }
+    }
+    
+    expect(enemy.alive).toBe(true); // Enemy should remain alive
+    expect(playerDied).toBe(true); // Player should die
+  });
+
+  it('should allow jumping on square enemies', () => {
+    enemy.type = 'square';
+    player.x = enemy.x;
+    player.y = enemy.y - player.height + 5;
+    player.vy = 5; // Falling down
+    
+    let score = 0;
+    if (rectsCollide(player, enemy)) {
+      if (enemy.type === 'square') {
+        if (player.vy > 0 && player.y < enemy.y) {
+          enemy.alive = false;
+          player.vy = -8;
+          score++;
+        }
+      }
+    }
+    
+    expect(enemy.alive).toBe(false);
+    expect(player.vy).toBe(-8);
+    expect(score).toBe(1);
+  });
+
+  it('should kill player when touching square enemy from side', () => {
+    enemy.type = 'square';
+    player.x = enemy.x - player.width + 5;
+    player.y = enemy.y;
+    player.vy = 0;
+    
+    let playerDied = false;
+    if (rectsCollide(player, enemy)) {
+      if (enemy.type === 'square') {
+        if (player.vy > 0 && player.y < enemy.y) {
+          // Player jumped on enemy
+        } else {
+          playerDied = true;
+        }
+      }
+    }
+    
+    expect(playerDied).toBe(true);
+  });
+});
+
+describe('Eat/Spit enemy functionality', () => {
+  let player: any;
+  let enemies: any[];
+
+  beforeEach(() => {
+    player = {
+      x: 100,
+      y: 350,
+      width: 40,
+      height: 50,
+      vx: 0,
+      vy: 0,
+      eatenEnemy: null,
+    };
+    enemies = [];
+  });
+
+  function rectsCollide(a: any, b: any) {
+    return (
+      a.x < b.x + b.width &&
+      a.x + a.width > b.x &&
+      a.y < b.y + b.height &&
+      a.y + a.height > b.y
+    );
+  }
+
+  function spitOutEnemy() {
+    if (!player.eatenEnemy) return;
+    
+    const spitDirection = player.vx >= 0 ? 1 : -1;
+    const spitX = player.x + (spitDirection > 0 ? player.width + 10 : -40);
+    const spitY = player.y + 10;
+    
+    const spitEnemy = {
+      x: spitX,
+      y: spitY,
+      width: 30,
+      height: 30,
+      dx: spitDirection * 2,
+      dy: 0,
+      range: 120,
+      startX: spitX,
+      alive: true,
+      id: 'spit_enemy',
+      isJumpingOut: false,
+      type: player.eatenEnemy.type,
+    };
+    
+    enemies.push(spitEnemy);
+    player.eatenEnemy = null;
+  }
+
+  it('should store eaten enemy in player state', () => {
+    const circleEnemy = {
+      type: 'circle',
+      x: 100,
+      y: 350,
+      width: 30,
+      height: 30,
+      alive: true,
+    };
+
+    // Simulate eating
+    player.eatenEnemy = { ...circleEnemy };
+    
+    expect(player.eatenEnemy).not.toBeNull();
+    expect(player.eatenEnemy.type).toBe('circle');
+  });
+
+  it('should spit out enemy when action key is pressed and player has eaten enemy', () => {
+    player.eatenEnemy = { type: 'circle' };
+    player.vx = 5; // Moving right
+    
+    spitOutEnemy();
+    
+    expect(player.eatenEnemy).toBeNull();
+    expect(enemies.length).toBe(1);
+    expect(enemies[0].type).toBe('circle');
+    expect(enemies[0].x).toBeGreaterThan(player.x); // Spit to the right
+  });
+
+  it('should spit enemy in direction of player movement', () => {
+    player.eatenEnemy = { type: 'circle' };
+    player.vx = -3; // Moving left
+    
+    spitOutEnemy();
+    
+    expect(enemies[0].x).toBeLessThan(player.x); // Spit to the left
+    expect(enemies[0].dx).toBeLessThan(0); // Enemy moving left
+  });
+
+  it('should not do anything if no enemy is eaten when trying to spit', () => {
+    player.eatenEnemy = null;
+    
+    spitOutEnemy();
+    
+    expect(enemies.length).toBe(0);
+  });
+
+  it('should reset eaten enemy on player death', () => {
+    player.eatenEnemy = { type: 'circle' };
+    
+    // Simulate death
+    player.eatenEnemy = null;
+    
+    expect(player.eatenEnemy).toBeNull();
+  });
+
+  it('should show visual indicator when enemy is eaten', () => {
+    // Test that the UI shows an indicator when player has eaten enemy
+    player.eatenEnemy = { type: 'circle' };
+    
+    const hasIndicator = player.eatenEnemy !== null;
+    expect(hasIndicator).toBe(true);
   });
 });

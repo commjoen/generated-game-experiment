@@ -33,6 +33,19 @@ interface MovingPlatform extends Rect {
   range: number;
   startX: number;
 }
+interface Enemy extends Rect {
+  dx: number;
+  dy: number; // Add vertical velocity for jumping out
+  range: number;
+  startX: number;
+  alive: boolean;
+  id: string;
+  isJumpingOut: boolean; // Track if enemy is in jumping animation
+}
+interface Tube extends Rect {
+  id: string;
+  hasSpawnedEnemy: boolean;
+}
 
 // Unique collectible id generator
 let collectibleIdCounter = 0;
@@ -40,9 +53,23 @@ function generateCollectibleId(type: string) {
   return `${type}_${Date.now()}_${collectibleIdCounter++}`;
 }
 
+// Unique enemy id generator
+let enemyIdCounter = 0;
+function generateEnemyId() {
+  return `enemy_${Date.now()}_${enemyIdCounter++}`;
+}
+
+// Unique tube id generator
+let tubeIdCounter = 0;
+function generateTubeId() {
+  return `tube_${Date.now()}_${tubeIdCounter++}`;
+}
+
 const collectibles: Collectible[] = [];
 const spikes: Rect[] = [];
 const movingPlatforms: MovingPlatform[] = [];
+const enemies: Enemy[] = [];
+const tubes: Tube[] = [];
 
 // --- Finish Flag ---
 let finishFlag = { x: 0, y: 0, width: 24, height: 80 };
@@ -116,6 +143,8 @@ async function generateVerticalLevel() {
   collectibles.length = 0;
   spikes.length = 0;
   movingPlatforms.length = 0;
+  enemies.length = 0;
+  tubes.length = 0;
   let heartPlaced = false;
   let doubleJumpPlaced = false;
   let growPlaced = false;
@@ -177,6 +206,7 @@ async function generateVerticalLevel() {
         startX: x - 60,
       });
     }
+    // Note: Enemies are disabled in vertical levels as requested
     y -= platformSpacing;
     // Add boxes on some platforms
     if (Math.random() < 0.5 && y > 50) {
@@ -311,6 +341,15 @@ async function generateLevel() {
     await generateVerticalLevel();
     return;
   }
+  // Clear all arrays for horizontal level generation
+  platforms.length = 0;
+  boxes.length = 0;
+  collectibles.length = 0;
+  spikes.length = 0;
+  movingPlatforms.length = 0;
+  enemies.length = 0;
+  tubes.length = 0;
+  
   let x = 0;
   let heartPlaced = false;
   let doubleJumpPlaced = false;
@@ -365,6 +404,23 @@ async function generateLevel() {
         dx: 2,
         range: 120,
         startX: x - 60,
+      });
+    }
+    // Add spawn tubes on some platforms (no immediate enemies)
+    if (Math.random() < 0.3 && platformWidth > 120) {
+      const tubeX = x + 40;
+      const tubeY = GROUND_Y - 60; // Position tube to start deeper below floor for longer appearance
+      const tubeWidth = 40; // Larger tube
+      const tubeHeight = 80; // Longer tube - extends from below platform up through it
+      
+      // Add the spawn tube
+      tubes.push({
+        x: tubeX,
+        y: tubeY,
+        width: tubeWidth,
+        height: tubeHeight,
+        id: generateTubeId(),
+        hasSpawnedEnemy: false,
       });
     }
     x += platformWidth;
@@ -781,6 +837,8 @@ function resetGame() {
   collectibles.length = 0;
   spikes.length = 0;
   movingPlatforms.length = 0;
+  enemies.length = 0;
+  tubes.length = 0;
   // Do not reset manualLevelType or manualLevelTypeValue here
   if (manualLevelType) {
     levelType = manualLevelTypeValue;
@@ -906,6 +964,8 @@ function generateNewLevel() {
   collectibles.length = 0;
   spikes.length = 0;
   movingPlatforms.length = 0;
+  enemies.length = 0;
+  tubes.length = 0;
   level++;
 
   let isBonusLevel = false;
@@ -1102,6 +1162,74 @@ function update(deltaTime: number) {
     }
   }
 
+  // Check for tube proximity and spawn enemies
+  for (const tube of tubes) {
+    if (!tube.hasSpawnedEnemy) {
+      // Check if player is within proximity of the tube (100 pixels)
+      const distanceToTube = Math.sqrt(
+        Math.pow(player.x + player.width/2 - (tube.x + tube.width/2), 2) +
+        Math.pow(player.y + player.height/2 - (tube.y + tube.height/2), 2)
+      );
+      
+      if (distanceToTube < 100) {
+        // Find the platform that contains this tube
+        const platformUnderTube = platforms.find(p => 
+          p.x <= tube.x + tube.width/2 && 
+          p.x + p.width >= tube.x + tube.width/2 &&
+          Math.abs(p.y - GROUND_Y) < 10 // Make sure we find the main platforms at ground level
+        );
+        
+        if (platformUnderTube) {
+          enemies.push({
+            x: tube.x + tube.width/2 - 15, // Center enemy on tube
+            y: tube.y + 10, // Start enemy inside the tube, near the bottom
+            width: 30,
+            height: 30,
+            dx: 1 + Math.random() * 2, // Random speed between 1-3
+            dy: -8, // Jump out with upward velocity
+            range: Math.min(platformUnderTube.width - 80, 120), // Stay within platform bounds
+            startX: tube.x + tube.width/2 - 15,
+            alive: true,
+            id: generateEnemyId(),
+            isJumpingOut: true,
+          });
+          tube.hasSpawnedEnemy = true;
+        }
+      }
+    }
+  }
+
+  // Move enemies
+  for (const enemy of enemies) {
+    if (!enemy.alive) continue;
+    
+    // Handle jumping out animation
+    if (enemy.isJumpingOut) {
+      enemy.y += enemy.dy;
+      enemy.dy += 0.5; // Gravity effect during jump
+      
+      // Check if enemy has landed on platform (look specifically for ground platforms)
+      for (const plat of platforms) {
+        if (enemy.y + enemy.height >= plat.y && 
+            enemy.y + enemy.height <= plat.y + plat.height &&
+            enemy.x + enemy.width > plat.x &&
+            enemy.x < plat.x + plat.width &&
+            Math.abs(plat.y - GROUND_Y) < 10) { // Make sure it's a ground platform
+          enemy.y = plat.y - enemy.height;
+          enemy.dy = 0;
+          enemy.isJumpingOut = false;
+          break;
+        }
+      }
+    } else {
+      // Normal horizontal movement
+      enemy.x += enemy.dx;
+      if (enemy.x > enemy.startX + enemy.range || enemy.x < enemy.startX) {
+        enemy.dx *= -1;
+      }
+    }
+  }
+
   // Moving platform collision
   for (const plat of movingPlatforms) {
     if (
@@ -1156,6 +1284,30 @@ function update(deltaTime: number) {
     if (rectsCollide(player, spike)) {
       respawnPlayer();
       break;
+    }
+  }
+  // Enemy collision
+  for (const enemy of enemies) {
+    if (!enemy.alive) continue;
+    if (rectsCollide(player, enemy)) {
+      // Check if player is landing on top of enemy (jumped on it)
+      if (player.vy > 0 && player.y < enemy.y) {
+        // Player jumped on enemy - kill enemy and bounce player
+        enemy.alive = false;
+        player.vy = -8; // Small bounce
+        // Add some score for killing enemy
+        if (multiplayerEnabled) {
+          addTotalPoints(1);
+        } else {
+          score++;
+          addTotalPoints(1);
+          setTopScore(score);
+        }
+      } else {
+        // Player touched enemy from side - respawn player
+        respawnPlayer();
+        break;
+      }
     }
   }
   // Offscreen (falling)
@@ -1852,6 +2004,42 @@ function draw() {
     ctx.closePath();
     ctx.fill();
   }
+  // Draw spawn tubes
+  ctx.fillStyle = '#0a8000'; // Dark green for tubes
+  for (const tube of tubes) {
+    // Draw tube body
+    ctx.fillRect(tube.x, tube.y, tube.width, tube.height);
+    
+    // Draw tube opening (darker green) - larger opening for bigger tubes at the TOP where it meets the platform
+    ctx.fillStyle = '#064000';
+    const openingY = Math.max(tube.y, GROUND_Y - 15); // Position opening at platform level
+    ctx.fillRect(tube.x + 4, openingY, tube.width - 8, 15);
+    
+    // Draw pipe details (light green lines) - adjusted for longer tubes
+    ctx.fillStyle = '#0c8000';
+    ctx.fillRect(tube.x + 8, tube.y + 8, 3, tube.height - 16);
+    ctx.fillRect(tube.x + tube.width - 11, tube.y + 8, 3, tube.height - 16);
+    
+    // Add more horizontal bands for longer tubes
+    ctx.fillRect(tube.x + 4, tube.y + tube.height / 4, tube.width - 8, 2);
+    ctx.fillRect(tube.x + 4, tube.y + tube.height / 2, tube.width - 8, 2);
+    ctx.fillRect(tube.x + 4, tube.y + (3 * tube.height) / 4, tube.width - 8, 2);
+    
+    ctx.fillStyle = '#0a8000'; // Reset to main tube color
+  }
+  // Draw enemies
+  ctx.fillStyle = '#f90'; // Orange color for enemies
+  for (const enemy of enemies) {
+    if (enemy.alive) {
+      ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+      // Add simple eyes to make it look more enemy-like
+      ctx.fillStyle = '#000';
+      const eyeSize = 4;
+      ctx.fillRect(enemy.x + 6, enemy.y + 8, eyeSize, eyeSize);
+      ctx.fillRect(enemy.x + enemy.width - 10, enemy.y + 8, eyeSize, eyeSize);
+      ctx.fillStyle = '#f90'; // Reset color
+    }
+  }
   // Draw player (flash if respawning)
   ctx.restore();
   if (respawnTimer > 0 && Math.floor(respawnTimer / 5) % 2 === 0) {
@@ -2305,6 +2493,8 @@ function generateBonusVerticalLevel() {
   collectibles.length = 0;
   spikes.length = 0;
   movingPlatforms.length = 0;
+  enemies.length = 0;
+  tubes.length = 0;
 
   // Solid floor
   platforms.push({ x: 0, y: LEVEL_HEIGHT, width: canvas.width, height: 50 });

@@ -409,7 +409,7 @@ async function generateLevel() {
     // Add spawn tubes on some platforms (no immediate enemies)
     if (Math.random() < 0.3 && platformWidth > 120) {
       const tubeX = x + 40;
-      const tubeY = GROUND_Y - 80; // Adjusted for larger tube
+      const tubeY = GROUND_Y - 25; // Position tube so it starts from below floor and extends up through platform
       const tubeWidth = 40; // Larger tube
       const tubeHeight = 50; // Larger tube
       
@@ -1182,7 +1182,7 @@ function update(deltaTime: number) {
         if (platformUnderTube) {
           enemies.push({
             x: tube.x + tube.width/2 - 15, // Center enemy on tube
-            y: tube.y + tube.height - 30, // Start at tube opening
+            y: tube.y - 30, // Start at tube opening (at the top)
             width: 30,
             height: 30,
             dx: 1 + Math.random() * 2, // Random speed between 1-3
@@ -2009,9 +2009,9 @@ function draw() {
     // Draw tube body
     ctx.fillRect(tube.x, tube.y, tube.width, tube.height);
     
-    // Draw tube opening (darker green) - larger opening for bigger tubes
+    // Draw tube opening (darker green) - larger opening for bigger tubes at the TOP
     ctx.fillStyle = '#064000';
-    ctx.fillRect(tube.x + 4, tube.y + tube.height - 12, tube.width - 8, 12);
+    ctx.fillRect(tube.x + 4, tube.y, tube.width - 8, 12);
     
     // Draw pipe details (light green lines) - adjusted for larger tubes
     ctx.fillStyle = '#0c8000';

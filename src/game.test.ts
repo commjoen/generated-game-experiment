@@ -508,6 +508,7 @@ describe('Enemy mechanics', () => {
       vy: 0,
       onGround: true,
       eatenEnemy: null,
+      growLevel: 0,
     };
     enemy = {
       x: 200,
@@ -531,6 +532,62 @@ describe('Enemy mechanics', () => {
       a.y + a.height > b.y
     );
   }
+
+  it('should spawn enemies when tube is visible on screen', () => {
+    const tube = {
+      x: 500,
+      y: 350,
+      width: 40,
+      height: 80,
+      hasSpawnedEnemy: false,
+    };
+    const cameraX = 400; // Camera positioned so tube is visible
+    const canvasWidth = 800;
+    const levelType = 'horizontal';
+
+    // Check if tube is visible on screen
+    let tubeVisible = false;
+    if (levelType === 'horizontal') {
+      tubeVisible = tube.x + tube.width > cameraX && tube.x < cameraX + canvasWidth;
+    }
+
+    expect(tubeVisible).toBe(true);
+
+    // Simulate spawning logic
+    if (tubeVisible && !tube.hasSpawnedEnemy) {
+      tube.hasSpawnedEnemy = true;
+    }
+
+    expect(tube.hasSpawnedEnemy).toBe(true);
+  });
+
+  it('should not spawn enemies when tube is not visible on screen', () => {
+    const tube = {
+      x: 1500, // Far off screen
+      y: 350,
+      width: 40,
+      height: 80,
+      hasSpawnedEnemy: false,
+    };
+    const cameraX = 400;
+    const canvasWidth = 800;
+    const levelType = 'horizontal';
+
+    // Check if tube is visible on screen
+    let tubeVisible = false;
+    if (levelType === 'horizontal') {
+      tubeVisible = tube.x + tube.width > cameraX && tube.x < cameraX + canvasWidth;
+    }
+
+    expect(tubeVisible).toBe(false);
+
+    // Simulate spawning logic
+    if (tubeVisible && !tube.hasSpawnedEnemy) {
+      tube.hasSpawnedEnemy = true;
+    }
+
+    expect(tube.hasSpawnedEnemy).toBe(false);
+  });
 
   it('should move enemies within their range', () => {
     const initialX = enemy.x;
@@ -720,6 +777,97 @@ describe('Enemy mechanics', () => {
     }
     
     expect(playerDied).toBe(true);
+  });
+
+  it('should shrink big player without losing life when hit by enemy', () => {
+    enemy.type = 'square';
+    player.x = enemy.x - player.width + 5;
+    player.y = enemy.y;
+    player.vy = 0; // Side collision
+    player.growLevel = 2; // Player is big
+
+    let playerDied = false;
+    let playerShrunk = false;
+
+    if (rectsCollide(player, enemy)) {
+      if (enemy.type === 'square') {
+        if (player.vy > 0 && player.y < enemy.y) {
+          // Player jumped on enemy
+        } else {
+          // Side collision - handle damage based on size
+          if (player.growLevel > 0) {
+            player.growLevel = 0;
+            playerShrunk = true;
+          } else {
+            playerDied = true;
+          }
+        }
+      }
+    }
+
+    expect(playerShrunk).toBe(true);
+    expect(playerDied).toBe(false);
+    expect(player.growLevel).toBe(0);
+  });
+
+  it('should kill small player when hit by enemy', () => {
+    enemy.type = 'square';
+    player.x = enemy.x - player.width + 5;
+    player.y = enemy.y;
+    player.vy = 0; // Side collision
+    player.growLevel = 0; // Player is small
+
+    let playerDied = false;
+    let playerShrunk = false;
+
+    if (rectsCollide(player, enemy)) {
+      if (enemy.type === 'square') {
+        if (player.vy > 0 && player.y < enemy.y) {
+          // Player jumped on enemy
+        } else {
+          // Side collision - handle damage based on size
+          if (player.growLevel > 0) {
+            player.growLevel = 0;
+            playerShrunk = true;
+          } else {
+            playerDied = true;
+          }
+        }
+      }
+    }
+
+    expect(playerShrunk).toBe(false);
+    expect(playerDied).toBe(true);
+    expect(player.growLevel).toBe(0);
+  });
+
+  it('should shrink big player when hit by circle enemy without eating', () => {
+    enemy.type = 'circle';
+    player.x = enemy.x;
+    player.y = enemy.y;
+    player.growLevel = 1; // Player is big
+    const actionKeyPressed = false; // Not trying to eat
+
+    let playerDied = false;
+    let playerShrunk = false;
+
+    if (rectsCollide(player, enemy)) {
+      if (enemy.type === 'circle' && actionKeyPressed) {
+        // Would eat enemy
+      } else {
+        // Damage collision - handle based on size
+        if (player.growLevel > 0) {
+          player.growLevel = 0;
+          playerShrunk = true;
+        } else {
+          playerDied = true;
+        }
+      }
+    }
+
+    expect(playerShrunk).toBe(true);
+    expect(playerDied).toBe(false);
+    expect(player.growLevel).toBe(0);
   });
 });
 

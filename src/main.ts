@@ -1382,16 +1382,20 @@ function update(deltaTime: number) {
     }
   }
 
-  // Check for tube proximity and spawn enemies
+  // Check for tube visibility and spawn enemies
   for (const tube of tubes) {
     if (!tube.hasSpawnedEnemy) {
-      // Check if player is within proximity of the tube (100 pixels)
-      const distanceToTube = Math.sqrt(
-        Math.pow(player.x + player.width/2 - (tube.x + tube.width/2), 2) +
-        Math.pow(player.y + player.height/2 - (tube.y + tube.height/2), 2)
-      );
+      // Check if tube is visible on screen
+      let tubeVisible = false;
+      if (levelType === 'horizontal') {
+        // Tube is visible if it's within the camera view horizontally
+        tubeVisible = tube.x + tube.width > cameraX && tube.x < cameraX + canvas.width;
+      } else {
+        // For vertical levels, check if tube is within camera view vertically
+        tubeVisible = tube.y + tube.height > cameraY && tube.y < cameraY + canvas.height;
+      }
       
-      if (distanceToTube < 100) {
+      if (tubeVisible) {
         // Find the platform that contains this tube
         const platformUnderTube = platforms.find(p => 
           p.x <= tube.x + tube.width/2 && 
@@ -1540,14 +1544,34 @@ function update(deltaTime: number) {
             setTopScore(score);
           }
         } else {
-          // Player touched square enemy from side - respawn player
-          respawnPlayer();
+          // Player touched square enemy from side - handle damage based on size
+          if (player.growLevel > 0) {
+            // Big player hit - shrink without losing life
+            player.growLevel = 0;
+            setPlayerSizeByGrowLevel();
+            
+            // Add brief invincibility frames to prevent immediate re-collision
+            respawnTimer = 30; // Reuse respawn timer for invincibility
+          } else {
+            // Small player hit - lose a life
+            respawnPlayer();
+          }
           break;
         }
       } else if (enemy.type === 'circle') {
-        // Circle enemy collision without eating (if not pressing E or already have eaten enemy)
-        // Player touched circle enemy - respawn player
-        respawnPlayer();
+        // Circle enemy collision without eating (if not pressing E)
+        // Handle damage based on player size
+        if (player.growLevel > 0) {
+          // Big player hit - shrink without losing life
+          player.growLevel = 0;
+          setPlayerSizeByGrowLevel();
+          
+          // Add brief invincibility frames to prevent immediate re-collision
+          respawnTimer = 30; // Reuse respawn timer for invincibility
+        } else {
+          // Small player hit - lose a life
+          respawnPlayer();
+        }
         break;
       }
     }

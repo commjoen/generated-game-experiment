@@ -1614,7 +1614,7 @@ function update(deltaTime: number) {
           addTotalPoints(coinValue);
         } else {
           // In single-player mode, update both score and total points locally.
-          score++;
+          score += coinValue;
           addTotalPoints(coinValue);
           setTopScore(score);
         }

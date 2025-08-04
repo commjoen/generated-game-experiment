@@ -41,6 +41,7 @@ interface Enemy extends Rect {
   alive: boolean;
   id: string;
   isJumpingOut: boolean; // Track if enemy is in jumping animation
+  type: 'square' | 'circle'; // Add enemy type
 }
 interface Tube extends Rect {
   id: string;
@@ -86,6 +87,32 @@ const player = {
   hasDoubleJump: false,
   growLevel: 0, // 0-3
   canDoubleJump: false, // for in-air jump
+  eatenEnemy: null as Enemy | null, // Track eaten enemy
+};
+
+// Rope animation state
+interface RopeAnimation {
+  type: 'none' | 'eating' | 'spitting' | 'targeting';
+  progress: number; // 0-1
+  duration: number; // in milliseconds
+  startTime: number;
+  targetEnemy: Enemy | null;
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+}
+
+const ropeAnimation: RopeAnimation = {
+  type: 'none',
+  progress: 0,
+  duration: 1000, // 1 second animation
+  startTime: 0,
+  targetEnemy: null,
+  startX: 0,
+  startY: 0,
+  endX: 0,
+  endY: 0,
 };
 
 // Multiplayer state
@@ -887,6 +914,7 @@ function resetPlayer() {
   // player.hasDoubleJump = false;
   // player.growLevel = 0;
   player.canDoubleJump = false;
+  // Note: eatenEnemy persists across levels unless explicitly reset
   setPlayerSizeByGrowLevel();
 }
 
@@ -906,6 +934,287 @@ function setPlayerSizeByGrowLevel() {
   }
 }
 
+function spitOutEnemy() {
+  if (!player.eatenEnemy) return;
+  
+  // Create a new enemy in front of the player
+  const spitDirection = player.vx >= 0 ? 1 : -1; // Spit in direction player was moving, default right
+  const spitX = player.x + (spitDirection > 0 ? player.width + 10 : -40);
+  const spitY = player.y + 10;
+  
+  // Find a safe position on a platform
+  let finalX = spitX;
+  let finalY = spitY;
+  
+  // Try to place on current platform or ground
+  for (const plat of platforms) {
+    if ('isSlope' in plat && plat.isSlope) {
+      // Handle slope platforms
+      if (spitX + 15 > plat.x && spitX + 15 < plat.x + plat.width) {
+        const t = (spitX + 15 - plat.x) / plat.width;
+        const yAtX = plat.y + (plat.endY - plat.y) * t;
+        if (Math.abs(player.y + player.height - yAtX) < 20) {
+          finalY = yAtX - 30;
+          break;
+        }
+      }
+    } else {
+      // Handle flat platforms
+      if (spitX + 15 > plat.x && spitX + 15 < plat.x + plat.width && 
+          Math.abs(player.y + player.height - plat.y) < 20) {
+        finalY = plat.y - 30;
+        break;
+      }
+    }
+  }
+  
+  // Add the spit enemy back to the world
+  const spitEnemy: Enemy = {
+    x: finalX,
+    y: finalY,
+    width: 30,
+    height: 30,
+    dx: spitDirection * (2 + Math.random()), // Random speed in spit direction
+    dy: 0,
+    range: 120,
+    startX: finalX,
+    alive: true,
+    id: generateEnemyId(),
+    isJumpingOut: false,
+    type: player.eatenEnemy.type,
+  };
+  
+  enemies.push(spitEnemy);
+  player.eatenEnemy = null;
+}
+
+// Calculate eating distance based on player size
+function getEatingDistance(): number {
+  if (player.growLevel === 0) {
+    return 100; // Base size
+  } else if (player.growLevel === 1) {
+    return 120; // Size +1
+  } else if (player.growLevel >= 2) {
+    return 150; // Size +2 and above
+  }
+  return 100; // Fallback
+}
+
+// Find nearby circle enemy that can be eaten
+function findNearbyCircleEnemy(): Enemy | null {
+  const EATING_DISTANCE = getEatingDistance();
+  
+  for (const enemy of enemies) {
+    if (!enemy.alive || enemy.type !== 'circle') continue;
+    
+    // Calculate distance between player center and enemy center
+    const playerCenterX = player.x + player.width / 2;
+    const playerCenterY = player.y + player.height / 2;
+    const enemyCenterX = enemy.x + enemy.width / 2;
+    const enemyCenterY = enemy.y + enemy.height / 2;
+    
+    const distance = Math.sqrt(
+      Math.pow(playerCenterX - enemyCenterX, 2) + 
+      Math.pow(playerCenterY - enemyCenterY, 2)
+    );
+    
+    if (distance <= EATING_DISTANCE) {
+      return enemy;
+    }
+  }
+  
+  return null;
+}
+
+function startRopeEatingAnimation(enemy: Enemy) {
+  ropeAnimation.type = 'eating';
+  ropeAnimation.progress = 0;
+  ropeAnimation.startTime = Date.now();
+  ropeAnimation.targetEnemy = enemy;
+  ropeAnimation.startX = enemy.x + enemy.width / 2;
+  ropeAnimation.startY = enemy.y + enemy.height / 2;
+  // Note: endX and endY are now calculated dynamically from current player position
+}
+
+function startRopeSpittingAnimation() {
+  if (!player.eatenEnemy) return;
+  
+  ropeAnimation.type = 'spitting';
+  ropeAnimation.progress = 0;
+  ropeAnimation.startTime = Date.now();
+  
+  // Calculate direction and screen edge position (use world coordinates consistently)
+  const spitDirection = player.vx >= 0 ? 1 : -1;
+  const screenEdgeX = spitDirection > 0 ? canvas.width + cameraX : cameraX - 50;
+  ropeAnimation.endX = screenEdgeX;
+  ropeAnimation.endY = player.y + player.height / 2;
+  
+  // Create a temporary enemy for animation (starting from current player position)
+  ropeAnimation.targetEnemy = {
+    x: player.x + player.width / 2,
+    y: player.y + player.height / 2,
+    width: 30,
+    height: 30,
+    dx: 0,
+    dy: 0,
+    range: 0,
+    startX: 0,
+    alive: true,
+    id: 'temp_spit',
+    isJumpingOut: false,
+    type: player.eatenEnemy.type,
+  };
+}
+
+function startRopeTargetingAnimation() {
+  const eatingDistance = getEatingDistance();
+  
+  ropeAnimation.type = 'targeting';
+  ropeAnimation.progress = 0;
+  ropeAnimation.duration = 300; // Short 300ms animation for targeting line
+  ropeAnimation.startTime = Date.now();
+  ropeAnimation.targetEnemy = null;
+  
+  // For targeting animation, we don't need to store coordinates since we calculate them dynamically
+  ropeAnimation.startX = 0;
+  ropeAnimation.startY = 0;
+  ropeAnimation.endX = 0;
+  ropeAnimation.endY = 0;
+}
+
+function updateRopeAnimation(deltaTime: number) {
+  if (ropeAnimation.type === 'none') return;
+  
+  const elapsed = Date.now() - ropeAnimation.startTime;
+  ropeAnimation.progress = Math.min(elapsed / ropeAnimation.duration, 1);
+  
+  if (ropeAnimation.type === 'eating' && ropeAnimation.targetEnemy) {
+    // Move enemy toward current player position (not fixed start position)
+    const currentPlayerCenterX = player.x + player.width / 2;
+    const currentPlayerCenterY = player.y + player.height / 2;
+    
+    const enemyX = ropeAnimation.startX + (currentPlayerCenterX - ropeAnimation.startX) * ropeAnimation.progress;
+    const enemyY = ropeAnimation.startY + (currentPlayerCenterY - ropeAnimation.startY) * ropeAnimation.progress;
+    
+    ropeAnimation.targetEnemy.x = enemyX - ropeAnimation.targetEnemy.width / 2;
+    ropeAnimation.targetEnemy.y = enemyY - ropeAnimation.targetEnemy.height / 2;
+    
+    if (ropeAnimation.progress >= 1) {
+      // Animation complete - finish eating
+      player.eatenEnemy = { ...ropeAnimation.targetEnemy };
+      ropeAnimation.targetEnemy.alive = false;
+      ropeAnimation.type = 'none';
+      ropeAnimation.targetEnemy = null;
+    }
+  } else if (ropeAnimation.type === 'spitting' && ropeAnimation.targetEnemy) {
+    // Move enemy toward screen edge from current player position
+    const currentPlayerCenterX = player.x + player.width / 2;
+    const currentPlayerCenterY = player.y + player.height / 2;
+    
+    const enemyX = currentPlayerCenterX + (ropeAnimation.endX - currentPlayerCenterX) * ropeAnimation.progress;
+    const enemyY = currentPlayerCenterY + (ropeAnimation.endY - currentPlayerCenterY) * ropeAnimation.progress;
+    
+    ropeAnimation.targetEnemy.x = enemyX - ropeAnimation.targetEnemy.width / 2;
+    ropeAnimation.targetEnemy.y = enemyY - ropeAnimation.targetEnemy.height / 2;
+    
+    if (ropeAnimation.progress >= 1) {
+      // Animation complete - enemy is gone
+      player.eatenEnemy = null;
+      ropeAnimation.type = 'none';
+      ropeAnimation.targetEnemy = null;
+    }
+  } else if (ropeAnimation.type === 'targeting') {
+    // Targeting animation - just wait for completion
+    if (ropeAnimation.progress >= 1) {
+      ropeAnimation.type = 'none';
+      ropeAnimation.targetEnemy = null;
+    }
+  }
+}
+
+function drawRopeAnimation() {
+  if (ropeAnimation.type === 'none') return;
+  
+  if (ropeAnimation.type === 'targeting') {
+    // For targeting line, use world coordinates since canvas is already translated
+    const playerCenterX = player.x + player.width / 2;
+    const playerCenterY = player.y + player.height / 2;
+    const eatingDistance = getEatingDistance();
+    const endX = playerCenterX + eatingDistance;
+    const endY = playerCenterY;
+    
+    // Draw rope as a line with some visual flair
+    ctx.strokeStyle = '#8B4513'; // Brown rope color
+    ctx.lineWidth = 3;
+    ctx.setLineDash([5, 3]); // Dashed line for rope texture
+    ctx.beginPath();
+    ctx.moveTo(playerCenterX, playerCenterY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+    ctx.setLineDash([]); // Reset line dash
+    return;
+  }
+  
+  // For other animations, use world coordinates since canvas is already translated
+  const playerCenterX = player.x + player.width / 2;
+  const playerCenterY = player.y + player.height / 2;
+  
+  if (!ropeAnimation.targetEnemy) return;
+  
+  let enemyCenterX, enemyCenterY;
+  
+  if (ropeAnimation.type === 'eating') {
+    // For eating animation, calculate enemy position dynamically based on current player position
+    // This ensures the rope always connects to the current player position
+    const currentPlayerWorldX = player.x + player.width / 2;
+    const currentPlayerWorldY = player.y + player.height / 2;
+    
+    // Interpolate from original enemy position to current player position (using world coordinates)
+    const enemyWorldX = ropeAnimation.startX + (currentPlayerWorldX - ropeAnimation.startX) * ropeAnimation.progress;
+    const enemyWorldY = ropeAnimation.startY + (currentPlayerWorldY - ropeAnimation.startY) * ropeAnimation.progress;
+    
+    // Use world coordinates directly since canvas is already translated
+    enemyCenterX = enemyWorldX;
+    enemyCenterY = enemyWorldY;
+  } else {
+    // For spitting animation, use the updated enemy position (world coordinates)
+    enemyCenterX = ropeAnimation.targetEnemy.x + ropeAnimation.targetEnemy.width / 2;
+    enemyCenterY = ropeAnimation.targetEnemy.y + ropeAnimation.targetEnemy.height / 2;
+  }
+  
+  // Draw rope as a line with some visual flair
+  ctx.strokeStyle = '#8B4513'; // Brown rope color
+  ctx.lineWidth = 3;
+  ctx.setLineDash([5, 3]); // Dashed line for rope texture
+  ctx.beginPath();
+  ctx.moveTo(playerCenterX, playerCenterY);
+  ctx.lineTo(enemyCenterX, enemyCenterY);
+  ctx.stroke();
+  ctx.setLineDash([]); // Reset line dash
+  
+  // Draw the enemy during animation
+  if (ropeAnimation.targetEnemy.type === 'circle') {
+    ctx.fillStyle = '#f06'; // Pink color for circle enemies
+    ctx.beginPath();
+    ctx.arc(enemyCenterX, enemyCenterY, ropeAnimation.targetEnemy.width / 2, 0, 2 * Math.PI);
+    ctx.fill();
+    // Add simple eyes
+    ctx.fillStyle = '#000';
+    const eyeSize = 3;
+    ctx.fillRect(enemyCenterX - 8, enemyCenterY - 3, eyeSize, eyeSize);
+    ctx.fillRect(enemyCenterX + 5, enemyCenterY - 3, eyeSize, eyeSize);
+  } else {
+    ctx.fillStyle = '#f90'; // Orange color for square enemies
+    ctx.fillRect(enemyCenterX - ropeAnimation.targetEnemy.width / 2, enemyCenterY - ropeAnimation.targetEnemy.height / 2, 
+                 ropeAnimation.targetEnemy.width, ropeAnimation.targetEnemy.height);
+    // Add simple eyes
+    ctx.fillStyle = '#000';
+    const eyeSize = 3;
+    ctx.fillRect(enemyCenterX - 8, enemyCenterY - 3, eyeSize, eyeSize);
+    ctx.fillRect(enemyCenterX + 5, enemyCenterY - 3, eyeSize, eyeSize);
+  }
+}
+
 function respawnPlayer() {
   lives--;
   if (lives <= 0) {
@@ -918,6 +1227,7 @@ function respawnPlayer() {
   player.hasDoubleJump = false;
   player.growLevel = 0;
   player.canDoubleJump = false;
+  player.eatenEnemy = null; // Reset eaten enemy on death
   setPlayerSizeByGrowLevel();
   resetPlayer();
   respawnTimer = 30; // frames to pause/flash
@@ -1048,6 +1358,10 @@ function update(deltaTime: number) {
     respawnTimer--;
     return;
   }
+  
+  // Update rope animation
+  updateRopeAnimation(deltaTime);
+  
   // Horizontal movement (frame-rate independent)
   player.vx = 0;
   const speedMultiplier =
@@ -1087,6 +1401,34 @@ function update(deltaTime: number) {
     currentSpeedMultiplier = speedUnlocked ? 2 : 1;
   }
   prevSpeedToggleKey = speedToggleKey;
+
+  // Action key for eat/spit (only on new key press)
+  const actionKey = keys['KeyE'];
+  if (actionKey && !prevActionKey) {
+    if (player.eatenEnemy && ropeAnimation.type === 'none') {
+      // Start rope spitting animation
+      startRopeSpittingAnimation();
+    } else if (ropeAnimation.type === 'none') {
+      // Try to eat a nearby circle enemy
+      const nearbyEnemy = findNearbyCircleEnemy();
+      if (nearbyEnemy) {
+        // Start rope eating animation (replace any existing eaten enemy)
+        startRopeEatingAnimation(nearbyEnemy);
+        // Add some score for eating enemy
+        if (multiplayerEnabled) {
+          addTotalPoints(1);
+        } else {
+          score++;
+          addTotalPoints(1);
+          setTopScore(score);
+        }
+      } else {
+        // No enemy nearby - show targeting line
+        startRopeTargetingAnimation();
+      }
+    }
+  }
+  prevActionKey = actionKey;
 
   // Apply gravity (frame-rate independent)
   player.vy += GRAVITY * deltaTime * 60;
@@ -1162,16 +1504,20 @@ function update(deltaTime: number) {
     }
   }
 
-  // Check for tube proximity and spawn enemies
+  // Check for tube visibility and spawn enemies
   for (const tube of tubes) {
     if (!tube.hasSpawnedEnemy) {
-      // Check if player is within proximity of the tube (100 pixels)
-      const distanceToTube = Math.sqrt(
-        Math.pow(player.x + player.width/2 - (tube.x + tube.width/2), 2) +
-        Math.pow(player.y + player.height/2 - (tube.y + tube.height/2), 2)
-      );
+      // Check if tube is visible on screen
+      let tubeVisible = false;
+      if (levelType === 'horizontal') {
+        // Tube is visible if it's within the camera view horizontally
+        tubeVisible = tube.x + tube.width > cameraX && tube.x < cameraX + canvas.width;
+      } else {
+        // For vertical levels, check if tube is within camera view vertically
+        tubeVisible = tube.y + tube.height > cameraY && tube.y < cameraY + canvas.height;
+      }
       
-      if (distanceToTube < 100) {
+      if (tubeVisible) {
         // Find the platform that contains this tube
         const platformUnderTube = platforms.find(p => 
           p.x <= tube.x + tube.width/2 && 
@@ -1180,6 +1526,9 @@ function update(deltaTime: number) {
         );
         
         if (platformUnderTube) {
+          // Randomly choose enemy type (50% chance for each)
+          const enemyType: 'square' | 'circle' = Math.random() < 0.5 ? 'square' : 'circle';
+          
           enemies.push({
             x: tube.x + tube.width/2 - 15, // Center enemy on tube
             y: tube.y + 10, // Start enemy inside the tube, near the bottom
@@ -1192,6 +1541,7 @@ function update(deltaTime: number) {
             alive: true,
             id: generateEnemyId(),
             isJumpingOut: true,
+            type: enemyType,
           });
           tube.hasSpawnedEnemy = true;
         }
@@ -1289,23 +1639,51 @@ function update(deltaTime: number) {
   // Enemy collision
   for (const enemy of enemies) {
     if (!enemy.alive) continue;
+    // Skip collision if player has invincibility frames or enemy is being eaten
+    if (respawnTimer > 0 || ropeAnimation.targetEnemy === enemy) continue;
     if (rectsCollide(player, enemy)) {
-      // Check if player is landing on top of enemy (jumped on it)
-      if (player.vy > 0 && player.y < enemy.y) {
-        // Player jumped on enemy - kill enemy and bounce player
-        enemy.alive = false;
-        player.vy = -8; // Small bounce
-        // Add some score for killing enemy
-        if (multiplayerEnabled) {
-          addTotalPoints(1);
+      if (enemy.type === 'square') {
+        // Square enemies: check if player is landing on top (can jump on them)
+        if (player.vy > 0 && player.y < enemy.y) {
+          // Player jumped on square enemy - kill enemy and bounce player
+          enemy.alive = false;
+          player.vy = -8; // Small bounce
+          // Add some score for killing enemy
+          if (multiplayerEnabled) {
+            addTotalPoints(1);
+          } else {
+            score++;
+            addTotalPoints(1);
+            setTopScore(score);
+          }
         } else {
-          score++;
-          addTotalPoints(1);
-          setTopScore(score);
+          // Player touched square enemy from side - handle damage based on size
+          if (player.growLevel > 0) {
+            // Big player hit - shrink without losing life
+            player.growLevel = 0;
+            setPlayerSizeByGrowLevel();
+            
+            // Add brief invincibility frames to prevent immediate re-collision
+            respawnTimer = 30; // Reuse respawn timer for invincibility
+          } else {
+            // Small player hit - lose a life
+            respawnPlayer();
+          }
+          break;
         }
-      } else {
-        // Player touched enemy from side - respawn player
-        respawnPlayer();
+      } else if (enemy.type === 'circle') {
+        // Circle enemy collision - handle damage based on player size
+        if (player.growLevel > 0) {
+          // Big player hit - shrink without losing life
+          player.growLevel = 0;
+          setPlayerSizeByGrowLevel();
+          
+          // Add brief invincibility frames to prevent immediate re-collision
+          respawnTimer = 30; // Reuse respawn timer for invincibility
+        } else {
+          // Small player hit - lose a life
+          respawnPlayer();
+        }
         break;
       }
     }
@@ -1685,7 +2063,8 @@ function setupOnscreenControls() {
   const btnLeft = document.getElementById('btn-left');
   const btnRight = document.getElementById('btn-right');
   const btnJump = document.getElementById('btn-jump');
-  if (btnLeft && btnRight && btnJump) {
+  const btnAction = document.getElementById('btn-action');
+  if (btnLeft && btnRight && btnJump && btnAction) {
     btnLeft.addEventListener(
       'touchstart',
       (e) => {
@@ -1758,6 +2137,32 @@ function setupOnscreenControls() {
     btnJump.addEventListener('mouseup', (e) => {
       e.preventDefault();
       keys['Space'] = false;
+    });
+    
+    // Action button events
+    btnAction.addEventListener(
+      'touchstart',
+      (e) => {
+        e.preventDefault();
+        keys['KeyE'] = true;
+      },
+      { passive: false }
+    );
+    btnAction.addEventListener(
+      'touchend',
+      (e) => {
+        e.preventDefault();
+        keys['KeyE'] = false;
+      },
+      { passive: false }
+    );
+    btnAction.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      keys['KeyE'] = true;
+    });
+    btnAction.addEventListener('mouseup', (e) => {
+      e.preventDefault();
+      keys['KeyE'] = false;
     });
   }
 }
@@ -2028,18 +2433,35 @@ function draw() {
     ctx.fillStyle = '#0a8000'; // Reset to main tube color
   }
   // Draw enemies
-  ctx.fillStyle = '#f90'; // Orange color for enemies
   for (const enemy of enemies) {
-    if (enemy.alive) {
-      ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
-      // Add simple eyes to make it look more enemy-like
-      ctx.fillStyle = '#000';
-      const eyeSize = 4;
-      ctx.fillRect(enemy.x + 6, enemy.y + 8, eyeSize, eyeSize);
-      ctx.fillRect(enemy.x + enemy.width - 10, enemy.y + 8, eyeSize, eyeSize);
-      ctx.fillStyle = '#f90'; // Reset color
+    if (enemy.alive && ropeAnimation.targetEnemy !== enemy) {
+      if (enemy.type === 'circle') {
+        // Draw circle enemies as circles
+        ctx.fillStyle = '#f06'; // Pink color for circle enemies
+        ctx.beginPath();
+        ctx.arc(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2, enemy.width / 2, 0, 2 * Math.PI);
+        ctx.fill();
+        // Add simple eyes to make it look more enemy-like
+        ctx.fillStyle = '#000';
+        const eyeSize = 3;
+        ctx.fillRect(enemy.x + 8, enemy.y + 8, eyeSize, eyeSize);
+        ctx.fillRect(enemy.x + enemy.width - 11, enemy.y + 8, eyeSize, eyeSize);
+      } else {
+        // Draw square enemies as rectangles (original behavior)
+        ctx.fillStyle = '#f90'; // Orange color for square enemies
+        ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+        // Add simple eyes to make it look more enemy-like
+        ctx.fillStyle = '#000';
+        const eyeSize = 4;
+        ctx.fillRect(enemy.x + 6, enemy.y + 8, eyeSize, eyeSize);
+        ctx.fillRect(enemy.x + enemy.width - 10, enemy.y + 8, eyeSize, eyeSize);
+      }
     }
   }
+  
+  // Draw rope animation if active
+  drawRopeAnimation();
+  
   // Draw player (flash if respawning)
   ctx.restore();
   if (respawnTimer > 0 && Math.floor(respawnTimer / 5) % 2 === 0) {
@@ -2287,6 +2709,24 @@ function draw() {
     ctx.restore();
     iconX += 36;
   }
+  // Show eaten enemy indicator
+  if (player.eatenEnemy) {
+    ctx.save();
+    ctx.translate(iconX, 120);
+    if (player.eatenEnemy.type === 'circle') {
+      // Show small circle icon
+      ctx.fillStyle = '#f06';
+      ctx.beginPath();
+      ctx.arc(0, 0, 10, 0, 2 * Math.PI);
+      ctx.fill();
+      // Add border to show it's "stored"
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    ctx.restore();
+    iconX += 36;
+  }
   ctx.restore();
   if (gameOver) {
     ctx.save();
@@ -2373,6 +2813,7 @@ function gameLoop() {
 const keys: Record<string, boolean> = {};
 let prevJumpKey = false;
 let prevSpeedToggleKey = false;
+let prevActionKey = false;
 let jumpCooldown = 0; // Cooldown for continuous jumping
 window.addEventListener('keydown', (e) => {
   keys[e.code] = true;

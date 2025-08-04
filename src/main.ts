@@ -1033,8 +1033,7 @@ function startRopeEatingAnimation(enemy: Enemy) {
   ropeAnimation.targetEnemy = enemy;
   ropeAnimation.startX = enemy.x + enemy.width / 2;
   ropeAnimation.startY = enemy.y + enemy.height / 2;
-  ropeAnimation.endX = player.x + player.width / 2;
-  ropeAnimation.endY = player.y + player.height / 2;
+  // Note: endX and endY are now calculated dynamically from current player position
 }
 
 function startRopeSpittingAnimation() {
@@ -1043,8 +1042,6 @@ function startRopeSpittingAnimation() {
   ropeAnimation.type = 'spitting';
   ropeAnimation.progress = 0;
   ropeAnimation.startTime = Date.now();
-  ropeAnimation.startX = player.x + player.width / 2;
-  ropeAnimation.startY = player.y + player.height / 2;
   
   // Calculate direction and screen edge position
   const spitDirection = player.vx >= 0 ? 1 : -1;
@@ -1052,7 +1049,7 @@ function startRopeSpittingAnimation() {
   ropeAnimation.endX = screenEdgeX;
   ropeAnimation.endY = player.y + player.height / 2;
   
-  // Create a temporary enemy for animation
+  // Create a temporary enemy for animation (starting from current player position)
   ropeAnimation.targetEnemy = {
     x: player.x + player.width / 2,
     y: player.y + player.height / 2,
@@ -1097,9 +1094,12 @@ function updateRopeAnimation(deltaTime: number) {
   ropeAnimation.progress = Math.min(elapsed / ropeAnimation.duration, 1);
   
   if (ropeAnimation.type === 'eating' && ropeAnimation.targetEnemy) {
-    // Move enemy toward player
-    const enemyX = ropeAnimation.startX + (ropeAnimation.endX - ropeAnimation.startX) * ropeAnimation.progress;
-    const enemyY = ropeAnimation.startY + (ropeAnimation.endY - ropeAnimation.startY) * ropeAnimation.progress;
+    // Move enemy toward current player position (not fixed start position)
+    const currentPlayerCenterX = player.x + player.width / 2;
+    const currentPlayerCenterY = player.y + player.height / 2;
+    
+    const enemyX = ropeAnimation.startX + (currentPlayerCenterX - ropeAnimation.startX) * ropeAnimation.progress;
+    const enemyY = ropeAnimation.startY + (currentPlayerCenterY - ropeAnimation.startY) * ropeAnimation.progress;
     
     ropeAnimation.targetEnemy.x = enemyX - ropeAnimation.targetEnemy.width / 2;
     ropeAnimation.targetEnemy.y = enemyY - ropeAnimation.targetEnemy.height / 2;
@@ -1112,9 +1112,12 @@ function updateRopeAnimation(deltaTime: number) {
       ropeAnimation.targetEnemy = null;
     }
   } else if (ropeAnimation.type === 'spitting' && ropeAnimation.targetEnemy) {
-    // Move enemy toward screen edge
-    const enemyX = ropeAnimation.startX + (ropeAnimation.endX - ropeAnimation.startX) * ropeAnimation.progress;
-    const enemyY = ropeAnimation.startY + (ropeAnimation.endY - ropeAnimation.startY) * ropeAnimation.progress;
+    // Move enemy toward screen edge from current player position
+    const currentPlayerCenterX = player.x + player.width / 2;
+    const currentPlayerCenterY = player.y + player.height / 2;
+    
+    const enemyX = currentPlayerCenterX + (ropeAnimation.endX - currentPlayerCenterX) * ropeAnimation.progress;
+    const enemyY = currentPlayerCenterY + (ropeAnimation.endY - currentPlayerCenterY) * ropeAnimation.progress;
     
     ropeAnimation.targetEnemy.x = enemyX - ropeAnimation.targetEnemy.width / 2;
     ropeAnimation.targetEnemy.y = enemyY - ropeAnimation.targetEnemy.height / 2;

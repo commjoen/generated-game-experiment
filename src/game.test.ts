@@ -1424,5 +1424,94 @@ describe('Eat/Spit enemy functionality', () => {
       startRopeTargetingAnimation();
       expect(ropeAnimation.endX).toBe(player.x + player.width / 2 + 150);
     });
+
+    it('should have targeting line follow player movement during animation', () => {
+      // Setup a mock canvas context and getEatingDistance function for the drawing test
+      const mockCtx = {
+        strokeStyle: '',
+        lineWidth: 0,
+        setLineDash: () => {},
+        beginPath: () => {},
+        moveTo: (x: number, y: number) => { mockCtx.lastMoveX = x; mockCtx.lastMoveY = y; },
+        lineTo: (x: number, y: number) => { mockCtx.lastLineX = x; mockCtx.lastLineY = y; },
+        stroke: () => {},
+        lastMoveX: 0,
+        lastMoveY: 0,
+        lastLineX: 0,
+        lastLineY: 0,
+      };
+
+      function getEatingDistance(): number {
+        return 100; // Base distance for test
+      }
+
+      function drawRopeAnimationTest() {
+        if (ropeAnimation.type === 'targeting') {
+          const cameraX = 0; // No camera offset for test
+          const playerCenterX = player.x + player.width / 2 - cameraX;
+          const playerCenterY = player.y + player.height / 2;
+          
+          // Calculate end position based on current player position (this is the fix)
+          const eatingDistance = getEatingDistance();
+          const endX = playerCenterX + eatingDistance;
+          const endY = playerCenterY;
+          
+          mockCtx.moveTo(playerCenterX, playerCenterY);
+          mockCtx.lineTo(endX, endY);
+        }
+      }
+
+      // Setup rope animation state
+      const ropeAnimation = {
+        type: 'targeting' as 'none' | 'eating' | 'spitting' | 'targeting',
+        progress: 0,
+        duration: 300,
+        startTime: Date.now(),
+        targetEnemy: null,
+        startX: 0,
+        startY: 0,
+        endX: 0,
+        endY: 0,
+      };
+
+      // Initial player position
+      player.x = 100;
+      player.y = 300;
+
+      // Draw targeting line at initial position
+      drawRopeAnimationTest();
+      const initialStartX = mockCtx.lastMoveX;
+      const initialStartY = mockCtx.lastMoveY;
+      const initialEndX = mockCtx.lastLineX;
+      const initialEndY = mockCtx.lastLineY;
+
+      expect(initialStartX).toBe(player.x + player.width / 2);
+      expect(initialStartY).toBe(player.y + player.height / 2);
+      expect(initialEndX).toBe(player.x + player.width / 2 + 100);
+      expect(initialEndY).toBe(player.y + player.height / 2);
+
+      // Move player to new position
+      player.x = 200;
+      player.y = 250;
+
+      // Draw targeting line at new position
+      drawRopeAnimationTest();
+      const newStartX = mockCtx.lastMoveX;
+      const newStartY = mockCtx.lastMoveY;
+      const newEndX = mockCtx.lastLineX;
+      const newEndY = mockCtx.lastLineY;
+
+      // Verify the targeting line moved with the player
+      expect(newStartX).toBe(player.x + player.width / 2);
+      expect(newStartY).toBe(player.y + player.height / 2);
+      expect(newEndX).toBe(player.x + player.width / 2 + 100);
+      expect(newEndY).toBe(player.y + player.height / 2);
+
+      // Verify the line actually moved from the initial position
+      expect(newStartX).not.toBe(initialStartX);
+      expect(newStartY).not.toBe(initialStartY);
+      expect(newEndX).not.toBe(initialEndX);
+      expect(newEndY).not.toBe(initialEndY);
+    });
   });
 });

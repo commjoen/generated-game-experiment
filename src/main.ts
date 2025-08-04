@@ -1144,9 +1144,10 @@ function drawRopeAnimation() {
   const playerCenterY = player.y + player.height / 2;
   
   if (ropeAnimation.type === 'targeting') {
-    // Draw targeting line without enemy
-    const endX = ropeAnimation.endX - cameraX;
-    const endY = ropeAnimation.endY;
+    // Draw targeting line without enemy - calculate end position based on current player position
+    const eatingDistance = getEatingDistance();
+    const endX = playerCenterX + eatingDistance;
+    const endY = playerCenterY;
     
     // Draw rope as a line with some visual flair
     ctx.strokeStyle = '#8B4513'; // Brown rope color

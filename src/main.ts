@@ -1043,7 +1043,7 @@ function startRopeSpittingAnimation() {
   ropeAnimation.progress = 0;
   ropeAnimation.startTime = Date.now();
   
-  // Calculate direction and screen edge position
+  // Calculate direction and screen edge position (use world coordinates consistently)
   const spitDirection = player.vx >= 0 ? 1 : -1;
   const screenEdgeX = spitDirection > 0 ? canvas.width + cameraX : cameraX - 50;
   ropeAnimation.endX = screenEdgeX;
@@ -1163,8 +1163,26 @@ function drawRopeAnimation() {
   
   if (!ropeAnimation.targetEnemy) return;
   
-  const enemyCenterX = ropeAnimation.targetEnemy.x + ropeAnimation.targetEnemy.width / 2 - cameraX;
-  const enemyCenterY = ropeAnimation.targetEnemy.y + ropeAnimation.targetEnemy.height / 2;
+  let enemyCenterX, enemyCenterY;
+  
+  if (ropeAnimation.type === 'eating') {
+    // For eating animation, calculate enemy position dynamically based on current player position
+    // This ensures the rope always connects to the current player position
+    const currentPlayerWorldX = player.x + player.width / 2;
+    const currentPlayerWorldY = player.y + player.height / 2;
+    
+    // Interpolate from original enemy position to current player position
+    const enemyWorldX = ropeAnimation.startX + (currentPlayerWorldX - ropeAnimation.startX) * ropeAnimation.progress;
+    const enemyWorldY = ropeAnimation.startY + (currentPlayerWorldY - ropeAnimation.startY) * ropeAnimation.progress;
+    
+    // Convert to screen coordinates
+    enemyCenterX = enemyWorldX - cameraX;
+    enemyCenterY = enemyWorldY;
+  } else {
+    // For spitting animation, use the updated enemy position
+    enemyCenterX = ropeAnimation.targetEnemy.x + ropeAnimation.targetEnemy.width / 2 - cameraX;
+    enemyCenterY = ropeAnimation.targetEnemy.y + ropeAnimation.targetEnemy.height / 2;
+  }
   
   // Draw rope as a line with some visual flair
   ctx.strokeStyle = '#8B4513'; // Brown rope color

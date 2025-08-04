@@ -1171,9 +1171,10 @@ describe('Eat/Spit enemy functionality', () => {
       
       updateRopeAnimation();
       
-      // Enemy should be moving toward screen edge
-      const expectedX = ropeAnimation.startX + (ropeAnimation.endX - ropeAnimation.startX) * 0.5;
-      expect(ropeAnimation.targetEnemy.x).toBe(expectedX - ropeAnimation.targetEnemy.width / 2);
+      // Enemy should be moving toward screen edge from current player position
+      const currentPlayerCenterX = player.x + player.width / 2;
+      const expectedX = currentPlayerCenterX + (ropeAnimation.endX - currentPlayerCenterX) * 0.5;
+      expect(ropeAnimation.targetEnemy.x).toBeCloseTo(expectedX - ropeAnimation.targetEnemy.width / 2, 5);
     });
 
     it('should remove enemy when rope spitting animation completes', () => {

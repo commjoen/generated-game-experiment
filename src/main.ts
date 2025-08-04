@@ -92,7 +92,7 @@ const player = {
 
 // Rope animation state
 interface RopeAnimation {
-  type: 'none' | 'eating' | 'spitting';
+  type: 'none' | 'eating' | 'spitting' | 'targeting';
   progress: number; // 0-1
   duration: number; // in milliseconds
   startTime: number;
@@ -988,9 +988,21 @@ function spitOutEnemy() {
   player.eatenEnemy = null;
 }
 
+// Calculate eating distance based on player size
+function getEatingDistance(): number {
+  if (player.growLevel === 0) {
+    return 100; // Base size
+  } else if (player.growLevel === 1) {
+    return 120; // Size +1
+  } else if (player.growLevel >= 2) {
+    return 150; // Size +2 and above
+  }
+  return 100; // Fallback
+}
+
 // Find nearby circle enemy that can be eaten
 function findNearbyCircleEnemy(): Enemy | null {
-  const EATING_DISTANCE = 60; // Allow eating from a reasonable distance
+  const EATING_DISTANCE = getEatingDistance();
   
   for (const enemy of enemies) {
     if (!enemy.alive || enemy.type !== 'circle') continue;
@@ -1057,6 +1069,27 @@ function startRopeSpittingAnimation() {
   };
 }
 
+function startRopeTargetingAnimation() {
+  const eatingDistance = getEatingDistance();
+  
+  ropeAnimation.type = 'targeting';
+  ropeAnimation.progress = 0;
+  ropeAnimation.duration = 300; // Short 300ms animation for targeting line
+  ropeAnimation.startTime = Date.now();
+  ropeAnimation.targetEnemy = null;
+  
+  // Show line extending in the direction the player is facing or straight ahead
+  const playerCenterX = player.x + player.width / 2;
+  const playerCenterY = player.y + player.height / 2;
+  
+  ropeAnimation.startX = playerCenterX;
+  ropeAnimation.startY = playerCenterY;
+  
+  // Extend line to eating distance in a neutral direction (right)
+  ropeAnimation.endX = playerCenterX + eatingDistance;
+  ropeAnimation.endY = playerCenterY;
+}
+
 function updateRopeAnimation(deltaTime: number) {
   if (ropeAnimation.type === 'none') return;
   
@@ -1092,14 +1125,40 @@ function updateRopeAnimation(deltaTime: number) {
       ropeAnimation.type = 'none';
       ropeAnimation.targetEnemy = null;
     }
+  } else if (ropeAnimation.type === 'targeting') {
+    // Targeting animation - just wait for completion
+    if (ropeAnimation.progress >= 1) {
+      ropeAnimation.type = 'none';
+      ropeAnimation.targetEnemy = null;
+    }
   }
 }
 
 function drawRopeAnimation() {
-  if (ropeAnimation.type === 'none' || !ropeAnimation.targetEnemy) return;
+  if (ropeAnimation.type === 'none') return;
   
   const playerCenterX = player.x + player.width / 2 - cameraX;
   const playerCenterY = player.y + player.height / 2;
+  
+  if (ropeAnimation.type === 'targeting') {
+    // Draw targeting line without enemy
+    const endX = ropeAnimation.endX - cameraX;
+    const endY = ropeAnimation.endY;
+    
+    // Draw rope as a line with some visual flair
+    ctx.strokeStyle = '#8B4513'; // Brown rope color
+    ctx.lineWidth = 3;
+    ctx.setLineDash([5, 3]); // Dashed line for rope texture
+    ctx.beginPath();
+    ctx.moveTo(playerCenterX, playerCenterY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+    ctx.setLineDash([]); // Reset line dash
+    return;
+  }
+  
+  if (!ropeAnimation.targetEnemy) return;
+  
   const enemyCenterX = ropeAnimation.targetEnemy.x + ropeAnimation.targetEnemy.width / 2 - cameraX;
   const enemyCenterY = ropeAnimation.targetEnemy.y + ropeAnimation.targetEnemy.height / 2;
   
@@ -1343,6 +1402,9 @@ function update(deltaTime: number) {
           addTotalPoints(1);
           setTopScore(score);
         }
+      } else {
+        // No enemy nearby - show targeting line
+        startRopeTargetingAnimation();
       }
     }
   }

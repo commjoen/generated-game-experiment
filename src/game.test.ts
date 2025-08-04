@@ -1262,5 +1262,166 @@ describe('Eat/Spit enemy functionality', () => {
       const distance = Math.abs(playerCenterX - enemyCenterX); // 45
       expect(distance).toBeLessThan(60); // Should be within eating distance
     });
+
+    it('should have size-based eating distances', () => {
+      // Mock a circle enemy at various distances
+      const baseDistance = 100;
+      const size1Distance = 120; 
+      const size2Distance = 150;
+      
+      // Test base size (growLevel 0)
+      player.growLevel = 0;
+      function getEatingDistance(): number {
+        if (player.growLevel === 0) {
+          return 100; // Base size
+        } else if (player.growLevel === 1) {
+          return 120; // Size +1
+        } else if (player.growLevel >= 2) {
+          return 150; // Size +2 and above
+        }
+        return 100; // Fallback
+      }
+      
+      expect(getEatingDistance()).toBe(baseDistance);
+      
+      // Test size +1 (growLevel 1)
+      player.growLevel = 1;
+      expect(getEatingDistance()).toBe(size1Distance);
+      
+      // Test size +2 (growLevel 2)
+      player.growLevel = 2;
+      expect(getEatingDistance()).toBe(size2Distance);
+      
+      // Test size +3 and above (growLevel 3+)
+      player.growLevel = 3;
+      expect(getEatingDistance()).toBe(size2Distance);
+      
+      player.growLevel = 5;
+      expect(getEatingDistance()).toBe(size2Distance);
+    });
+
+    it('should allow eating circle enemy at size-appropriate distances', () => {
+      // Function to find nearby circle enemy using size-based distance
+      function findNearbyCircleEnemyWithSize(): any | null {
+        function getEatingDistance(): number {
+          if (player.growLevel === 0) {
+            return 100; // Base size
+          } else if (player.growLevel === 1) {
+            return 120; // Size +1
+          } else if (player.growLevel >= 2) {
+            return 150; // Size +2 and above
+          }
+          return 100; // Fallback
+        }
+        
+        const EATING_DISTANCE = getEatingDistance();
+        const enemies = [
+          {
+            type: 'circle',
+            x: player.x + EATING_DISTANCE - 10, // Just within range
+            y: player.y,
+            width: 30,
+            height: 30,
+            alive: true,
+          },
+        ];
+        
+        for (const enemy of enemies) {
+          if (!enemy.alive || enemy.type !== 'circle') continue;
+          
+          const playerCenterX = player.x + player.width / 2;
+          const playerCenterY = player.y + player.height / 2;
+          const enemyCenterX = enemy.x + enemy.width / 2;
+          const enemyCenterY = enemy.y + enemy.height / 2;
+          
+          const distance = Math.sqrt(
+            Math.pow(playerCenterX - enemyCenterX, 2) + 
+            Math.pow(playerCenterY - enemyCenterY, 2)
+          );
+          
+          if (distance <= EATING_DISTANCE) {
+            return enemy;
+          }
+        }
+        
+        return null;
+      }
+
+      // Test base size eating range
+      player.growLevel = 0;
+      let nearbyEnemy = findNearbyCircleEnemyWithSize();
+      expect(nearbyEnemy).not.toBeNull();
+      expect(nearbyEnemy.x).toBe(player.x + 90); // 100 - 10 = 90
+
+      // Test size +1 eating range  
+      player.growLevel = 1;
+      nearbyEnemy = findNearbyCircleEnemyWithSize();
+      expect(nearbyEnemy).not.toBeNull();
+      expect(nearbyEnemy.x).toBe(player.x + 110); // 120 - 10 = 110
+
+      // Test size +2 eating range
+      player.growLevel = 2;
+      nearbyEnemy = findNearbyCircleEnemyWithSize();
+      expect(nearbyEnemy).not.toBeNull();
+      expect(nearbyEnemy.x).toBe(player.x + 140); // 150 - 10 = 140
+    });
+
+    it('should show targeting line when action button is pressed but no enemy nearby', () => {
+      // Setup rope animation state
+      const ropeAnimation = {
+        type: 'none' as 'none' | 'eating' | 'spitting' | 'targeting',
+        progress: 0,
+        duration: 300,
+        startTime: 0,
+        targetEnemy: null,
+        startX: 0,
+        startY: 0,
+        endX: 0,
+        endY: 0,
+      };
+
+      function startRopeTargetingAnimation() {
+        function getEatingDistance(): number {
+          if (player.growLevel === 0) {
+            return 100; // Base size
+          } else if (player.growLevel === 1) {
+            return 120; // Size +1
+          } else if (player.growLevel >= 2) {
+            return 150; // Size +2 and above
+          }
+          return 100; // Fallback
+        }
+        
+        const eatingDistance = getEatingDistance();
+        
+        ropeAnimation.type = 'targeting';
+        ropeAnimation.progress = 0;
+        ropeAnimation.duration = 300;
+        ropeAnimation.startTime = Date.now();
+        ropeAnimation.targetEnemy = null;
+        
+        const playerCenterX = player.x + player.width / 2;
+        const playerCenterY = player.y + player.height / 2;
+        
+        ropeAnimation.startX = playerCenterX;
+        ropeAnimation.startY = playerCenterY;
+        ropeAnimation.endX = playerCenterX + eatingDistance;
+        ropeAnimation.endY = playerCenterY;
+      }
+
+      // Test targeting line for different sizes
+      player.growLevel = 0;
+      startRopeTargetingAnimation();
+      expect(ropeAnimation.type).toBe('targeting');
+      expect(ropeAnimation.endX).toBe(player.x + player.width / 2 + 100);
+
+      player.growLevel = 1;
+      startRopeTargetingAnimation();
+      expect(ropeAnimation.endX).toBe(player.x + player.width / 2 + 120);
+
+      player.growLevel = 2;
+      startRopeTargetingAnimation();
+      expect(ropeAnimation.endX).toBe(player.x + player.width / 2 + 150);
+    });
   });
 });

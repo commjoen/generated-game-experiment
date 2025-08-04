@@ -1135,11 +1135,10 @@ function updateRopeAnimation(deltaTime: number) {
 function drawRopeAnimation() {
   if (ropeAnimation.type === 'none') return;
   
-  const playerCenterX = player.x + player.width / 2 - cameraX;
-  const playerCenterY = player.y + player.height / 2;
-  
   if (ropeAnimation.type === 'targeting') {
-    // Draw targeting line without enemy - calculate end position based on current player position
+    // For targeting line, use world coordinates since canvas is already translated
+    const playerCenterX = player.x + player.width / 2;
+    const playerCenterY = player.y + player.height / 2;
     const eatingDistance = getEatingDistance();
     const endX = playerCenterX + eatingDistance;
     const endY = playerCenterY;
@@ -1156,6 +1155,10 @@ function drawRopeAnimation() {
     return;
   }
   
+  // For other animations, use world coordinates since canvas is already translated
+  const playerCenterX = player.x + player.width / 2;
+  const playerCenterY = player.y + player.height / 2;
+  
   if (!ropeAnimation.targetEnemy) return;
   
   let enemyCenterX, enemyCenterY;
@@ -1166,16 +1169,16 @@ function drawRopeAnimation() {
     const currentPlayerWorldX = player.x + player.width / 2;
     const currentPlayerWorldY = player.y + player.height / 2;
     
-    // Interpolate from original enemy position to current player position
+    // Interpolate from original enemy position to current player position (using world coordinates)
     const enemyWorldX = ropeAnimation.startX + (currentPlayerWorldX - ropeAnimation.startX) * ropeAnimation.progress;
     const enemyWorldY = ropeAnimation.startY + (currentPlayerWorldY - ropeAnimation.startY) * ropeAnimation.progress;
     
-    // Convert to screen coordinates
-    enemyCenterX = enemyWorldX - cameraX;
+    // Use world coordinates directly since canvas is already translated
+    enemyCenterX = enemyWorldX;
     enemyCenterY = enemyWorldY;
   } else {
-    // For spitting animation, use the updated enemy position
-    enemyCenterX = ropeAnimation.targetEnemy.x + ropeAnimation.targetEnemy.width / 2 - cameraX;
+    // For spitting animation, use the updated enemy position (world coordinates)
+    enemyCenterX = ropeAnimation.targetEnemy.x + ropeAnimation.targetEnemy.width / 2;
     enemyCenterY = ropeAnimation.targetEnemy.y + ropeAnimation.targetEnemy.height / 2;
   }
   

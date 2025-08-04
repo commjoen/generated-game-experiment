@@ -1116,8 +1116,9 @@ describe('Eat/Spit enemy functionality', () => {
       
       updateRopeAnimation();
       
-      // Enemy should be moving toward player
-      const expectedX = ropeAnimation.startX + (ropeAnimation.endX - ropeAnimation.startX) * 0.5;
+      // Enemy should be moving toward current player position
+      const currentPlayerCenterX = player.x + player.width / 2;
+      const expectedX = ropeAnimation.startX + (currentPlayerCenterX - ropeAnimation.startX) * 0.5;
       expect(ropeAnimation.targetEnemy.x).toBe(expectedX - circleEnemy.width / 2);
     });
 

@@ -1622,6 +1622,8 @@ function update(deltaTime: number) {
   // Enemy collision
   for (const enemy of enemies) {
     if (!enemy.alive) continue;
+    // Skip collision if player has invincibility frames or enemy is being eaten
+    if (respawnTimer > 0 || ropeAnimation.targetEnemy === enemy) continue;
     if (rectsCollide(player, enemy)) {
       if (enemy.type === 'square') {
         // Square enemies: check if player is landing on top (can jump on them)

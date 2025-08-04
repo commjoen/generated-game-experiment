@@ -19,7 +19,7 @@ jobs:
           echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
       - run: npm ci
       - run: VITE_BASE_PATH=/generated-game-experiment/ npm run build
       - run: ls -l

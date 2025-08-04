@@ -1075,16 +1075,11 @@ function startRopeTargetingAnimation() {
   ropeAnimation.startTime = Date.now();
   ropeAnimation.targetEnemy = null;
   
-  // Show line extending in the direction the player is facing or straight ahead
-  const playerCenterX = player.x + player.width / 2;
-  const playerCenterY = player.y + player.height / 2;
-  
-  ropeAnimation.startX = playerCenterX;
-  ropeAnimation.startY = playerCenterY;
-  
-  // Extend line to eating distance in a neutral direction (right)
-  ropeAnimation.endX = playerCenterX + eatingDistance;
-  ropeAnimation.endY = playerCenterY;
+  // For targeting animation, we don't need to store coordinates since we calculate them dynamically
+  ropeAnimation.startX = 0;
+  ropeAnimation.startY = 0;
+  ropeAnimation.endX = 0;
+  ropeAnimation.endY = 0;
 }
 
 function updateRopeAnimation(deltaTime: number) {

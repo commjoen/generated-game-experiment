@@ -76,8 +76,8 @@ function generateTestLevel(LEVEL_WIDTH: number = 3200, GROUND_Y: number = 400) {
     
     // Add spawn tubes only on platforms designated for enemies
     if (plat.willHaveEnemies && platformWidth > 200) {
-      const tubeWidth = 40;
-      const tubeHeight = 80;
+      const tubeWidth = 24;
+      const tubeHeight = 48;
       
       // Calculate random position within the platform, with some padding to avoid edges
       const padding = 40;
@@ -273,7 +273,7 @@ describe('Enemy Placement Logic', () => {
       
       // Verify tube is within platform boundaries with padding
       const padding = 40;
-      const tubeWidth = 40;
+      const tubeWidth = 24;
       expect(tube.x).toBeGreaterThanOrEqual(hostPlatform!.x + padding);
       expect(tube.x + tubeWidth).toBeLessThanOrEqual(hostPlatform!.x + hostPlatform!.width - padding);
     });
@@ -290,7 +290,7 @@ describe('Enemy Placement Logic', () => {
     const { platforms, tubes } = generateTestLevel();
     
     const minPadding = 40;
-    const tubeWidth = 40;
+    const tubeWidth = 24;
     
     tubes.forEach(tube => {
       const hostPlatform = platforms.find(plat => 

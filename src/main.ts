@@ -456,8 +456,8 @@ async function generateLevel() {
     }
     // Add spawn tubes only on platforms designated for enemies
     if (plat.willHaveEnemies && platformWidth > 200) {
-      const tubeWidth = 40; // Larger tube
-      const tubeHeight = 80; // Longer tube - extends from below platform up through it
+      const tubeWidth = 24; // Tube width (40% smaller)
+      const tubeHeight = 48; // Tube height (40% smaller)
       
       // Calculate random position within the platform, with some padding to avoid edges
       const padding = 40; // Minimum distance from platform edges

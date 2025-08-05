@@ -1,0 +1,124 @@
+name: Deploy to itch.io
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to deploy (e.g., v0.4.0)'
+        required: true
+        type: string
+
+jobs:
+  deploy-to-itch:
+    runs-on: ubuntu-latest
+    if: github.actor == 'commjoen' || github.event_name == 'release'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build game
+        run: npm run build
+
+      - name: Get version from release
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            VERSION="${{ github.event.release.tag_name }}"
+          else
+            VERSION="${{ github.event.inputs.tag }}"
+          fi
+          # Remove 'v' prefix if present
+          VERSION=${VERSION#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Deploying version: $VERSION"
+
+      - name: Setup Butler (itch.io CLI)
+        run: |
+          curl -L -o butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
+          unzip butler.zip
+          chmod +x butler
+          ./butler -V
+
+      - name: Login to itch.io
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+        run: |
+          if [ -z "$BUTLER_API_KEY" ]; then
+            echo "❌ BUTLER_API_KEY secret not found!"
+            echo "Please add your itch.io API key as a repository secret named BUTLER_API_KEY"
+            echo "Get your API key from: https://itch.io/user/settings/api-keys"
+            exit 1
+          fi
+          ./butler login
+
+      - name: Deploy to itch.io
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+          ITCH_USER: ${{ secrets.ITCH_USER || 'commjoen' }}
+          ITCH_GAME: ${{ secrets.ITCH_GAME || 'generated-game-experiment' }}
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          
+          # Create a package for itch.io with the built game
+          mkdir -p itch-package
+          cp -r dist/* itch-package/
+          
+          # Create a simple index file if needed (itch.io expects index.html at root)
+          if [ ! -f itch-package/index.html ]; then
+            echo "❌ No index.html found in build output!"
+            ls -la itch-package/
+            exit 1
+          fi
+          
+          echo "📦 Packaging game for itch.io..."
+          echo "📁 Package contents:"
+          ls -la itch-package/
+          
+          # Upload to itch.io using butler
+          echo "🚀 Uploading to itch.io..."
+          ./butler push itch-package "${ITCH_USER}/${ITCH_GAME}:html" --userversion "$VERSION"
+          
+          echo "✅ Successfully deployed version $VERSION to itch.io!"
+
+      - name: Generate deployment summary
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          ITCH_USER="${{ secrets.ITCH_USER || 'commjoen' }}"
+          ITCH_GAME="${{ secrets.ITCH_GAME || 'generated-game-experiment' }}"
+          
+          echo "## 🎮 Game Deployed to itch.io!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`$VERSION\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Game URL:** https://${ITCH_USER}.itch.io/${ITCH_GAME}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Deployment Details" >> $GITHUB_STEP_SUMMARY
+          echo "- **Platform:** HTML5 (Web)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Channel:** \`html\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **User Version:** \`$VERSION\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Links" >> $GITHUB_STEP_SUMMARY
+          echo "- [Play on itch.io](https://${ITCH_USER}.itch.io/${ITCH_GAME})" >> $GITHUB_STEP_SUMMARY
+          echo "- [itch.io Dashboard](https://itch.io/dashboard)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ⚡ Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "- Game is now live on itch.io" >> $GITHUB_STEP_SUMMARY
+          echo "- Players can access it immediately" >> $GITHUB_STEP_SUMMARY
+          echo "- Update game description and screenshots on itch.io if needed" >> $GITHUB_STEP_SUMMARY

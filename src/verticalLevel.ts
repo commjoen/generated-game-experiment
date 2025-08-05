@@ -2,7 +2,10 @@
 export interface Rect { x: number; y: number; width: number; height: number; }
 export interface Collectible extends Rect { collected: boolean; type: 'coin' | 'heart' | 'doublejump' | 'grow'; id: string; }
 export interface MovingPlatform extends Rect { dx: number; range: number; startX: number; }
-export interface Platform extends Rect {}
+export interface Platform extends Rect {
+  // This interface extends Rect with platform-specific properties
+  // Currently no additional properties beyond Rect
+}
 
 export interface VerticalLevel {
   platforms: Platform[];

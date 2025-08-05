@@ -112,7 +112,9 @@ export class MultiplayerManager {
           let playerName = '';
           try {
             playerName = localStorage.getItem('playerName') || '';
-          } catch {}
+          } catch {
+            // Ignore localStorage errors
+          }
           this.send({
             type: 'join',
             playerId: this.playerId,
@@ -137,7 +139,7 @@ export class MultiplayerManager {
           this.attemptReconnect(serverUrl);
         };
 
-        this.ws.onerror = (error) => {
+        this.ws.onerror = (_error) => {
           clearTimeout(timeout);
           console.log('WebSocket error, falling back to single-player mode');
           this.isConnected = false;

@@ -172,9 +172,9 @@ async function generateVerticalLevel() {
   movingPlatforms.length = 0;
   enemies.length = 0;
   tubes.length = 0;
-  let heartPlaced = false;
-  let doubleJumpPlaced = false;
-  let growPlaced = false;
+  let _heartPlaced = false;
+  let _doubleJumpPlaced = false;
+  let _growPlaced = false;
   const platformCenters: { x: number; y: number }[] = [];
   let lastX = 100 + Math.random() * (canvas.width - minPlatformWidth - 200);
   let isFirst = true;
@@ -353,7 +353,7 @@ async function generateVerticalLevel() {
           })),
         }),
       });
-    } catch (e) {
+    } catch (_e) {
       /* ignore */
     }
   }
@@ -378,9 +378,9 @@ async function generateLevel() {
   tubes.length = 0;
   
   let x = 0;
-  let heartPlaced = false;
-  let doubleJumpPlaced = false;
-  let growPlaced = false;
+  let _heartPlaced = false;
+  let _doubleJumpPlaced = false;
+  let _growPlaced = false;
   const platformCenters: { x: number; y: number }[] = [];
   while (x < LEVEL_WIDTH) {
     // Make blocks longer: 160-320, with some extra long
@@ -573,7 +573,7 @@ async function generateLevel() {
           })),
         }),
       });
-    } catch (e) {
+    } catch (_e) {
       /* ignore */
     }
   }
@@ -1097,7 +1097,7 @@ function startRopeTargetingAnimation() {
   ropeAnimation.endY = 0;
 }
 
-function updateRopeAnimation(deltaTime: number) {
+function updateRopeAnimation(_deltaTime: number) {
   if (ropeAnimation.type === 'none') return;
   
   const elapsed = Date.now() - ropeAnimation.startTime;
@@ -1406,7 +1406,7 @@ function update(deltaTime: number) {
       jumpCooldown = 8; // Cooldown for double jump too
     }
   }
-  prevJumpKey = jumpKey;
+  _prevJumpKey = jumpKey;
 
   // Speed toggle (only on new key press)
   const speedToggleKey = keys['KeyT'];
@@ -1869,14 +1869,10 @@ function applyBackgroundSettings() {
 }
 
 // Version injection globals
-// @ts-ignore
 const VERSION = typeof __VERSION__ !== 'undefined' ? __VERSION__ : 'unknown';
-// @ts-ignore
 const COMMITHASH =
   typeof __COMMITHASH__ !== 'undefined' ? __COMMITHASH__ : 'unknown';
-// @ts-ignore
 const BRANCH = typeof __BRANCH__ !== 'undefined' ? __BRANCH__ : 'unknown';
-// @ts-ignore
 const GITTAG = typeof __GITTAG__ !== 'undefined' ? __GITTAG__ : 'none';
 // @ts-ignore
 const BUILDDATE =
@@ -2826,7 +2822,7 @@ function gameLoop() {
 
 // Input state
 const keys: Record<string, boolean> = {};
-let prevJumpKey = false;
+let _prevJumpKey = false;
 let prevSpeedToggleKey = false;
 let prevActionKey = false;
 let jumpCooldown = 0; // Cooldown for continuous jumping
@@ -3052,7 +3048,7 @@ function generateBonusVerticalLevel() {
           })),
         }),
       });
-    } catch (e) {
+    } catch (_e) {
       /* ignore */
     }
   }

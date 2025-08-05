@@ -11,7 +11,7 @@ async function waitForServer(url, timeout = 5000) {
       const res = await fetch(url);
       if (res.ok) return;
     } catch (e) {}
-    await new Promise(r => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 500));
   }
   throw new Error('Server did not start in time');
 }

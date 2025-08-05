@@ -38,7 +38,7 @@ async function waitForServer(url: string, timeout = 5000) {
       const res = await fetch(url);
       if (res.ok) return true;
     } catch (e) {}
-    await new Promise(r => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 500));
   }
   return false;
 }
@@ -49,15 +49,22 @@ export async function setupServer() {
     testPort = await getFreePort();
   }
   await killProcessOnPort(testPort);
-  const isRunning = await waitForServer(`http://localhost:${testPort}/health`, 1000);
+  const isRunning = await waitForServer(
+    `http://localhost:${testPort}/health`,
+    1000
+  );
   if (!isRunning) {
     serverProcess = spawn('node', ['server.js'], {
       stdio: 'inherit',
       env: { ...process.env, NODE_ENV: 'test', PORT: String(testPort) },
     });
     startedByManager = true;
-    const started = await waitForServer(`http://localhost:${testPort}/health`, 5000);
-    if (!started) throw new Error(`Server did not start in time on port ${testPort}`);
+    const started = await waitForServer(
+      `http://localhost:${testPort}/health`,
+      5000
+    );
+    if (!started)
+      throw new Error(`Server did not start in time on port ${testPort}`);
   }
   isReady = true;
 }
@@ -72,6 +79,7 @@ export async function teardownServer() {
 }
 
 export function getTestPort() {
-  if (!testPort) throw new Error('Test port not set. Call setupServer() first.');
+  if (!testPort)
+    throw new Error('Test port not set. Call setupServer() first.');
   return testPort;
 }

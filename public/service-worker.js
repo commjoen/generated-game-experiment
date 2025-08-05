@@ -1,16 +1,13 @@
 const CACHE_NAME = 'game-cache-v1';
 
-self.addEventListener('install', event => {
+self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
+    caches.open(CACHE_NAME).then((cache) => {
       return fetch('asset-manifest.json')
-        .then(response => response.ok ? response.json() : { files: [] })
-        .then(manifest => {
+        .then((response) => (response.ok ? response.json() : { files: [] }))
+        .then((manifest) => {
           // Fallback: cache index.html and root if manifest missing
-          const files = manifest.files || [
-            '/',
-            '/index.html',
-          ];
+          const files = manifest.files || ['/', '/index.html'];
           return cache.addAll(files);
         })
         .catch(() => cache.addAll(['/', '/index.html']));
@@ -19,16 +16,22 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-self.addEventListener('activate', event => {
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))
-    )
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => key !== CACHE_NAME)
+            .map((key) => caches.delete(key))
+        )
+      )
   );
   self.clients.claim();
 });
 
-self.addEventListener('fetch', event => {
+self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   // Handle navigation requests (SPA fallback)
@@ -40,11 +43,14 @@ self.addEventListener('fetch', event => {
   }
   // Cache-first for static assets
   event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request).then(fetchRes => {
-        // Optionally cache new requests here if desired
-        return fetchRes;
-      });
+    caches.match(event.request).then((response) => {
+      return (
+        response ||
+        fetch(event.request).then((fetchRes) => {
+          // Optionally cache new requests here if desired
+          return fetchRes;
+        })
+      );
     })
   );
 });

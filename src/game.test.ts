@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, beforeAll, afterAll } from 'vitest';
-import { setupServer, teardownServer, getTestPort } from '../test/server-manager';
+import {
+  setupServer,
+  teardownServer,
+  getTestPort,
+} from '../test/server-manager';
 import { generateVerticalLevel, VerticalLevel } from './verticalLevel';
 // For bonus level test
 import { generateBonusVerticalLevelForTest } from './bonusLevel';
@@ -112,7 +116,11 @@ describe('Game state logic', () => {
   let lives: number;
   let _topScore: number;
   let gameOver: boolean;
-  let options: { fixedGradient: boolean; scrollGradient: boolean; imageBg: boolean };
+  let options: {
+    fixedGradient: boolean;
+    scrollGradient: boolean;
+    imageBg: boolean;
+  };
 
   beforeEach(() => {
     score = 0;
@@ -277,23 +285,35 @@ describe('Power-up logic', () => {
   it('size matches grow level', () => {
     function setPlayerSizeByGrowLevel() {
       if (player.growLevel === 0) {
-        player.width = 40; player.height = 50;
+        player.width = 40;
+        player.height = 50;
       } else if (player.growLevel === 1) {
-        player.width = 60; player.height = 75;
+        player.width = 60;
+        player.height = 75;
       } else if (player.growLevel === 2) {
-        player.width = 80; player.height = 100;
+        player.width = 80;
+        player.height = 100;
       } else if (player.growLevel >= 3) {
-        player.width = 100; player.height = 125;
+        player.width = 100;
+        player.height = 125;
       }
     }
-    player.growLevel = 0; setPlayerSizeByGrowLevel();
-    expect(player.width).toBe(40); expect(player.height).toBe(50);
-    player.growLevel = 1; setPlayerSizeByGrowLevel();
-    expect(player.width).toBe(60); expect(player.height).toBe(75);
-    player.growLevel = 2; setPlayerSizeByGrowLevel();
-    expect(player.width).toBe(80); expect(player.height).toBe(100);
-    player.growLevel = 3; setPlayerSizeByGrowLevel();
-    expect(player.width).toBe(100); expect(player.height).toBe(125);
+    player.growLevel = 0;
+    setPlayerSizeByGrowLevel();
+    expect(player.width).toBe(40);
+    expect(player.height).toBe(50);
+    player.growLevel = 1;
+    setPlayerSizeByGrowLevel();
+    expect(player.width).toBe(60);
+    expect(player.height).toBe(75);
+    player.growLevel = 2;
+    setPlayerSizeByGrowLevel();
+    expect(player.width).toBe(80);
+    expect(player.height).toBe(100);
+    player.growLevel = 3;
+    setPlayerSizeByGrowLevel();
+    expect(player.width).toBe(100);
+    expect(player.height).toBe(125);
   });
 });
 
@@ -346,7 +366,9 @@ describe('Player movement and game logic', () => {
 
   it('should respawn player and decrement lives', () => {
     let lives = 3;
-    function respawnPlayer() { lives--; }
+    function respawnPlayer() {
+      lives--;
+    }
     respawnPlayer();
     expect(lives).toBe(2);
   });
@@ -369,7 +391,9 @@ describe('Vertical level generation', () => {
     const level: VerticalLevel = generateVerticalLevel(canvasWidth);
     expect(level.platforms.length).toBeGreaterThan(0);
     // First platform should be at the bottom
-    expect(level.platforms[0].y).toBeGreaterThan(level.platforms[level.platforms.length - 1].y);
+    expect(level.platforms[0].y).toBeGreaterThan(
+      level.platforms[level.platforms.length - 1].y
+    );
     // Platforms should be within canvas width
     for (const plat of level.platforms) {
       expect(plat.x).toBeGreaterThanOrEqual(0);
@@ -382,7 +406,9 @@ describe('Vertical level generation', () => {
     const level: VerticalLevel = generateVerticalLevel(canvasWidth);
     const topPlatform = level.platforms[level.platforms.length - 1];
     expect(level.finishFlag.x).toBeGreaterThanOrEqual(topPlatform.x);
-    expect(level.finishFlag.x).toBeLessThanOrEqual(topPlatform.x + topPlatform.width);
+    expect(level.finishFlag.x).toBeLessThanOrEqual(
+      topPlatform.x + topPlatform.width
+    );
     expect(level.finishFlag.y).toBeLessThanOrEqual(topPlatform.y);
   });
 
@@ -390,19 +416,20 @@ describe('Vertical level generation', () => {
     const canvasWidth = 800;
     const level: VerticalLevel = generateVerticalLevel(canvasWidth);
     const spawnY = 3200;
-    const hasSpawnBlock = level.platforms.some(plat => plat.y <= spawnY && plat.y + plat.height >= spawnY - 40);
+    const hasSpawnBlock = level.platforms.some(
+      (plat) => plat.y <= spawnY && plat.y + plat.height >= spawnY - 40
+    );
     expect(hasSpawnBlock).toBe(true);
   });
 
   it('should generate at least one heart, doublejump, and grow collectible if enough platforms', () => {
     const canvasWidth = 800;
     const level: VerticalLevel = generateVerticalLevel(canvasWidth);
-    const types = level.collectibles.map(c => c.type);
+    const types = level.collectibles.map((c) => c.type);
     expect(types).toContain('heart');
     expect(types).toContain('doublejump');
     expect(types).toContain('grow');
   });
-
 });
 
 describe('Bonus level generation', () => {
@@ -411,10 +438,14 @@ describe('Bonus level generation', () => {
     const canvasWidth = 800;
     const level = generateBonusVerticalLevelForTest(canvasWidth);
     // Check for solid floor
-    const floor = level.platforms.find((p: any) => p.y === LEVEL_HEIGHT && p.x === 0 && p.width === canvasWidth);
+    const floor = level.platforms.find(
+      (p: any) => p.y === LEVEL_HEIGHT && p.x === 0 && p.width === canvasWidth
+    );
     expect(floor).toBeDefined();
     // Check for lots of coins
-    expect(level.collectibles.filter((c: any) => c.type === 'coin').length).toBeGreaterThan(20);
+    expect(
+      level.collectibles.filter((c: any) => c.type === 'coin').length
+    ).toBeGreaterThan(20);
     // Check that all platforms except the floor are moving platforms
     expect(level.movingPlatforms.length).toBeGreaterThan(5);
     expect(level.platforms.length).toBe(2); // Floor and top beam
@@ -422,12 +453,16 @@ describe('Bonus level generation', () => {
     const JUMP_POWER = 13;
     const jumpLength = JUMP_POWER * 8;
     const topBeamY = 40 + jumpLength;
-    const topBeam = level.platforms.find((p: any) => p.y === topBeamY && p.width === canvasWidth);
+    const topBeam = level.platforms.find(
+      (p: any) => p.y === topBeamY && p.width === canvasWidth
+    );
     expect(topBeam).toBeDefined();
     // Check that moving platforms are close to each other (vertical gap <= 80)
-    let sorted = level.movingPlatforms.slice().sort((a: any, b: any) => b.y - a.y);
+    let sorted = level.movingPlatforms
+      .slice()
+      .sort((a: any, b: any) => b.y - a.y);
     for (let i = 1; i < sorted.length; i++) {
-      expect(Math.abs(sorted[i].y - sorted[i-1].y)).toBeLessThanOrEqual(80);
+      expect(Math.abs(sorted[i].y - sorted[i - 1].y)).toBeLessThanOrEqual(80);
     }
   });
 });
@@ -464,12 +499,14 @@ describe('Circle character rendering', () => {
       },
       get textBaseline() {
         return mockTextBaseline;
-      }
+      },
     };
 
     // Function to simulate the character rendering logic
     function setCharacterBaseline(playerCharacter: string, ctx: any) {
-      const isCircleCharacter = ['🟡', '🔴', '🔵', '🟢'].includes(playerCharacter);
+      const isCircleCharacter = ['🟡', '🔴', '🔵', '🟢'].includes(
+        playerCharacter
+      );
 
       if (isCircleCharacter) {
         ctx.textBaseline = 'bottom';
@@ -548,7 +585,8 @@ describe('Enemy mechanics', () => {
     // Check if tube is visible on screen
     let tubeVisible = false;
     if (levelType === 'horizontal') {
-      tubeVisible = tube.x + tube.width > cameraX && tube.x < cameraX + canvasWidth;
+      tubeVisible =
+        tube.x + tube.width > cameraX && tube.x < cameraX + canvasWidth;
     }
 
     expect(tubeVisible).toBe(true);
@@ -576,7 +614,8 @@ describe('Enemy mechanics', () => {
     // Check if tube is visible on screen
     let tubeVisible = false;
     if (levelType === 'horizontal') {
-      tubeVisible = tube.x + tube.width > cameraX && tube.x < cameraX + canvasWidth;
+      tubeVisible =
+        tube.x + tube.width > cameraX && tube.x < cameraX + canvasWidth;
     }
 
     expect(tubeVisible).toBe(false);
@@ -647,12 +686,12 @@ describe('Enemy mechanics', () => {
   it('should not affect dead enemies', () => {
     enemy.alive = false;
     const initialX = enemy.x;
-    
+
     // Dead enemies should not move
     if (enemy.alive) {
       enemy.x += enemy.dx;
     }
-    
+
     expect(enemy.x).toBe(initialX); // Should not have moved
   });
 
@@ -673,10 +712,10 @@ describe('Enemy mechanics', () => {
     enemy.type = 'circle';
     player.x = enemy.x;
     player.y = enemy.y;
-    
+
     let actionKeyPressed = true;
     let score = 0;
-    
+
     if (rectsCollide(player, enemy)) {
       if (enemy.type === 'circle' && actionKeyPressed && !player.eatenEnemy) {
         player.eatenEnemy = { ...enemy };
@@ -684,7 +723,7 @@ describe('Enemy mechanics', () => {
         score++;
       }
     }
-    
+
     expect(player.eatenEnemy).not.toBeNull();
     expect(player.eatenEnemy?.type).toBe('circle');
     expect(enemy.alive).toBe(false);
@@ -695,10 +734,10 @@ describe('Enemy mechanics', () => {
     enemy.type = 'circle';
     player.x = enemy.x;
     player.y = enemy.y;
-    
+
     let actionKeyPressed = false;
     let playerDied = false;
-    
+
     if (rectsCollide(player, enemy)) {
       if (enemy.type === 'circle' && actionKeyPressed && !player.eatenEnemy) {
         player.eatenEnemy = { ...enemy };
@@ -707,7 +746,7 @@ describe('Enemy mechanics', () => {
         playerDied = true;
       }
     }
-    
+
     expect(player.eatenEnemy).toBeNull();
     expect(enemy.alive).toBe(true);
     expect(playerDied).toBe(true);
@@ -718,10 +757,10 @@ describe('Enemy mechanics', () => {
     player.x = enemy.x;
     player.y = enemy.y;
     player.eatenEnemy = { type: 'circle', id: 'old_enemy' } as any; // Already has eaten enemy
-    
+
     let actionKeyPressed = true;
     let score = 0;
-    
+
     if (rectsCollide(player, enemy)) {
       if (enemy.type === 'circle' && actionKeyPressed) {
         // Start eating animation (replaces any existing eaten enemy)
@@ -730,7 +769,7 @@ describe('Enemy mechanics', () => {
         score++;
       }
     }
-    
+
     expect(player.eatenEnemy).not.toBeNull();
     expect(player.eatenEnemy?.type).toBe('circle');
     expect(enemy.alive).toBe(false);
@@ -742,7 +781,7 @@ describe('Enemy mechanics', () => {
     player.x = enemy.x;
     player.y = enemy.y - player.height + 5;
     player.vy = 5; // Falling down
-    
+
     let score = 0;
     if (rectsCollide(player, enemy)) {
       if (enemy.type === 'square') {
@@ -753,7 +792,7 @@ describe('Enemy mechanics', () => {
         }
       }
     }
-    
+
     expect(enemy.alive).toBe(false);
     expect(player.vy).toBe(-8);
     expect(score).toBe(1);
@@ -764,7 +803,7 @@ describe('Enemy mechanics', () => {
     player.x = enemy.x - player.width + 5;
     player.y = enemy.y;
     player.vy = 0;
-    
+
     let playerDied = false;
     if (rectsCollide(player, enemy)) {
       if (enemy.type === 'square') {
@@ -775,7 +814,7 @@ describe('Enemy mechanics', () => {
         }
       }
     }
-    
+
     expect(playerDied).toBe(true);
   });
 
@@ -899,11 +938,11 @@ describe('Eat/Spit enemy functionality', () => {
 
   function spitOutEnemy() {
     if (!player.eatenEnemy) return;
-    
+
     const spitDirection = player.vx >= 0 ? 1 : -1;
     const spitX = player.x + (spitDirection > 0 ? player.width + 10 : -40);
     const spitY = player.y + 10;
-    
+
     const spitEnemy = {
       x: spitX,
       y: spitY,
@@ -918,7 +957,7 @@ describe('Eat/Spit enemy functionality', () => {
       isJumpingOut: false,
       type: player.eatenEnemy.type,
     };
-    
+
     enemies.push(spitEnemy);
     player.eatenEnemy = null;
   }
@@ -935,7 +974,7 @@ describe('Eat/Spit enemy functionality', () => {
 
     // Simulate eating
     player.eatenEnemy = { ...circleEnemy };
-    
+
     expect(player.eatenEnemy).not.toBeNull();
     expect(player.eatenEnemy.type).toBe('circle');
   });
@@ -943,9 +982,9 @@ describe('Eat/Spit enemy functionality', () => {
   it('should spit out enemy when action key is pressed and player has eaten enemy', () => {
     player.eatenEnemy = { type: 'circle' };
     player.vx = 5; // Moving right
-    
+
     spitOutEnemy();
-    
+
     expect(player.eatenEnemy).toBeNull();
     expect(enemies.length).toBe(1);
     expect(enemies[0].type).toBe('circle');
@@ -955,34 +994,34 @@ describe('Eat/Spit enemy functionality', () => {
   it('should spit enemy in direction of player movement', () => {
     player.eatenEnemy = { type: 'circle' };
     player.vx = -3; // Moving left
-    
+
     spitOutEnemy();
-    
+
     expect(enemies[0].x).toBeLessThan(player.x); // Spit to the left
     expect(enemies[0].dx).toBeLessThan(0); // Enemy moving left
   });
 
   it('should not do anything if no enemy is eaten when trying to spit', () => {
     player.eatenEnemy = null;
-    
+
     spitOutEnemy();
-    
+
     expect(enemies.length).toBe(0);
   });
 
   it('should reset eaten enemy on player death', () => {
     player.eatenEnemy = { type: 'circle' };
-    
+
     // Simulate death
     player.eatenEnemy = null;
-    
+
     expect(player.eatenEnemy).toBeNull();
   });
 
   it('should show visual indicator when enemy is eaten', () => {
     // Test that the UI shows an indicator when player has eaten enemy
     player.eatenEnemy = { type: 'circle' };
-    
+
     const hasIndicator = player.eatenEnemy !== null;
     expect(hasIndicator).toBe(true);
   });
@@ -1018,18 +1057,18 @@ describe('Eat/Spit enemy functionality', () => {
 
     function startRopeSpittingAnimation() {
       if (!player.eatenEnemy) return;
-      
+
       ropeAnimation.type = 'spitting';
       ropeAnimation.progress = 0;
       ropeAnimation.startTime = Date.now();
       ropeAnimation.startX = player.x + player.width / 2;
       ropeAnimation.startY = player.y + player.height / 2;
-      
+
       const spitDirection = player.vx >= 0 ? 1 : -1;
       const screenEdgeX = spitDirection > 0 ? 800 : -50; // Mock canvas width
       ropeAnimation.endX = screenEdgeX;
       ropeAnimation.endY = player.y + player.height / 2;
-      
+
       ropeAnimation.targetEnemy = {
         x: player.x + player.width / 2,
         y: player.y + player.height / 2,
@@ -1048,30 +1087,45 @@ describe('Eat/Spit enemy functionality', () => {
 
     function updateRopeAnimation() {
       if (ropeAnimation.type === 'none') return;
-      
+
       const elapsed = Date.now() - ropeAnimation.startTime;
       ropeAnimation.progress = Math.min(elapsed / ropeAnimation.duration, 1);
-      
+
       if (ropeAnimation.type === 'eating' && ropeAnimation.targetEnemy) {
-        const enemyX = ropeAnimation.startX + (ropeAnimation.endX - ropeAnimation.startX) * ropeAnimation.progress;
-        const enemyY = ropeAnimation.startY + (ropeAnimation.endY - ropeAnimation.startY) * ropeAnimation.progress;
-        
-        ropeAnimation.targetEnemy.x = enemyX - ropeAnimation.targetEnemy.width / 2;
-        ropeAnimation.targetEnemy.y = enemyY - ropeAnimation.targetEnemy.height / 2;
-        
+        const enemyX =
+          ropeAnimation.startX +
+          (ropeAnimation.endX - ropeAnimation.startX) * ropeAnimation.progress;
+        const enemyY =
+          ropeAnimation.startY +
+          (ropeAnimation.endY - ropeAnimation.startY) * ropeAnimation.progress;
+
+        ropeAnimation.targetEnemy.x =
+          enemyX - ropeAnimation.targetEnemy.width / 2;
+        ropeAnimation.targetEnemy.y =
+          enemyY - ropeAnimation.targetEnemy.height / 2;
+
         if (ropeAnimation.progress >= 1) {
           player.eatenEnemy = { ...ropeAnimation.targetEnemy };
           ropeAnimation.targetEnemy.alive = false;
           ropeAnimation.type = 'none';
           ropeAnimation.targetEnemy = null;
         }
-      } else if (ropeAnimation.type === 'spitting' && ropeAnimation.targetEnemy) {
-        const enemyX = ropeAnimation.startX + (ropeAnimation.endX - ropeAnimation.startX) * ropeAnimation.progress;
-        const enemyY = ropeAnimation.startY + (ropeAnimation.endY - ropeAnimation.startY) * ropeAnimation.progress;
-        
-        ropeAnimation.targetEnemy.x = enemyX - ropeAnimation.targetEnemy.width / 2;
-        ropeAnimation.targetEnemy.y = enemyY - ropeAnimation.targetEnemy.height / 2;
-        
+      } else if (
+        ropeAnimation.type === 'spitting' &&
+        ropeAnimation.targetEnemy
+      ) {
+        const enemyX =
+          ropeAnimation.startX +
+          (ropeAnimation.endX - ropeAnimation.startX) * ropeAnimation.progress;
+        const enemyY =
+          ropeAnimation.startY +
+          (ropeAnimation.endY - ropeAnimation.startY) * ropeAnimation.progress;
+
+        ropeAnimation.targetEnemy.x =
+          enemyX - ropeAnimation.targetEnemy.width / 2;
+        ropeAnimation.targetEnemy.y =
+          enemyY - ropeAnimation.targetEnemy.height / 2;
+
         if (ropeAnimation.progress >= 1) {
           player.eatenEnemy = null;
           ropeAnimation.type = 'none';
@@ -1089,9 +1143,9 @@ describe('Eat/Spit enemy functionality', () => {
         height: 30,
         alive: true,
       };
-      
+
       startRopeEatingAnimation(circleEnemy);
-      
+
       expect(ropeAnimation.type).toBe('eating');
       expect(ropeAnimation.targetEnemy).toBe(circleEnemy);
       expect(ropeAnimation.progress).toBe(0);
@@ -1106,20 +1160,24 @@ describe('Eat/Spit enemy functionality', () => {
         height: 30,
         alive: true,
       };
-      
+
       startRopeEatingAnimation(circleEnemy);
-      
+
       // Manually set progress to halfway and update
       ropeAnimation.progress = 0.5;
       const elapsed = ropeAnimation.duration * 0.5;
       ropeAnimation.startTime = Date.now() - elapsed;
-      
+
       updateRopeAnimation();
-      
+
       // Enemy should be moving toward current player position
       const currentPlayerCenterX = player.x + player.width / 2;
-      const expectedX = ropeAnimation.startX + (currentPlayerCenterX - ropeAnimation.startX) * 0.5;
-      expect(ropeAnimation.targetEnemy.x).toBe(expectedX - circleEnemy.width / 2);
+      const expectedX =
+        ropeAnimation.startX +
+        (currentPlayerCenterX - ropeAnimation.startX) * 0.5;
+      expect(ropeAnimation.targetEnemy.x).toBe(
+        expectedX - circleEnemy.width / 2
+      );
     });
 
     it('should complete eating when rope animation finishes', () => {
@@ -1131,16 +1189,16 @@ describe('Eat/Spit enemy functionality', () => {
         height: 30,
         alive: true,
       };
-      
+
       startRopeEatingAnimation(circleEnemy);
-      
+
       // Manually set progress to complete and update
       ropeAnimation.progress = 1;
       const elapsed = ropeAnimation.duration;
       ropeAnimation.startTime = Date.now() - elapsed;
-      
+
       updateRopeAnimation();
-      
+
       expect(player.eatenEnemy).not.toBeNull();
       expect(player.eatenEnemy.type).toBe('circle');
       expect(ropeAnimation.type).toBe('none');
@@ -1150,9 +1208,9 @@ describe('Eat/Spit enemy functionality', () => {
     it('should start rope spitting animation when spitting enemy', () => {
       player.eatenEnemy = { type: 'circle' };
       player.vx = 5; // Moving right
-      
+
       startRopeSpittingAnimation();
-      
+
       expect(ropeAnimation.type).toBe('spitting');
       expect(ropeAnimation.targetEnemy).not.toBeNull();
       expect(ropeAnimation.targetEnemy.type).toBe('circle');
@@ -1161,34 +1219,39 @@ describe('Eat/Spit enemy functionality', () => {
     it('should animate enemy moving toward screen edge during spitting', () => {
       player.eatenEnemy = { type: 'circle' };
       player.vx = 5; // Moving right
-      
+
       startRopeSpittingAnimation();
-      
+
       // Manually set progress to halfway and update
       ropeAnimation.progress = 0.5;
       const elapsed = ropeAnimation.duration * 0.5;
       ropeAnimation.startTime = Date.now() - elapsed;
-      
+
       updateRopeAnimation();
-      
+
       // Enemy should be moving toward screen edge from current player position
       const currentPlayerCenterX = player.x + player.width / 2;
-      const expectedX = currentPlayerCenterX + (ropeAnimation.endX - currentPlayerCenterX) * 0.5;
-      expect(ropeAnimation.targetEnemy.x).toBeCloseTo(expectedX - ropeAnimation.targetEnemy.width / 2, 5);
+      const expectedX =
+        currentPlayerCenterX +
+        (ropeAnimation.endX - currentPlayerCenterX) * 0.5;
+      expect(ropeAnimation.targetEnemy.x).toBeCloseTo(
+        expectedX - ropeAnimation.targetEnemy.width / 2,
+        5
+      );
     });
 
     it('should remove enemy when rope spitting animation completes', () => {
       player.eatenEnemy = { type: 'circle' };
-      
+
       startRopeSpittingAnimation();
-      
+
       // Manually set progress to complete and update
       ropeAnimation.progress = 1;
       const elapsed = ropeAnimation.duration;
       ropeAnimation.startTime = Date.now() - elapsed;
-      
+
       updateRopeAnimation();
-      
+
       expect(player.eatenEnemy).toBeNull();
       expect(ropeAnimation.type).toBe('none');
       expect(ropeAnimation.targetEnemy).toBeNull();
@@ -1197,15 +1260,15 @@ describe('Eat/Spit enemy functionality', () => {
     it('should calculate correct spit direction based on player movement', () => {
       player.eatenEnemy = { type: 'circle' };
       player.vx = -3; // Moving left
-      
+
       startRopeSpittingAnimation();
-      
+
       expect(ropeAnimation.endX).toBe(-50); // Left edge of screen
-      
+
       // Reset and test right direction
       player.vx = 3; // Moving right
       startRopeSpittingAnimation();
-      
+
       expect(ropeAnimation.endX).toBe(800); // Right edge of screen
     });
 
@@ -1223,33 +1286,33 @@ describe('Eat/Spit enemy functionality', () => {
             alive: true,
           },
           {
-            type: 'circle', 
+            type: 'circle',
             x: player.x + 80, // 80 pixels away (too far)
             y: player.y,
             width: 30,
             height: 30,
             alive: true,
-          }
+          },
         ];
-        
+
         for (const enemy of enemies) {
           if (!enemy.alive || enemy.type !== 'circle') continue;
-          
+
           const playerCenterX = player.x + player.width / 2;
           const playerCenterY = player.y + player.height / 2;
           const enemyCenterX = enemy.x + enemy.width / 2;
           const enemyCenterY = enemy.y + enemy.height / 2;
-          
+
           const distance = Math.sqrt(
-            Math.pow(playerCenterX - enemyCenterX, 2) + 
-            Math.pow(playerCenterY - enemyCenterY, 2)
+            Math.pow(playerCenterX - enemyCenterX, 2) +
+              Math.pow(playerCenterY - enemyCenterY, 2)
           );
-          
+
           if (distance <= EATING_DISTANCE) {
             return enemy;
           }
         }
-        
+
         return null;
       }
 
@@ -1258,7 +1321,7 @@ describe('Eat/Spit enemy functionality', () => {
       expect(nearbyEnemy).not.toBeNull();
       expect(nearbyEnemy.x).toBe(player.x + 50); // Should find the closer enemy
 
-      // Test that the distance calculation works correctly  
+      // Test that the distance calculation works correctly
       const playerCenterX = player.x + player.width / 2; // 120
       const enemyCenterX = nearbyEnemy.x + nearbyEnemy.width / 2; // 165
       const distance = Math.abs(playerCenterX - enemyCenterX); // 45
@@ -1268,9 +1331,9 @@ describe('Eat/Spit enemy functionality', () => {
     it('should have size-based eating distances', () => {
       // Mock a circle enemy at various distances
       const baseDistance = 100;
-      const size1Distance = 120; 
+      const size1Distance = 120;
       const size2Distance = 150;
-      
+
       // Test base size (growLevel 0)
       player.growLevel = 0;
       function getEatingDistance(): number {
@@ -1283,21 +1346,21 @@ describe('Eat/Spit enemy functionality', () => {
         }
         return 100; // Fallback
       }
-      
+
       expect(getEatingDistance()).toBe(baseDistance);
-      
+
       // Test size +1 (growLevel 1)
       player.growLevel = 1;
       expect(getEatingDistance()).toBe(size1Distance);
-      
+
       // Test size +2 (growLevel 2)
       player.growLevel = 2;
       expect(getEatingDistance()).toBe(size2Distance);
-      
+
       // Test size +3 and above (growLevel 3+)
       player.growLevel = 3;
       expect(getEatingDistance()).toBe(size2Distance);
-      
+
       player.growLevel = 5;
       expect(getEatingDistance()).toBe(size2Distance);
     });
@@ -1315,7 +1378,7 @@ describe('Eat/Spit enemy functionality', () => {
           }
           return 100; // Fallback
         }
-        
+
         const EATING_DISTANCE = getEatingDistance();
         const enemies = [
           {
@@ -1327,25 +1390,25 @@ describe('Eat/Spit enemy functionality', () => {
             alive: true,
           },
         ];
-        
+
         for (const enemy of enemies) {
           if (!enemy.alive || enemy.type !== 'circle') continue;
-          
+
           const playerCenterX = player.x + player.width / 2;
           const playerCenterY = player.y + player.height / 2;
           const enemyCenterX = enemy.x + enemy.width / 2;
           const enemyCenterY = enemy.y + enemy.height / 2;
-          
+
           const distance = Math.sqrt(
-            Math.pow(playerCenterX - enemyCenterX, 2) + 
-            Math.pow(playerCenterY - enemyCenterY, 2)
+            Math.pow(playerCenterX - enemyCenterX, 2) +
+              Math.pow(playerCenterY - enemyCenterY, 2)
           );
-          
+
           if (distance <= EATING_DISTANCE) {
             return enemy;
           }
         }
-        
+
         return null;
       }
 
@@ -1355,7 +1418,7 @@ describe('Eat/Spit enemy functionality', () => {
       expect(nearbyEnemy).not.toBeNull();
       expect(nearbyEnemy.x).toBe(player.x + 90); // 100 - 10 = 90
 
-      // Test size +1 eating range  
+      // Test size +1 eating range
       player.growLevel = 1;
       nearbyEnemy = findNearbyCircleEnemyWithSize();
       expect(nearbyEnemy).not.toBeNull();
@@ -1393,18 +1456,18 @@ describe('Eat/Spit enemy functionality', () => {
           }
           return 100; // Fallback
         }
-        
+
         const eatingDistance = getEatingDistance();
-        
+
         ropeAnimation.type = 'targeting';
         ropeAnimation.progress = 0;
         ropeAnimation.duration = 300;
         ropeAnimation.startTime = Date.now();
         ropeAnimation.targetEnemy = null;
-        
+
         const playerCenterX = player.x + player.width / 2;
         const playerCenterY = player.y + player.height / 2;
-        
+
         ropeAnimation.startX = playerCenterX;
         ropeAnimation.startY = playerCenterY;
         ropeAnimation.endX = playerCenterX + eatingDistance;
@@ -1433,8 +1496,14 @@ describe('Eat/Spit enemy functionality', () => {
         lineWidth: 0,
         setLineDash: () => {},
         beginPath: () => {},
-        moveTo: (x: number, y: number) => { mockCtx.lastMoveX = x; mockCtx.lastMoveY = y; },
-        lineTo: (x: number, y: number) => { mockCtx.lastLineX = x; mockCtx.lastLineY = y; },
+        moveTo: (x: number, y: number) => {
+          mockCtx.lastMoveX = x;
+          mockCtx.lastMoveY = y;
+        },
+        lineTo: (x: number, y: number) => {
+          mockCtx.lastLineX = x;
+          mockCtx.lastLineY = y;
+        },
         stroke: () => {},
         lastMoveX: 0,
         lastMoveY: 0,
@@ -1451,12 +1520,12 @@ describe('Eat/Spit enemy functionality', () => {
           const cameraX = 0; // No camera offset for test
           const playerCenterX = player.x + player.width / 2 - cameraX;
           const playerCenterY = player.y + player.height / 2;
-          
+
           // Calculate end position based on current player position (this is the fix)
           const eatingDistance = getEatingDistance();
           const endX = playerCenterX + eatingDistance;
           const endY = playerCenterY;
-          
+
           mockCtx.moveTo(playerCenterX, playerCenterY);
           mockCtx.lineTo(endX, endY);
         }

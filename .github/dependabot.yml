@@ -6,77 +6,77 @@
 version: 2
 updates:
   # Docker ecosystem monitoring
-  - package-ecosystem: "docker"
-    directory: "/"
+  - package-ecosystem: 'docker'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "06:00"
-      timezone: "UTC"
+      interval: 'weekly'
+      day: 'monday'
+      time: '06:00'
+      timezone: 'UTC'
     open-pull-requests-limit: 5
     reviewers:
-      - "commjoen"
+      - 'commjoen'
     commit-message:
-      prefix: "docker"
-      include: "scope"
-    rebase-strategy: "auto"
+      prefix: 'docker'
+      include: 'scope'
+    rebase-strategy: 'auto'
 
   # npm ecosystem monitoring (main package.json)
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "06:00"
-      timezone: "UTC"
+      interval: 'weekly'
+      day: 'monday'
+      time: '06:00'
+      timezone: 'UTC'
     open-pull-requests-limit: 10
     reviewers:
-      - "commjoen"
+      - 'commjoen'
     groups:
       typescript-eslint:
         patterns:
-          - "@typescript-eslint/*"
+          - '@typescript-eslint/*'
       dev-dependencies:
         patterns:
-          - "@types/*"
-          - "eslint*"
-          - "prettier*"
-          - "vite*"
-          - "vitest*"
-          - "jsdom*"
-          - "typescript"
+          - '@types/*'
+          - 'eslint*'
+          - 'prettier*'
+          - 'vite*'
+          - 'vitest*'
+          - 'jsdom*'
+          - 'typescript'
       server-dependencies:
         patterns:
-          - "express*"
-          - "cors*"
-          - "ws*"
-          - "node-fetch*"
+          - 'express*'
+          - 'cors*'
+          - 'ws*'
+          - 'node-fetch*'
     commit-message:
-      prefix: "deps"
-      include: "scope"
+      prefix: 'deps'
+      include: 'scope'
     pull-request-branch-name:
-      separator: "/"
+      separator: '/'
     labels:
-      - "dependencies"
-    rebase-strategy: "auto"
+      - 'dependencies'
+    rebase-strategy: 'auto'
     # Allow all update types including security
     allow:
-      - dependency-type: "all"
+      - dependency-type: 'all'
 
   # GitHub Actions monitoring
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "06:00"
-      timezone: "UTC"
+      interval: 'weekly'
+      day: 'monday'
+      time: '06:00'
+      timezone: 'UTC'
     open-pull-requests-limit: 5
     reviewers:
-      - "commjoen"
+      - 'commjoen'
     commit-message:
-      prefix: "ci"
-      include: "scope"
+      prefix: 'ci'
+      include: 'scope'
     labels:
-      - "github-actions"
-    rebase-strategy: "auto"
+      - 'github-actions'
+    rebase-strategy: 'auto'

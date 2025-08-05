@@ -10,7 +10,13 @@ interface PlayerState {
 
 interface GameState {
   players: Map<string, PlayerState>;
-  collectibles: Array<{ x: number; y: number; collected: boolean; type: string; id: string }>;
+  collectibles: Array<{
+    x: number;
+    y: number;
+    collected: boolean;
+    type: string;
+    id: string;
+  }>;
   timestamp: number;
 }
 
@@ -35,25 +41,37 @@ export class MultiplayerManager {
   }
 
   // Check if multiplayer server is available (optional)
-  async checkServerAvailable(serverUrl: string = this.getDefaultServerUrl()): Promise<boolean> {
+  async checkServerAvailable(
+    serverUrl: string = this.getDefaultServerUrl()
+  ): Promise<boolean> {
     try {
       // For relative /ws, use /mp/health
       if (serverUrl === '/ws') {
-        const response = await fetch('/mp/health', { method: 'GET', signal: AbortSignal.timeout(2000) });
+        const response = await fetch('/mp/health', {
+          method: 'GET',
+          signal: AbortSignal.timeout(2000),
+        });
         return response.ok;
       }
       // Otherwise, use the old logic
-      const httpUrl = serverUrl.replace('ws://', 'http://').replace('wss://', 'https://');
+      const httpUrl = serverUrl
+        .replace('ws://', 'http://')
+        .replace('wss://', 'https://');
       let healthUrl: string;
       if (httpUrl.includes('/ws')) {
         healthUrl = httpUrl.replace('/ws', '/mp/health');
       } else {
         healthUrl = `${httpUrl}/health`;
       }
-      const response = await fetch(healthUrl, { method: 'GET', signal: AbortSignal.timeout(2000) });
+      const response = await fetch(healthUrl, {
+        method: 'GET',
+        signal: AbortSignal.timeout(2000),
+      });
       return response.ok;
     } catch (error) {
-      console.log('Multiplayer server not available, running in single-player mode');
+      console.log(
+        'Multiplayer server not available, running in single-player mode'
+      );
       return false;
     }
   }
@@ -66,7 +84,7 @@ export class MultiplayerManager {
     if (
       hostname === 'onrender.com' ||
       hostname.endsWith('.onrender.com') ||
-      (!host.includes('localhost'))
+      !host.includes('localhost')
     ) {
       return '/ws';
     }
@@ -75,7 +93,10 @@ export class MultiplayerManager {
       return 'ws://localhost:3001';
     }
     // If running in Docker container locally, use direct connection to port 3001
-    if (host.includes(':8080') || (hostname === 'localhost' && host.includes(':80'))) {
+    if (
+      host.includes(':8080') ||
+      (hostname === 'localhost' && host.includes(':80'))
+    ) {
       const baseHostname = host.split(':')[0];
       return `${protocol}//${baseHostname}:3001`;
     }
@@ -84,12 +105,16 @@ export class MultiplayerManager {
   }
 
   // Initialize multiplayer connection (optional)
-  async initialize(serverUrl: string = this.getDefaultServerUrl()): Promise<boolean> {
+  async initialize(
+    serverUrl: string = this.getDefaultServerUrl()
+  ): Promise<boolean> {
     try {
       // First check if server is available
       const serverAvailable = await this.checkServerAvailable(serverUrl);
       if (!serverAvailable) {
-        console.log('Multiplayer server not available, continuing in single-player mode');
+        console.log(
+          'Multiplayer server not available, continuing in single-player mode'
+        );
         return false;
       }
 
@@ -123,7 +148,7 @@ export class MultiplayerManager {
             type: 'join',
             playerId: this.playerId,
             name: playerName,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           });
           resolve(true);
         };
@@ -151,7 +176,9 @@ export class MultiplayerManager {
         };
       });
     } catch (error) {
-      console.log('Failed to initialize multiplayer, continuing in single-player mode');
+      console.log(
+        'Failed to initialize multiplayer, continuing in single-player mode'
+      );
       return false;
     }
   }
@@ -159,13 +186,17 @@ export class MultiplayerManager {
   private attemptReconnect(serverUrl: string) {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+      console.log(
+        `Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`
+      );
 
       setTimeout(() => {
         this.initialize(serverUrl);
       }, this.reconnectDelay * this.reconnectAttempts);
     } else {
-      console.log('Max reconnection attempts reached, continuing in single-player mode');
+      console.log(
+        'Max reconnection attempts reached, continuing in single-player mode'
+      );
     }
   }
 
@@ -191,7 +222,12 @@ export class MultiplayerManager {
         break;
       case 'playerUpdate':
         if (this._onPlayerUpdate) {
-          this._onPlayerUpdate(data.playerId, data.position, data.score, data.name);
+          this._onPlayerUpdate(
+            data.playerId,
+            data.position,
+            data.score,
+            data.name
+          );
         }
         break;
       case 'itemCollected':
@@ -217,14 +253,20 @@ export class MultiplayerManager {
   }
 
   // Send player position update
-  updatePlayerPosition(x: number, y: number, width: number, height: number, growLevel: number) {
+  updatePlayerPosition(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    growLevel: number
+  ) {
     if (!this.isConnected) return;
 
     this.send({
       type: 'playerUpdate',
       playerId: this.playerId,
       position: { x, y, width, height, growLevel },
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -235,7 +277,7 @@ export class MultiplayerManager {
       type: 'collectItem',
       playerId: this.playerId,
       collectibleId,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -252,12 +294,24 @@ export class MultiplayerManager {
     this.onPlayerLeave = callback;
   }
 
-  private _onPlayerUpdate?: (playerId: string, position: any, score?: number, name?: string) => void;
+  private _onPlayerUpdate?: (
+    playerId: string,
+    position: any,
+    score?: number,
+    name?: string
+  ) => void;
   /**
    * Register a callback for player position updates.
    * @param callback (playerId: string, position: any) => void
    */
-  onPlayerUpdate(callback: (playerId: string, position: any, score?: number, name?: string) => void): void {
+  onPlayerUpdate(
+    callback: (
+      playerId: string,
+      position: any,
+      score?: number,
+      name?: string
+    ) => void
+  ): void {
     this._onPlayerUpdate = callback;
   }
 

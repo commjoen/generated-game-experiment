@@ -393,10 +393,10 @@ async function generateLevel() {
     const spawnPlatform = x <= 100 && x + 400 >= 100; // Check if spawn point (x=100) would be on this platform
     const willHaveEnemies = !isFirstPlatform && !spawnPlatform && Math.random() < 0.2; // 20% chance for enemy platforms, but never on first or spawn platform
     
-    // Make enemy platforms much longer (at least 3x regular platforms)
-    // Regular platforms: 160-320, Enemy platforms: 960-1200 (at least 3x the maximum regular size)
+    // Make enemy platforms smaller (half the original size to reduce visual clutter)
+    // Regular platforms: 160-320, Enemy platforms: 480-600 (half of original 960-1200)
     const platformWidth = willHaveEnemies 
-      ? 960 + Math.random() * 240  // Enemy platforms: 960-1200px (3x+ regular platforms)
+      ? 480 + Math.random() * 120  // Enemy platforms: 480-600px (half of original size)
       : (Math.random() < 0.2 ? 320 : 160 + Math.random() * 160); // Regular platforms: 160-320px
     
     let plat: Platform;
@@ -456,8 +456,8 @@ async function generateLevel() {
     }
     // Add spawn tubes only on platforms designated for enemies
     if (plat.willHaveEnemies && platformWidth > 200) {
-      const tubeWidth = 24; // Tube width (40% smaller)
-      const tubeHeight = 48; // Tube height (40% smaller)
+      const tubeWidth = 40; // Larger tube
+      const tubeHeight = 80; // Longer tube - extends from below platform up through it
       
       // Calculate random position within the platform, with some padding to avoid edges
       const padding = 40; // Minimum distance from platform edges

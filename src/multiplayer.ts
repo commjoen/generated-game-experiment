@@ -63,7 +63,11 @@ export class MultiplayerManager {
     const host = window.location.host;
     const hostname = window.location.hostname;
     // Render.com or any production: always use relative /ws
-    if (hostname.includes('.onrender.com') || !host.includes('localhost')) {
+    if (
+      hostname === 'onrender.com' ||
+      hostname.endsWith('.onrender.com') ||
+      (!host.includes('localhost'))
+    ) {
       return '/ws';
     }
     // If running in development (localhost:5173), try local server

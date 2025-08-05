@@ -45,9 +45,9 @@ function generateTestLevel(LEVEL_WIDTH: number = 3200, GROUND_Y: number = 400) {
     const spawnPlatform = x <= 100 && x + 400 >= 100; // Check if spawn point (x=100) would be on this platform
     const willHaveEnemies = !isFirstPlatform && !spawnPlatform && Math.random() < 0.2;
     
-    // Make enemy platforms much longer (at least 3x regular platforms)
+    // Make enemy platforms smaller (half the original size to reduce visual clutter)
     const platformWidth = willHaveEnemies 
-      ? 960 + Math.random() * 240  // Enemy platforms: 960-1200px
+      ? 480 + Math.random() * 120  // Enemy platforms: 480-600px
       : (Math.random() < 0.2 ? 320 : 160 + Math.random() * 160); // Regular platforms: 160-320px
     
     let plat: Platform;
@@ -161,7 +161,7 @@ describe('Enemy Placement Logic', () => {
     });
   });
 
-  it('should make enemy platforms at least 3x longer than regular platforms', () => {
+  it('should make enemy platforms smaller than the original large platforms but still accommodate tubes', () => {
     // Mock random to ensure we get both types of platforms
     let callCount = 0;
     vi.spyOn(Math, 'random').mockImplementation(() => {
@@ -174,12 +174,20 @@ describe('Enemy Placement Logic', () => {
     const enemyPlatforms = platforms.filter(p => p.willHaveEnemies);
     const regularPlatforms = platforms.filter(p => !p.willHaveEnemies);
     
-    if (enemyPlatforms.length > 0 && regularPlatforms.length > 0) {
-      const minRegularWidth = Math.min(...regularPlatforms.map(p => p.width));
-      const minEnemyWidth = Math.min(...enemyPlatforms.map(p => p.width));
-      
-      // Enemy platforms should be at least 3x the minimum regular platform width
-      expect(minEnemyWidth).toBeGreaterThanOrEqual(minRegularWidth * 3);
+    if (enemyPlatforms.length > 0) {
+      // Enemy platforms should be in the 480-600px range (half the original 960-1200px)
+      enemyPlatforms.forEach(platform => {
+        expect(platform.width).toBeGreaterThanOrEqual(480);
+        expect(platform.width).toBeLessThanOrEqual(600);
+      });
+    }
+    
+    if (regularPlatforms.length > 0) {
+      // Regular platforms should still be 160-320px
+      regularPlatforms.forEach(platform => {
+        expect(platform.width).toBeGreaterThanOrEqual(160);
+        expect(platform.width).toBeLessThanOrEqual(320);
+      });
     }
   });
 
@@ -218,7 +226,7 @@ describe('Enemy Placement Logic', () => {
     });
   });
 
-  it('should ensure enemy platforms are significantly longer than regular platforms', () => {
+  it('should ensure enemy platforms are in expected size ranges', () => {
     // Mock random to create a mix of platform types
     let callCount = 0;
     vi.spyOn(Math, 'random').mockImplementation(() => {
@@ -229,18 +237,18 @@ describe('Enemy Placement Logic', () => {
     
     const { platforms } = generateTestLevel();
     
-    const enemyPlatforms = platforms.filter(p => p.willHaveEnemies && p.width >= 960);
+    const enemyPlatforms = platforms.filter(p => p.willHaveEnemies && p.width >= 480);
     const regularPlatforms = platforms.filter(p => !p.willHaveEnemies && p.width <= 320);
     
-    // Check that enemy platforms exist and are in the expected range
+    // Check that enemy platforms exist and are in the expected range (480-600px)
     if (enemyPlatforms.length > 0) {
       enemyPlatforms.forEach(platform => {
-        expect(platform.width).toBeGreaterThanOrEqual(960);
-        expect(platform.width).toBeLessThanOrEqual(1200);
+        expect(platform.width).toBeGreaterThanOrEqual(480);
+        expect(platform.width).toBeLessThanOrEqual(600);
       });
     }
     
-    // Check that regular platforms exist and are in the expected range
+    // Check that regular platforms exist and are in the expected range (160-320px)
     if (regularPlatforms.length > 0) {
       regularPlatforms.forEach(platform => {
         expect(platform.width).toBeGreaterThanOrEqual(160);

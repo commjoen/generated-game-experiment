@@ -10,7 +10,7 @@ repos:
         args: ['--unsafe']  # Allow custom YAML tags used in GitHub Actions
         exclude: ^(node_modules/|dist/)
       - id: check-json
-        exclude: ^(node_modules/|dist/)
+        exclude: ^(node_modules/|dist/|tsconfig\.json$)
       - id: check-merge-conflict
       - id: check-case-conflict
       - id: check-added-large-files
@@ -35,21 +35,15 @@ repos:
         types_or: [ts, tsx, javascript]
         exclude: ^(node_modules/|dist/)
 
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.17.0
+  - repo: local
     hooks:
       - id: eslint
         name: Lint TypeScript and JavaScript files
+        entry: npx eslint
+        language: system
         files: \.(ts|tsx|js|jsx)$
         exclude: ^(node_modules/|dist/)
         args: [--fix, --max-warnings=0]
-        additional_dependencies:
-          - '@typescript-eslint/eslint-plugin@^8.0.0'
-          - '@typescript-eslint/parser@^8.0.0'
-          - '@eslint/js@^9.0.0'
-
-  - repo: local
-    hooks:
       - id: typescript-check
         name: TypeScript type checking
         entry: npx tsc --noEmit

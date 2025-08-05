@@ -31,14 +31,14 @@ app.post('/register-collectibles', express.json(), (req, res) => {
   const collectibles = req.body.collectibles;
   let added = 0;
   if (Array.isArray(collectibles)) {
-    collectibles.forEach(c => {
+    collectibles.forEach((c) => {
       if (c && c.id && c.type && !gameSession.collectibles.has(c.id)) {
         gameSession.collectibles.set(c.id, {
           id: c.id,
           type: c.type,
           collected: false,
           collectedBy: null,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
         added++;
       }
@@ -74,7 +74,10 @@ class GameSession {
       this.hostId = playerId;
     }
 
-    const playerName = (typeof name === 'string' && name.trim()) ? name.trim().slice(0, 12) : this.generateDefaultName();
+    const playerName =
+      typeof name === 'string' && name.trim()
+        ? name.trim().slice(0, 12)
+        : this.generateDefaultName();
     this.players.set(playerId, {
       id: playerId,
       ws: ws,
@@ -86,17 +89,19 @@ class GameSession {
       isHost: isHost,
       lastSeen: Date.now(),
       name: playerName,
-      score: 0
+      score: 0,
     });
 
-    console.log(`Player ${playerId} joined (${this.players.size} total players)`);
+    console.log(
+      `Player ${playerId} joined (${this.players.size} total players)`
+    );
 
     // Notify all players about the new player
     this.broadcast({
       type: 'playerJoined',
       playerId: playerId,
       isHost: isHost,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     // Send current game state to the new player
@@ -122,7 +127,7 @@ class GameSession {
     this.broadcast({
       type: 'playerLeft',
       playerId: playerId,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -139,22 +144,35 @@ class GameSession {
 
     // Only log if position or score changed since last log
     const last = this.lastLoggedScores.get(playerId) || {};
-    const positionChanged = last.x !== player.x || last.y !== player.y || last.growLevel !== player.growLevel;
+    const positionChanged =
+      last.x !== player.x ||
+      last.y !== player.y ||
+      last.growLevel !== player.growLevel;
     const scoreChanged = last.score !== player.score;
     if (ENABLE_PROGRESS_LOG && (positionChanged || scoreChanged)) {
-      console.log(`[PROGRESS] Player '${player.name}' (${playerId}) moved to x:${player.x}, y:${player.y}, growLevel:${player.growLevel}, score:${player.score || 0}`);
-      this.lastLoggedScores.set(playerId, { x: player.x, y: player.y, growLevel: player.growLevel, score: player.score });
+      console.log(
+        `[PROGRESS] Player '${player.name}' (${playerId}) moved to x:${player.x}, y:${player.y}, growLevel:${player.growLevel}, score:${player.score || 0}`
+      );
+      this.lastLoggedScores.set(playerId, {
+        x: player.x,
+        y: player.y,
+        growLevel: player.growLevel,
+        score: player.score,
+      });
     }
 
     // Broadcast position update to other players, always include name and score
-    this.broadcast({
-      type: 'playerUpdate',
-      playerId: playerId,
-      position: position,
-      name: player.name,
-      score: player.score || 0,
-      timestamp: Date.now()
-    }, playerId); // Exclude the sender
+    this.broadcast(
+      {
+        type: 'playerUpdate',
+        playerId: playerId,
+        position: position,
+        name: player.name,
+        score: player.score || 0,
+        timestamp: Date.now(),
+      },
+      playerId
+    ); // Exclude the sender
   }
 
   collectItem(playerId, collectibleId) {
@@ -177,10 +195,17 @@ class GameSession {
 
     // Log collectible collection and score
     if (ENABLE_PROGRESS_LOG && player && c) {
-      console.log(`[PROGRESS] Player '${player.name}' (${playerId}) collected '${c.type}' (ID: ${collectibleId}). New score: ${player.score}`);
+      console.log(
+        `[PROGRESS] Player '${player.name}' (${playerId}) collected '${c.type}' (ID: ${collectibleId}). New score: ${player.score}`
+      );
       // Also log score change immediately
       if (scoreChanged) {
-        this.lastLoggedScores.set(playerId, { x: player.x, y: player.y, growLevel: player.growLevel, score: player.score });
+        this.lastLoggedScores.set(playerId, {
+          x: player.x,
+          y: player.y,
+          growLevel: player.growLevel,
+          score: player.score,
+        });
       }
     }
 
@@ -191,7 +216,7 @@ class GameSession {
       collectibleId: collectibleId,
       name: player ? player.name : '',
       score: player ? player.score : 0,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -200,7 +225,7 @@ class GameSession {
     if (!player || !player.ws) return;
 
     const gameState = {
-      players: Array.from(this.players.values()).map(p => ({
+      players: Array.from(this.players.values()).map((p) => ({
         id: p.id,
         x: p.x,
         y: p.y,
@@ -209,15 +234,15 @@ class GameSession {
         growLevel: p.growLevel,
         isHost: p.isHost,
         name: p.name,
-        score: p.score || 0
+        score: p.score || 0,
       })),
       collectibles: Array.from(this.collectibles.values()),
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     this.send(player.ws, {
       type: 'gameState',
-      gameState: gameState
+      gameState: gameState,
     });
   }
 

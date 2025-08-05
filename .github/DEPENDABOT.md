@@ -5,7 +5,7 @@ This repository uses GitHub Dependabot to automatically keep dependencies up to 
 ## Ecosystems Monitored
 
 - **Docker**: Base images in `Dockerfile` (weekly updates)
-- **npm**: JavaScript/TypeScript dependencies in `package.json` (weekly updates)  
+- **npm**: JavaScript/TypeScript dependencies in `package.json` (weekly updates)
 - **GitHub Actions**: Workflow dependencies in `.github/workflows/` (weekly updates)
 
 ## Manual Update Checks

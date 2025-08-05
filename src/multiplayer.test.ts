@@ -1,11 +1,15 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { WebSocket } from 'ws';
 import fetch from 'node-fetch';
-import { setupServer, teardownServer, getTestPort } from '../test/server-manager';
+import {
+  setupServer,
+  teardownServer,
+  getTestPort,
+} from '../test/server-manager';
 
 beforeAll(async () => {
   await setupServer();
-  await new Promise(r => setTimeout(r, 400));
+  await new Promise((r) => setTimeout(r, 400));
 });
 
 afterAll(async () => {
@@ -13,7 +17,7 @@ afterAll(async () => {
 });
 
 function wait(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 describe('Multiplayer server', () => {
@@ -37,7 +41,7 @@ describe('Multiplayer server', () => {
     await fetch(getBaseUrl() + '/register-collectibles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ collectibles: [{ id: 'coin1', type: 'coin' }] })
+      body: JSON.stringify({ collectibles: [{ id: 'coin1', type: 'coin' }] }),
     });
 
     // Player 1 joins
@@ -46,7 +50,14 @@ describe('Multiplayer server', () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let ws1Ready = false;
     ws1.on('open', () => {
-      ws1.send(JSON.stringify({ type: 'join', playerId: 'p1', name: 'P1', timestamp: Date.now() }));
+      ws1.send(
+        JSON.stringify({
+          type: 'join',
+          playerId: 'p1',
+          name: 'P1',
+          timestamp: Date.now(),
+        })
+      );
     });
     ws1.on('message', (data: any) => {
       const msg = JSON.parse(data.toString());
@@ -62,7 +73,13 @@ describe('Multiplayer server', () => {
     await wait(200);
 
     // Player 1 collects the coin
-    ws1.send(JSON.stringify({ type: 'collectItem', playerId: 'p1', collectibleId: 'coin1' }));
+    ws1.send(
+      JSON.stringify({
+        type: 'collectItem',
+        playerId: 'p1',
+        collectibleId: 'coin1',
+      })
+    );
     await wait(200);
     expect(ws1Score).toBe(1);
     ws1.close();
@@ -73,7 +90,7 @@ describe('Multiplayer server', () => {
     await fetch(getBaseUrl() + '/register-collectibles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ collectibles: [{ id: 'coin2', type: 'coin' }] })
+      body: JSON.stringify({ collectibles: [{ id: 'coin2', type: 'coin' }] }),
     });
 
     // Player 1 joins
@@ -85,7 +102,14 @@ describe('Multiplayer server', () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let ws2Ready = false;
     ws1.on('open', () => {
-      ws1.send(JSON.stringify({ type: 'join', playerId: 'p1', name: 'P1', timestamp: Date.now() }));
+      ws1.send(
+        JSON.stringify({
+          type: 'join',
+          playerId: 'p1',
+          name: 'P1',
+          timestamp: Date.now(),
+        })
+      );
     });
     ws1.on('message', (data: any) => {
       const msg = JSON.parse(data.toString());
@@ -98,7 +122,14 @@ describe('Multiplayer server', () => {
     // Player 2 joins
     const ws2 = new WebSocket(getWsUrl());
     ws2.on('open', () => {
-      ws2.send(JSON.stringify({ type: 'join', playerId: 'p2', name: 'P2', timestamp: Date.now() }));
+      ws2.send(
+        JSON.stringify({
+          type: 'join',
+          playerId: 'p2',
+          name: 'P2',
+          timestamp: Date.now(),
+        })
+      );
     });
     ws2.on('message', (data: any) => {
       const msg = JSON.parse(data.toString());
@@ -112,7 +143,13 @@ describe('Multiplayer server', () => {
     await wait(300);
 
     // Player 2 collects the coin
-    ws2.send(JSON.stringify({ type: 'collectItem', playerId: 'p2', collectibleId: 'coin2' }));
+    ws2.send(
+      JSON.stringify({
+        type: 'collectItem',
+        playerId: 'p2',
+        collectibleId: 'coin2',
+      })
+    );
     await wait(300);
     expect(ws2Score).toBe(1);
     expect(ws1Score).toBe(1);
@@ -125,7 +162,7 @@ describe('Multiplayer server', () => {
     await fetch(getBaseUrl() + '/register-collectibles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ collectibles: [{ id: 'coin3', type: 'coin' }] })
+      body: JSON.stringify({ collectibles: [{ id: 'coin3', type: 'coin' }] }),
     });
 
     // Player joins
@@ -136,22 +173,35 @@ describe('Multiplayer server', () => {
     let playerUpdateReceived = false;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let gameStateReceived = false;
-    
+
     ws.on('open', () => {
-      ws.send(JSON.stringify({ type: 'join', playerId: 'collector', name: 'Collector', timestamp: Date.now() }));
+      ws.send(
+        JSON.stringify({
+          type: 'join',
+          playerId: 'collector',
+          name: 'Collector',
+          timestamp: Date.now(),
+        })
+      );
     });
-    
+
     ws.on('message', (data: any) => {
       const msg = JSON.parse(data.toString());
       if (msg.type === 'gameState') {
         gameStateReceived = true;
         // Find self in the gameState
-        const selfPlayer = msg.gameState.players.find((p: any) => p.id === 'collector');
+        const selfPlayer = msg.gameState.players.find(
+          (p: any) => p.id === 'collector'
+        );
         if (selfPlayer && typeof selfPlayer.score === 'number') {
           playerScore = selfPlayer.score;
         }
       }
-      if (msg.type === 'itemCollected' && msg.collectibleId === 'coin3' && msg.playerId === 'collector') {
+      if (
+        msg.type === 'itemCollected' &&
+        msg.collectibleId === 'coin3' &&
+        msg.playerId === 'collector'
+      ) {
         itemCollectedReceived = true;
         if (typeof msg.score === 'number') {
           playerScore = msg.score;
@@ -169,13 +219,19 @@ describe('Multiplayer server', () => {
     await wait(200);
 
     // Player collects the coin
-    ws.send(JSON.stringify({ type: 'collectItem', playerId: 'collector', collectibleId: 'coin3' }));
+    ws.send(
+      JSON.stringify({
+        type: 'collectItem',
+        playerId: 'collector',
+        collectibleId: 'coin3',
+      })
+    );
     await wait(300);
 
     // The player should receive their own score update through itemCollected or subsequent messages
     expect(playerScore).toBe(1);
     expect(itemCollectedReceived).toBe(true);
-    
+
     ws.close();
   });
 
@@ -184,23 +240,34 @@ describe('Multiplayer server', () => {
     await fetch(getBaseUrl() + '/register-collectibles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ collectibles: [{ id: 'coin4', type: 'coin' }] })
+      body: JSON.stringify({ collectibles: [{ id: 'coin4', type: 'coin' }] }),
     });
 
     const ws = new WebSocket(getWsUrl());
     let receivedScore = 0;
     let scoreUpdateCount = 0;
-    
+
     ws.on('open', () => {
-      ws.send(JSON.stringify({ type: 'join', playerId: 'scoretest', name: 'ScoreTest', timestamp: Date.now() }));
+      ws.send(
+        JSON.stringify({
+          type: 'join',
+          playerId: 'scoretest',
+          name: 'ScoreTest',
+          timestamp: Date.now(),
+        })
+      );
     });
-    
+
     ws.on('message', (data: any) => {
       const msg = JSON.parse(data.toString());
-      
+
       // Count all score updates for this player
-      if ((msg.type === 'itemCollected' || msg.type === 'playerUpdate' || msg.type === 'gameState') && 
-          typeof msg.score === 'number') {
+      if (
+        (msg.type === 'itemCollected' ||
+          msg.type === 'playerUpdate' ||
+          msg.type === 'gameState') &&
+        typeof msg.score === 'number'
+      ) {
         if (msg.type === 'itemCollected' && msg.playerId === 'scoretest') {
           receivedScore = msg.score;
           scoreUpdateCount++;
@@ -210,7 +277,9 @@ describe('Multiplayer server', () => {
           scoreUpdateCount++;
         }
         if (msg.type === 'gameState') {
-          const selfPlayer = msg.gameState.players.find((p: any) => p.id === 'scoretest');
+          const selfPlayer = msg.gameState.players.find(
+            (p: any) => p.id === 'scoretest'
+          );
           if (selfPlayer && typeof selfPlayer.score === 'number') {
             receivedScore = selfPlayer.score;
             scoreUpdateCount++;
@@ -223,24 +292,33 @@ describe('Multiplayer server', () => {
     await wait(200);
 
     // Collect coin
-    ws.send(JSON.stringify({ type: 'collectItem', playerId: 'scoretest', collectibleId: 'coin4' }));
+    ws.send(
+      JSON.stringify({
+        type: 'collectItem',
+        playerId: 'scoretest',
+        collectibleId: 'coin4',
+      })
+    );
     await wait(300);
 
     // Verify score was updated correctly
     expect(receivedScore).toBe(1);
     expect(scoreUpdateCount).toBeGreaterThan(0);
-    
+
     ws.close();
   });
 
   it('should handle bonus level collectibles correctly when registered', async () => {
     // Test that bonus level collectibles work the same as regular level collectibles
     // Register multiple bonus level coins (simulating a lot of coins in bonus level)
-    const bonusCoins = Array.from({length: 10}, (_, i) => ({ id: `bonus_coin_${i}`, type: 'coin' }));
+    const bonusCoins = Array.from({ length: 10 }, (_, i) => ({
+      id: `bonus_coin_${i}`,
+      type: 'coin',
+    }));
     await fetch(getBaseUrl() + '/register-collectibles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ collectibles: bonusCoins })
+      body: JSON.stringify({ collectibles: bonusCoins }),
     });
 
     // Player joins
@@ -249,24 +327,33 @@ describe('Multiplayer server', () => {
     let scoreUpdates = 0;
 
     ws.on('open', () => {
-      ws.send(JSON.stringify({ type: 'join', playerId: 'bonustest', name: 'BonusTest', timestamp: Date.now() }));
+      ws.send(
+        JSON.stringify({
+          type: 'join',
+          playerId: 'bonustest',
+          name: 'BonusTest',
+          timestamp: Date.now(),
+        })
+      );
     });
 
     ws.on('message', (data: any) => {
       const msg = JSON.parse(data.toString());
-      
+
       if (msg.type === 'itemCollected' && msg.playerId === 'bonustest') {
         playerScore = msg.score;
         scoreUpdates++;
       }
-      
+
       if (msg.type === 'playerUpdate' && msg.playerId === 'bonustest') {
         playerScore = msg.score;
         scoreUpdates++;
       }
-      
+
       if (msg.type === 'gameState') {
-        const selfPlayer = msg.gameState.players.find((p: any) => p.id === 'bonustest');
+        const selfPlayer = msg.gameState.players.find(
+          (p: any) => p.id === 'bonustest'
+        );
         if (selfPlayer && typeof selfPlayer.score === 'number') {
           playerScore = selfPlayer.score;
         }
@@ -277,7 +364,13 @@ describe('Multiplayer server', () => {
 
     // Collect multiple coins rapidly (simulating bonus level collection)
     for (let i = 0; i < 5; i++) {
-      ws.send(JSON.stringify({ type: 'collectItem', playerId: 'bonustest', collectibleId: `bonus_coin_${i}` }));
+      ws.send(
+        JSON.stringify({
+          type: 'collectItem',
+          playerId: 'bonustest',
+          collectibleId: `bonus_coin_${i}`,
+        })
+      );
       await wait(50); // Small delay between collections
     }
 
@@ -286,7 +379,7 @@ describe('Multiplayer server', () => {
     // Verify the score increased correctly for multiple coins
     expect(playerScore).toBe(5);
     expect(scoreUpdates).toBeGreaterThan(0);
-    
+
     ws.close();
   });
 });

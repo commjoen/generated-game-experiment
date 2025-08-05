@@ -4,6 +4,7 @@
 [![Deploy to GitHub Pages](https://github.com/commjoen/generated-game-experiment/actions/workflows/deploy.yml/badge.svg)](https://github.com/commjoen/generated-game-experiment/actions/workflows/deploy.yml)
 [![Docker Build and Release](https://github.com/commjoen/generated-game-experiment/actions/workflows/docker-release.yml/badge.svg)](https://github.com/commjoen/generated-game-experiment/actions/workflows/docker-release.yml)
 [![Create Release](https://github.com/commjoen/generated-game-experiment/actions/workflows/release.yml/badge.svg)](https://github.com/commjoen/generated-game-experiment/actions/workflows/release.yml)
+[![Deploy to itch.io](https://github.com/commjoen/generated-game-experiment/actions/workflows/itch-io-deploy.yml/badge.svg)](https://github.com/commjoen/generated-game-experiment/actions/workflows/itch-io-deploy.yml)
 
 <!-- Project Status -->
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
@@ -15,6 +16,7 @@
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-success.svg)](https://commjoen.github.io/generated-game-experiment/)
 [![PR Previews](https://img.shields.io/badge/PR%20Previews-Enabled-blue.svg)](https://github.com/commjoen/generated-game-experiment/actions/workflows/pr-preview.yml)
 [![Render Deployment](https://img.shields.io/badge/Render-Deployed-46E3B7.svg)](https://generated-game-experiment.onrender.com/)
+[![itch.io](https://img.shields.io/badge/itch.io-Available-FA5C5C.svg?logo=itch.io)](https://commjoen.itch.io/generated-game-experiment)
 [![Docker](https://img.shields.io/badge/Docker-Available-2496ED.svg)](https://github.com/commjoen/generated-game-experiment/pkgs/container/generated-game-experiment)
 
 <!-- Quality & Security -->
@@ -44,6 +46,8 @@ A browser-based, side-scrolling platformer game built with TypeScript, Vite, and
 [![Play Multiplayer on Render](https://img.shields.io/badge/🎮%20Play%20Multiplayer-on%20Render-46E3B7?style=for-the-badge&logo=render)](https://generated-game-experiment.onrender.com/)
 
 [![Play Singleplayer on GitHub Pages](https://img.shields.io/badge/🎮%20Play%20Singleplayer-on%20GitHub%20Pages-238636?style=for-the-badge&logo=github)](https://commjoen.github.io/generated-game-experiment/)
+
+[![Play on itch.io](https://img.shields.io/badge/🎮%20Play%20on-itch.io-FA5C5C?style=for-the-badge&logo=itch.io)](https://commjoen.itch.io/generated-game-experiment)
 
 ## Features
 - **Procedural Levels**: Each run generates a new level with platforms, spikes, moving platforms, and boxes.
@@ -111,6 +115,36 @@ A browser-based, side-scrolling platformer game built with TypeScript, Vite, and
 - Live at: https://commjoen.github.io/generated-game-experiment/
 - **PR Previews**: Each pull request gets its own preview deployment at `https://commjoen.github.io/generated-game-experiment/pr-{number}/`
 - Preview deployments are automatically cleaned up when PRs are closed or merged
+
+## itch.io Deployment
+- **Automatic**: Game is automatically deployed to itch.io when a new release is created
+- **Manual**: Can be triggered manually via GitHub Actions workflow dispatch
+- **Live at**: https://commjoen.itch.io/generated-game-experiment
+
+### Setting up itch.io Integration
+To enable automatic itch.io deployments, you need to configure the following repository secrets:
+
+1. **`BUTLER_API_KEY`** (Required): Your itch.io API key
+   - Go to https://itch.io/user/settings/api-keys
+   - Generate a new API key
+   - Add it as a repository secret
+
+2. **`ITCH_USER`** (Optional): Your itch.io username
+   - Defaults to `commjoen` if not provided
+   - Override if deploying to a different itch.io account
+
+3. **`ITCH_GAME`** (Optional): Your itch.io game slug
+   - Defaults to `generated-game-experiment` if not provided
+   - Should match your game's URL: `https://[username].itch.io/[game-slug]`
+
+📖 **For detailed setup instructions, see: [docs/ITCH_IO_SETUP.md](docs/ITCH_IO_SETUP.md)**
+
+### How it works
+- Triggers automatically when a release is published
+- Builds the game using `npm run build`
+- Uses itch.io's `butler` CLI tool to upload the HTML5 build
+- Deploys to the `html` channel on itch.io
+- Version matches the GitHub release tag
 
 ## Testing
 - Run all tests:

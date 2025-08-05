@@ -136,8 +136,12 @@ interface SlopePlatform {
   height: number;
   endY: number; // right Y
   isSlope: true;
+  willHaveEnemies?: boolean; // Optional flag for enemy spawning
 }
-type Platform = Rect | SlopePlatform;
+interface RegularPlatform extends Rect {
+  willHaveEnemies?: boolean; // Optional flag for enemy spawning
+}
+type Platform = RegularPlatform | SlopePlatform;
 
 const platforms: Platform[] = [];
 const boxes: Rect[] = [];
@@ -382,9 +386,19 @@ async function generateLevel() {
   let doubleJumpPlaced = false;
   let growPlaced = false;
   const platformCenters: { x: number; y: number }[] = [];
+  let platformIndex = 0;
   while (x < LEVEL_WIDTH) {
-    // Make blocks longer: 160-320, with some extra long
-    const platformWidth = Math.random() < 0.2 ? 320 : 160 + Math.random() * 160;
+    // Determine if this platform will have enemies
+    const isFirstPlatform = platformIndex === 0;
+    const spawnPlatform = x <= 100 && x + 400 >= 100; // Check if spawn point (x=100) would be on this platform
+    const willHaveEnemies = !isFirstPlatform && !spawnPlatform && Math.random() < 0.2; // 20% chance for enemy platforms, but never on first or spawn platform
+    
+    // Make enemy platforms much longer (at least 3x regular platforms)
+    // Regular platforms: 160-320, Enemy platforms: 960-1200 (at least 3x the maximum regular size)
+    const platformWidth = willHaveEnemies 
+      ? 960 + Math.random() * 240  // Enemy platforms: 960-1200px (3x+ regular platforms)
+      : (Math.random() < 0.2 ? 320 : 160 + Math.random() * 160); // Regular platforms: 160-320px
+    
     let plat: Platform;
     if (Math.random() < 0.25) {
       // 25% chance for a slope
@@ -398,9 +412,16 @@ async function generateLevel() {
         height: 50,
         endY: GROUND_Y + slopeDelta,
         isSlope: true,
+        willHaveEnemies, // Add flag to track which platforms should have enemies
       };
     } else {
-      plat = { x, y: GROUND_Y, width: platformWidth, height: 50 };
+      plat = { 
+        x, 
+        y: GROUND_Y, 
+        width: platformWidth, 
+        height: 50,
+        willHaveEnemies, // Add flag to track which platforms should have enemies
+      };
     }
     platforms.push(plat);
     // Save platform center for possible heart placement
@@ -433,12 +454,18 @@ async function generateLevel() {
         startX: x - 60,
       });
     }
-    // Add spawn tubes on some platforms (no immediate enemies)
-    if (Math.random() < 0.3 && platformWidth > 120) {
-      const tubeX = x + 40;
-      const tubeY = GROUND_Y - 60; // Position tube to start deeper below floor for longer appearance
+    // Add spawn tubes only on platforms designated for enemies
+    if (plat.willHaveEnemies && platformWidth > 200) {
       const tubeWidth = 40; // Larger tube
       const tubeHeight = 80; // Longer tube - extends from below platform up through it
+      
+      // Calculate random position within the platform, with some padding to avoid edges
+      const padding = 40; // Minimum distance from platform edges
+      const minTubeX = x + padding;
+      const maxTubeX = x + platformWidth - tubeWidth - padding;
+      const tubeX = minTubeX + Math.random() * Math.max(0, maxTubeX - minTubeX);
+      
+      const tubeY = GROUND_Y - 60; // Position tube to start deeper below floor for longer appearance
       
       // Add the spawn tube
       tubes.push({
@@ -456,6 +483,7 @@ async function generateLevel() {
     if (Math.random() < 0.5 && x < LEVEL_WIDTH - 50) {
       boxes.push({ x: x + 10, y: GROUND_Y - 40, width: 40, height: 40 });
     }
+    platformIndex++;
   }
   // Place a heart collectible on a random platform (at most 1 per level)
   if (platformCenters.length > 0) {

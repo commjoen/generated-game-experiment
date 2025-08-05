@@ -137,6 +137,8 @@ To enable automatic itch.io deployments, you need to configure the following rep
    - Defaults to `generated-game-experiment` if not provided
    - Should match your game's URL: `https://[username].itch.io/[game-slug]`
 
+📖 **For detailed setup instructions, see: [docs/ITCH_IO_SETUP.md](docs/ITCH_IO_SETUP.md)**
+
 ### How it works
 - Triggers automatically when a release is published
 - Builds the game using `npm run build`

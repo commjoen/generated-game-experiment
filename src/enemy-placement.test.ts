@@ -76,14 +76,22 @@ function generateTestLevel(LEVEL_WIDTH: number = 3200, GROUND_Y: number = 400) {
     
     // Add spawn tubes only on platforms designated for enemies
     if (plat.willHaveEnemies && platformWidth > 200) {
-      const tubeX = x + 40;
+      const tubeWidth = 40;
+      const tubeHeight = 80;
+      
+      // Calculate random position within the platform, with some padding to avoid edges
+      const padding = 40;
+      const minTubeX = x + padding;
+      const maxTubeX = x + platformWidth - tubeWidth - padding;
+      const tubeX = minTubeX + Math.random() * Math.max(0, maxTubeX - minTubeX);
+      
       const tubeY = GROUND_Y - 60;
       
       tubes.push({
         x: tubeX,
         y: tubeY,
-        width: 40,
-        height: 80,
+        width: tubeWidth,
+        height: tubeHeight,
         id: `tube_${tubeIdCounter++}`,
         hasSpawnedEnemy: false,
       });
@@ -239,5 +247,64 @@ describe('Enemy Placement Logic', () => {
         expect(platform.width).toBeLessThanOrEqual(320);
       });
     }
+  });
+
+  it('should place tubes at random positions within enemy platform boundaries', () => {
+    // Mock random to ensure we get platforms with enemies and random tube positions
+    let callCount = 0;
+    vi.spyOn(Math, 'random').mockImplementation(() => {
+      // Mix of values to create enemy platforms and different tube positions
+      const values = [0.1, 0.8, 0.3, 0.15, 0.9, 0.7, 0.2, 0.85, 0.6, 0.4];
+      return values[callCount++ % values.length];
+    });
+    
+    const { platforms, tubes } = generateTestLevel();
+    
+    const enemyPlatforms = platforms.filter(p => p.willHaveEnemies);
+    
+    // Check that tubes are positioned within their host platform boundaries with proper padding
+    tubes.forEach(tube => {
+      const hostPlatform = platforms.find(plat => 
+        tube.x >= plat.x && tube.x + tube.width <= plat.x + plat.width
+      );
+      
+      expect(hostPlatform).toBeDefined();
+      expect(hostPlatform?.willHaveEnemies).toBe(true);
+      
+      // Verify tube is within platform boundaries with padding
+      const padding = 40;
+      const tubeWidth = 40;
+      expect(tube.x).toBeGreaterThanOrEqual(hostPlatform!.x + padding);
+      expect(tube.x + tubeWidth).toBeLessThanOrEqual(hostPlatform!.x + hostPlatform!.width - padding);
+    });
+  });
+
+  it('should place tubes with sufficient spacing from platform edges', () => {
+    // Mock random to create predictable tube positions
+    let callCount = 0;
+    vi.spyOn(Math, 'random').mockImplementation(() => {
+      const values = [0.1, 0.8, 0.0, 0.5, 1.0]; // Include edge cases for tube positioning
+      return values[callCount++ % values.length];
+    });
+    
+    const { platforms, tubes } = generateTestLevel();
+    
+    const minPadding = 40;
+    const tubeWidth = 40;
+    
+    tubes.forEach(tube => {
+      const hostPlatform = platforms.find(plat => 
+        tube.x >= plat.x && tube.x + tubeWidth <= plat.x + plat.width
+      );
+      
+      expect(hostPlatform).toBeDefined();
+      
+      // Verify minimum padding from platform edges
+      const leftDistance = tube.x - hostPlatform!.x;
+      const rightDistance = (hostPlatform!.x + hostPlatform!.width) - (tube.x + tubeWidth);
+      
+      expect(leftDistance).toBeGreaterThanOrEqual(minPadding);
+      expect(rightDistance).toBeGreaterThanOrEqual(minPadding);
+    });
   });
 });

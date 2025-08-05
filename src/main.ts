@@ -578,7 +578,6 @@ async function generateLevel() {
     }
   }
 }
-generateLevel().then(() => resetPlayer());
 
 function rectsCollide(a: Rect, b: Rect) {
   return (
@@ -605,6 +604,22 @@ let playerCharacter = localStorage.getItem('playerCharacter') || 'SQUARE'; // De
 let purchasedUpgrades: Record<string, boolean> = JSON.parse(
   localStorage.getItem('purchasedUpgrades') || '{}'
 );
+
+// Initialize game after loading upgrades - apply upgrades after everything is set up
+generateLevel().then(() => {
+  resetPlayer();
+}).then(() => {
+  // Apply purchased upgrades to starting lives (after all initialization is complete)
+  if (purchasedUpgrades['extra_life']) {
+    lives = 4;
+  } else if (purchasedUpgrades['tough_skin']) {
+    lives = 5;
+  }
+  // Apply other starting upgrades
+  if (purchasedUpgrades['double_jump_start']) {
+    player.hasDoubleJump = true;
+  }
+});
 
 // Available upgrades and their costs
 const UPGRADES = {
@@ -1614,7 +1629,7 @@ function update(deltaTime: number) {
           addTotalPoints(coinValue);
         } else {
           // In single-player mode, update both score and total points locally.
-          score++;
+          score += coinValue;
           addTotalPoints(coinValue);
           setTopScore(score);
         }

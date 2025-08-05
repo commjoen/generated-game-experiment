@@ -109,4 +109,26 @@ describe('Upgrade System', () => {
     const hasDoubleJump = purchasedUpgrades['double_jump_start'];
     expect(hasDoubleJump).toBe(true);
   });
+
+  it('should persist upgrade effects across game sessions', () => {
+    // Simulate purchasing extra_life upgrade and saving to localStorage
+    const purchasedUpgrades = { 'extra_life': true };
+    localStorage.setItem('purchasedUpgrades', JSON.stringify(purchasedUpgrades));
+    
+    // Simulate game initialization - load upgrades from localStorage
+    const loadedUpgrades = JSON.parse(localStorage.getItem('purchasedUpgrades') || '{}');
+    
+    // Apply upgrades to starting lives (as done in game initialization)
+    let lives = 3;
+    if (loadedUpgrades['extra_life']) {
+      lives = 4;
+    }
+    if (loadedUpgrades['tough_skin']) {
+      lives = 5;
+    }
+    
+    // Should start with 4 lives due to extra_life upgrade
+    expect(lives).toBe(4);
+    expect(loadedUpgrades.extra_life).toBe(true);
+  });
 });

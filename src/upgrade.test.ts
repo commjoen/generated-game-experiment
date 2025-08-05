@@ -100,6 +100,7 @@ describe('Upgrade System', () => {
     expect(lives).toBe(5);
 
     // Test speed boost
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const baseSpeed = 5;
     const currentSpeedMultiplier = 1;
     const speedMultiplier = currentSpeedMultiplier * (purchasedUpgrades['speed_boost'] ? 1.5 : 1);

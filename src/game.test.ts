@@ -13,7 +13,7 @@ afterAll(async () => {
 });
 
 // Helper to get the base URL for requests
-function getBaseUrl() {
+function _getBaseUrl() {
   return `http://localhost:${getTestPort()}`;
 }
 
@@ -110,14 +110,14 @@ describe('Game basics', () => {
 describe('Game state logic', () => {
   let score: number;
   let lives: number;
-  let topScore: number;
+  let _topScore: number;
   let gameOver: boolean;
   let options: { fixedGradient: boolean; scrollGradient: boolean; imageBg: boolean };
 
   beforeEach(() => {
     score = 0;
     lives = 3;
-    topScore = 10;
+    _topScore = 10;
     gameOver = false;
     options = { fixedGradient: false, scrollGradient: false, imageBg: false };
   });
@@ -888,7 +888,7 @@ describe('Eat/Spit enemy functionality', () => {
     enemies = [];
   });
 
-  function rectsCollide(a: any, b: any) {
+  function _rectsCollide(a: any, b: any) {
     return (
       a.x < b.x + b.width &&
       a.x + a.width > b.x &&

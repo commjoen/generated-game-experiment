@@ -43,6 +43,7 @@ describe('Multiplayer server', () => {
     // Player 1 joins
     const ws1 = new WebSocket(getWsUrl());
     let ws1Score = 0;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let ws1Ready = false;
     ws1.on('open', () => {
       ws1.send(JSON.stringify({ type: 'join', playerId: 'p1', name: 'P1', timestamp: Date.now() }));
@@ -79,7 +80,9 @@ describe('Multiplayer server', () => {
     const ws1 = new WebSocket(getWsUrl());
     let ws1Score = 0;
     let ws2Score = 0;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let ws1Ready = false;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let ws2Ready = false;
     ws1.on('open', () => {
       ws1.send(JSON.stringify({ type: 'join', playerId: 'p1', name: 'P1', timestamp: Date.now() }));
@@ -129,7 +132,9 @@ describe('Multiplayer server', () => {
     const ws = new WebSocket(getWsUrl());
     let playerScore = 0;
     let itemCollectedReceived = false;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let playerUpdateReceived = false;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let gameStateReceived = false;
     
     ws.on('open', () => {

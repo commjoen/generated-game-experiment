@@ -5,15 +5,78 @@
 
 version: 2
 updates:
-  - package-ecosystem: "docker" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  # Docker ecosystem monitoring
+  - package-ecosystem: "docker"
+    directory: "/"
     schedule:
       interval: "weekly"
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/" # Location of package manifests
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "commjoen"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+    rebase-strategy: "auto"
+
+  # npm ecosystem monitoring (main package.json)
+  - package-ecosystem: "npm"
+    directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "commjoen"
+    groups:
+      typescript-eslint:
+        patterns:
+          - "@typescript-eslint/*"
+      dev-dependencies:
+        patterns:
+          - "@types/*"
+          - "eslint*"
+          - "prettier*"
+          - "vite*"
+          - "vitest*"
+          - "jsdom*"
+          - "typescript"
+      server-dependencies:
+        patterns:
+          - "express*"
+          - "cors*"
+          - "ws*"
+          - "node-fetch*"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    pull-request-branch-name:
+      separator: "/"
+    labels:
+      - "dependencies"
+    rebase-strategy: "auto"
+    # Allow all update types including security
+    allow:
+      - dependency-type: "all"
+
+  # GitHub Actions monitoring
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "commjoen"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "github-actions"
+    rebase-strategy: "auto"

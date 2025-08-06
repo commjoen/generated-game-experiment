@@ -3,10 +3,10 @@ import {
   setupServer,
   teardownServer,
   getTestPort,
-} from '../test/server-manager';
-import { generateVerticalLevel, VerticalLevel } from './verticalLevel';
+} from '../test/server-manager.js';
+import { generateVerticalLevel, VerticalLevel, Platform, Collectible } from './verticalLevel.js';
 // For bonus level test
-import { generateBonusVerticalLevelForTest } from './bonusLevel';
+import { generateBonusVerticalLevelForTest } from './bonusLevel.js';
 
 beforeAll(async () => {
   await setupServer();
@@ -417,7 +417,7 @@ describe('Vertical level generation', () => {
     const level: VerticalLevel = generateVerticalLevel(canvasWidth);
     const spawnY = 3200;
     const hasSpawnBlock = level.platforms.some(
-      (plat) => plat.y <= spawnY && plat.y + plat.height >= spawnY - 40
+      (plat: Platform) => plat.y <= spawnY && plat.y + plat.height >= spawnY - 40
     );
     expect(hasSpawnBlock).toBe(true);
   });
@@ -425,7 +425,7 @@ describe('Vertical level generation', () => {
   it('should generate at least one heart, doublejump, and grow collectible if enough platforms', () => {
     const canvasWidth = 800;
     const level: VerticalLevel = generateVerticalLevel(canvasWidth);
-    const types = level.collectibles.map((c) => c.type);
+    const types = level.collectibles.map((c: Collectible) => c.type);
     expect(types).toContain('heart');
     expect(types).toContain('doublejump');
     expect(types).toContain('grow');

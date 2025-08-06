@@ -1,7 +1,7 @@
-const WebSocket = require('ws');
-const express = require('express');
-const http = require('http');
-const cors = require('cors');
+import { WebSocketServer, WebSocket } from 'ws';
+import express from 'express';
+import http from 'http';
+import cors from 'cors';
 
 // Enable progress logging only in development (not in Docker/Render)
 const ENABLE_PROGRESS_LOG =
@@ -50,7 +50,7 @@ app.post('/register-collectibles', express.json(), (req, res) => {
 });
 
 // WebSocket server
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocketServer({ server });
 
 // Game state management
 class GameSession {

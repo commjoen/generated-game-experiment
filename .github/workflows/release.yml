@@ -78,7 +78,7 @@ jobs:
         id: current_version
         run: |
           CURRENT_VERSION=$(node -p "require('./package.json').version")
-          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
           echo "Current version: $CURRENT_VERSION"
 
       - name: Calculate new version
@@ -142,7 +142,7 @@ jobs:
           TAG_NAME="v$NEW_VERSION"
 
           # Configure git to use the token for authentication
-          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
 
           git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
           git push origin "$TAG_NAME"
@@ -161,28 +161,32 @@ jobs:
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
 
           if [ -z "$PREVIOUS_TAG" ]; then
-            echo "## What's New in $TAG_NAME" > release_notes.md
-            echo "" >> release_notes.md
-            echo "This is the first tagged release of the Generated Game Experiment!" >> release_notes.md
-            echo "" >> release_notes.md
-            echo "### 🎮 Features" >> release_notes.md
-            echo "- Browser-based side-scrolling platformer game" >> release_notes.md
-            echo "- Procedural level generation" >> release_notes.md
-            echo "- Collectibles and power-ups system" >> release_notes.md
-            echo "- Optional multiplayer support via WebSocket" >> release_notes.md
-            echo "- Real-time leaderboard" >> release_notes.md
-            echo "- Mobile-friendly controls" >> release_notes.md
-            echo "- Docker containerization for easy deployment" >> release_notes.md
-            echo "" >> release_notes.md
-            echo "### 🚀 Deployment" >> release_notes.md
-            echo "- **Play Online:** [GitHub Pages](https://commjoen.github.io/generated-game-experiment/) (Singleplayer)" >> release_notes.md
-            echo "- **Play Multiplayer:** [Render](https://generated-game-experiment.onrender.com/)" >> release_notes.md
-            echo "- **Docker:** \`docker pull ghcr.io/commjoen/generated-game-experiment:$NEW_VERSION\`" >> release_notes.md
+            {
+              echo "## What's New in $TAG_NAME"
+              echo ""
+              echo "This is the first tagged release of the Generated Game Experiment!"
+              echo ""
+              echo "### 🎮 Features"
+              echo "- Browser-based side-scrolling platformer game"
+              echo "- Procedural level generation"
+              echo "- Collectibles and power-ups system"
+              echo "- Optional multiplayer support via WebSocket"
+              echo "- Real-time leaderboard"
+              echo "- Mobile-friendly controls"
+              echo "- Docker containerization for easy deployment"
+              echo ""
+              echo "### 🚀 Deployment"
+              echo "- **Play Online:** [GitHub Pages](https://commjoen.github.io/generated-game-experiment/) (Singleplayer)"
+              echo "- **Play Multiplayer:** [Render](https://generated-game-experiment.onrender.com/)"
+              echo "- **Docker:** \`docker pull ghcr.io/commjoen/generated-game-experiment:$NEW_VERSION\`"
+            } > release_notes.md
           else
-            echo "## What's Changed in $TAG_NAME" > release_notes.md
-            echo "" >> release_notes.md
-            echo "### 🔄 Merged Pull Requests since $PREVIOUS_TAG" >> release_notes.md
-            echo "" >> release_notes.md
+            {
+              echo "## What's Changed in $TAG_NAME"
+              echo ""
+              echo "### 🔄 Merged Pull Requests since $PREVIOUS_TAG"
+              echo ""
+            } > release_notes.md
 
             # Get merge commits since the previous tag and extract PR information
             # Get merge commits since the previous tag and extract PR information
@@ -235,18 +239,22 @@ jobs:
               rm -f /tmp/merge_commits.txt
             else
               # No merge commits found, fall back to regular commits
-              echo "" >> release_notes.md
-              echo "### 📝 Commits since $PREVIOUS_TAG" >> release_notes.md
+              {
+                echo ""
+                echo "### 📝 Commits since $PREVIOUS_TAG"
+              } >> release_notes.md
               git log "$PREVIOUS_TAG..HEAD" --pretty=format:"- %s (%h)" >> release_notes.md
             fi
           fi
 
-          echo "" >> release_notes.md
-          echo "### 🔧 Technical Details" >> release_notes.md
-          echo "- **Version:** $NEW_VERSION" >> release_notes.md
-          echo "- **Node.js:** $(node --version)" >> release_notes.md
-          echo "- **Built:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> release_notes.md
-          echo "- **Commit:** ${{ github.sha }}" >> release_notes.md
+          {
+            echo ""
+            echo "### 🔧 Technical Details"
+            echo "- **Version:** $NEW_VERSION"
+            echo "- **Node.js:** $(node --version)"
+            echo "- **Built:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+            echo "- **Commit:** ${{ github.sha }}"
+          } >> release_notes.md
 
           # Store the release notes content
           {

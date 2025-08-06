@@ -982,7 +982,7 @@ function setPlayerSizeByGrowLevel() {
   }
 }
 
-function spitOutEnemy() {
+function _spitOutEnemy() {
   if (!player.eatenEnemy) return;
 
   // Create a new enemy in front of the player
@@ -1118,7 +1118,7 @@ function startRopeSpittingAnimation() {
 }
 
 function startRopeTargetingAnimation() {
-  const eatingDistance = getEatingDistance();
+  const _eatingDistance = getEatingDistance();
 
   ropeAnimation.type = 'targeting';
   ropeAnimation.progress = 0;
@@ -1818,7 +1818,7 @@ function update(deltaTime: number) {
   if (levelType === 'vertical') {
     const widest = Math.max(...platforms.map((p) => p.width));
     const levelW = Math.max(canvas.width, widest);
-    const scale = canvas.width / levelW;
+    const _scale = canvas.width / levelW;
     // Clamp player.x so they cannot move off screen
     player.x = Math.max(0, Math.min(player.x, levelW - player.width));
   } else {
@@ -1941,7 +1941,6 @@ const COMMITHASH =
   typeof __COMMITHASH__ !== 'undefined' ? __COMMITHASH__ : 'unknown';
 const BRANCH = typeof __BRANCH__ !== 'undefined' ? __BRANCH__ : 'unknown';
 const GITTAG = typeof __GITTAG__ !== 'undefined' ? __GITTAG__ : 'none';
-// @ts-ignore
 const BUILDDATE =
   typeof __BUILDDATE__ !== 'undefined' ? __BUILDDATE__ : 'unknown';
 
@@ -2998,7 +2997,7 @@ if (multiplayerEnabled) {
       } else {
         console.log('Running in single-player mode');
       }
-    } catch (error) {
+    } catch (_error) {
       console.log(
         'Multiplayer initialization failed, continuing in single-player mode'
       );

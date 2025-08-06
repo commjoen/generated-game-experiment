@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import viteSRI from 'vite-plugin-sri';
 import { execSync } from 'child_process';
+import packageJson from './package.json' with { type: 'json' };
 
 function safeGit(cmd: string, fallback: string) {
   try {
@@ -13,7 +14,7 @@ function safeGit(cmd: string, fallback: string) {
 
 const version = safeGit(
   'git describe --tags --always --dirty',
-  process.env.VERSION || require('./package.json').version || 'unknown'
+  process.env.VERSION || packageJson.version || 'unknown'
 );
 const commit = safeGit(
   'git rev-parse --short HEAD',

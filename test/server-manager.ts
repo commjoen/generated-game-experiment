@@ -26,7 +26,7 @@ async function killProcessOnPort(port: number) {
     if (pid) {
       execSync(`kill -9 ${pid}`);
     }
-  } catch (e) {
+  } catch (_e) {
     // Ignore if nothing to kill
   }
 }
@@ -37,7 +37,9 @@ async function waitForServer(url: string, timeout = 5000) {
     try {
       const res = await fetch(url);
       if (res.ok) return true;
-    } catch (e) {}
+    } catch (_e) {
+      // Ignore connection errors while waiting for server
+    }
     await new Promise((r) => setTimeout(r, 500));
   }
   return false;

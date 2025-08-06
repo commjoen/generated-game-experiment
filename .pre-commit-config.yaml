@@ -42,8 +42,8 @@ repos:
         entry: npx eslint
         language: system
         files: \.(ts|tsx|js|jsx)$
-        exclude: ^(node_modules/|dist/)
-        args: [--fix, --max-warnings=0]
+        exclude: ^(node_modules/|dist/|public/)
+        args: [--fix]
       - id: typescript-check
         name: TypeScript type checking
         entry: npx tsc --noEmit

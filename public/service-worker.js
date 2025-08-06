@@ -33,7 +33,7 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-  const url = new URL(event.request.url);
+  const _url = new URL(event.request.url);
   // Handle navigation requests (SPA fallback)
   if (event.request.mode === 'navigate') {
     event.respondWith(

@@ -4,7 +4,12 @@ import {
   teardownServer,
   getTestPort,
 } from '../test/server-manager.js';
-import { generateVerticalLevel, VerticalLevel, Platform, Collectible } from './verticalLevel.js';
+import {
+  generateVerticalLevel,
+  VerticalLevel,
+  Platform,
+  Collectible,
+} from './verticalLevel.js';
 // For bonus level test
 import { generateBonusVerticalLevelForTest } from './bonusLevel.js';
 
@@ -417,7 +422,8 @@ describe('Vertical level generation', () => {
     const level: VerticalLevel = generateVerticalLevel(canvasWidth);
     const spawnY = 3200;
     const hasSpawnBlock = level.platforms.some(
-      (plat: Platform) => plat.y <= spawnY && plat.y + plat.height >= spawnY - 40
+      (plat: Platform) =>
+        plat.y <= spawnY && plat.y + plat.height >= spawnY - 40
     );
     expect(hasSpawnBlock).toBe(true);
   });

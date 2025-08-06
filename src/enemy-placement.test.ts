@@ -284,7 +284,7 @@ describe('Enemy Placement Logic', () => {
 
     const { platforms, tubes } = generateTestLevel();
 
-    const enemyPlatforms = platforms.filter((p) => p.willHaveEnemies);
+    const _enemyPlatforms = platforms.filter((p) => p.willHaveEnemies);
 
     // Check that tubes are positioned within their host platform boundaries with proper padding
     tubes.forEach((tube) => {

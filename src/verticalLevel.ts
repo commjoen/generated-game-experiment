@@ -15,10 +15,7 @@ export interface MovingPlatform extends Rect {
   range: number;
   startX: number;
 }
-export interface Platform extends Rect {
-  // This interface extends Rect with platform-specific properties
-  // Currently no additional properties beyond Rect
-}
+export type Platform = Rect;
 
 export interface VerticalLevel {
   platforms: Platform[];

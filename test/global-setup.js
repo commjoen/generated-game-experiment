@@ -9,7 +9,7 @@ async function waitForServer(url, timeout = 5000) {
     try {
       const res = await fetch(url);
       if (res.ok) return;
-    } catch (e) {}
+    } catch (_e) {}
     await new Promise((r) => setTimeout(r, 500));
   }
   throw new Error('Server did not start in time');

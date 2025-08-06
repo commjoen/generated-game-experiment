@@ -68,7 +68,7 @@ export class MultiplayerManager {
         signal: AbortSignal.timeout(2000),
       });
       return response.ok;
-    } catch (error) {
+    } catch (_error) {
       console.log(
         'Multiplayer server not available, running in single-player mode'
       );
@@ -175,7 +175,7 @@ export class MultiplayerManager {
           resolve(false);
         };
       });
-    } catch (error) {
+    } catch (_error) {
       console.log(
         'Failed to initialize multiplayer, continuing in single-player mode'
       );

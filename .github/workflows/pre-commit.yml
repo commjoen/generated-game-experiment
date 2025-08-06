@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -46,4 +48,4 @@ jobs:
 
       - name: Run pre-commit on changed files (PRs)
         if: github.event_name == 'pull_request'
-        run: pre-commit run --from-ref origin/${{ github.base_ref }} --to-ref HEAD
+        run: pre-commit run --from-ref ${{ github.event.pull_request.base.sha }} --to-ref HEAD

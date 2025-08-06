@@ -5,7 +5,7 @@ import {
   setupServer,
   teardownServer,
   getTestPort,
-} from '../test/server-manager';
+} from '../test/server-manager.js';
 
 beforeAll(async () => {
   await setupServer();

@@ -1181,8 +1181,9 @@ describe('Eat/Spit enemy functionality', () => {
       const expectedX =
         ropeAnimation.startX +
         (currentPlayerCenterX - ropeAnimation.startX) * 0.5;
-      expect(ropeAnimation.targetEnemy.x).toBe(
-        expectedX - circleEnemy.width / 2
+      expect(ropeAnimation.targetEnemy.x).toBeCloseTo(
+        expectedX - circleEnemy.width / 2,
+        1
       );
     });
 

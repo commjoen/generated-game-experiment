@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import viteSRI from 'vite-plugin-sri';
 import { execSync } from 'child_process';
+import packageJson from './package.json' with { type: 'json' };
 
 function safeGit(cmd: string, fallback: string) {
   try {
@@ -11,10 +12,22 @@ function safeGit(cmd: string, fallback: string) {
   }
 }
 
-const version = safeGit('git describe --tags --always --dirty', process.env.VERSION || require('./package.json').version || 'unknown');
-const commit = safeGit('git rev-parse --short HEAD', process.env.COMMITHASH || 'unknown');
-const branch = safeGit('git rev-parse --abbrev-ref HEAD', process.env.BRANCH || 'unknown');
-const tag = safeGit('git describe --tags --abbrev=0', process.env.GITTAG || 'none');
+const version = safeGit(
+  'git describe --tags --always --dirty',
+  process.env.VERSION || packageJson.version || 'unknown'
+);
+const commit = safeGit(
+  'git rev-parse --short HEAD',
+  process.env.COMMITHASH || 'unknown'
+);
+const branch = safeGit(
+  'git rev-parse --abbrev-ref HEAD',
+  process.env.BRANCH || 'unknown'
+);
+const tag = safeGit(
+  'git describe --tags --abbrev=0',
+  process.env.GITTAG || 'none'
+);
 const buildDate = process.env.BUILDDATE || new Date().toISOString();
 
 // Use VITE_BASE_PATH env variable for base path, default to '/'

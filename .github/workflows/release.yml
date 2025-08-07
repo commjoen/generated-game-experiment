@@ -36,264 +36,272 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Check authorized user
-      run: |
-        if [ "${{ github.actor }}" != "commjoen" ]; then
-          echo "❌ Unauthorized user: ${{ github.actor }}"
-          echo "This workflow can only be triggered by @commjoen"
-          exit 1
-        fi
-        echo "✅ Authorized user: ${{ github.actor }}"
+      - name: Check authorized user
+        run: |
+          if [ "${{ github.actor }}" != "commjoen" ]; then
+            echo "❌ Unauthorized user: ${{ github.actor }}"
+            echo "This workflow can only be triggered by @commjoen"
+            exit 1
+          fi
+          echo "✅ Authorized user: ${{ github.actor }}"
 
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        # Use PAT_TOKEN if available for bypassing branch protection, fallback to GITHUB_TOKEN
-        token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
-        persist-credentials: true
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # Use PAT_TOKEN if available for bypassing branch protection, fallback to GITHUB_TOKEN
+          token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+          persist-credentials: true
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '24'
-        cache: 'npm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Run tests
-      run: npm test
+      - name: Run tests
+        run: npm test
 
-    - name: Run build
-      run: npm run build
+      - name: Run build
+        run: npm run build
 
-    - name: Configure Git
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        git config --global init.defaultBranch main
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global init.defaultBranch main
 
-    - name: Get current version
-      id: current_version
-      run: |
-        CURRENT_VERSION=$(node -p "require('./package.json').version")
-        echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-        echo "Current version: $CURRENT_VERSION"
+      - name: Get current version
+        id: current_version
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Current version: $CURRENT_VERSION"
 
-    - name: Calculate new version
-      id: new_version
-      run: |
-        CURRENT_VERSION="${{ steps.current_version.outputs.version }}"
-        CUSTOM_VERSION="${{ github.event.inputs.custom_version }}"
-        VERSION_TYPE="${{ github.event.inputs.version_type }}"
+      - name: Calculate new version
+        id: new_version
+        run: |
+          CURRENT_VERSION="${{ steps.current_version.outputs.version }}"
+          CUSTOM_VERSION="${{ github.event.inputs.custom_version }}"
+          VERSION_TYPE="${{ github.event.inputs.version_type }}"
 
-        if [ -n "$CUSTOM_VERSION" ]; then
-          # Use custom version if provided
-          NEW_VERSION="$CUSTOM_VERSION"
-          echo "Using custom version: $NEW_VERSION"
-        else
-          # Calculate semantic version bump
-          IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
-          MAJOR=${VERSION_PARTS[0]}
-          MINOR=${VERSION_PARTS[1]}
-          PATCH=${VERSION_PARTS[2]}
+          if [ -n "$CUSTOM_VERSION" ]; then
+            # Use custom version if provided
+            NEW_VERSION="$CUSTOM_VERSION"
+            echo "Using custom version: $NEW_VERSION"
+          else
+            # Calculate semantic version bump
+            IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+            MAJOR=${VERSION_PARTS[0]}
+            MINOR=${VERSION_PARTS[1]}
+            PATCH=${VERSION_PARTS[2]}
 
-          case "$VERSION_TYPE" in
-            "major")
-              MAJOR=$((MAJOR + 1))
-              MINOR=0
-              PATCH=0
-              ;;
-            "minor")
-              MINOR=$((MINOR + 1))
-              PATCH=0
-              ;;
-            "patch")
-              PATCH=$((PATCH + 1))
-              ;;
-          esac
+            case "$VERSION_TYPE" in
+              "major")
+                MAJOR=$((MAJOR + 1))
+                MINOR=0
+                PATCH=0
+                ;;
+              "minor")
+                MINOR=$((MINOR + 1))
+                PATCH=0
+                ;;
+              "patch")
+                PATCH=$((PATCH + 1))
+                ;;
+            esac
 
-          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
-          echo "Calculated $VERSION_TYPE version bump: $NEW_VERSION"
-        fi
+            NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+            echo "Calculated $VERSION_TYPE version bump: $NEW_VERSION"
+          fi
 
-        echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-        echo "New version will be: $NEW_VERSION"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version will be: $NEW_VERSION"
 
-    - name: Update package.json version
-      run: |
-        NEW_VERSION="${{ steps.new_version.outputs.version }}"
-        npm version "$NEW_VERSION" --no-git-tag-version
-        echo "Updated package.json to version $NEW_VERSION"
+      - name: Update package.json version
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          npm version "$NEW_VERSION" --no-git-tag-version
+          echo "Updated package.json to version $NEW_VERSION"
 
-    - name: Commit version update
-      run: |
-        NEW_VERSION="${{ steps.new_version.outputs.version }}"
-        git add package.json package-lock.json
-        git commit -m "bump version to $NEW_VERSION"
-        echo "Committed version update"
+      - name: Commit version update
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          git add package.json package-lock.json
+          git commit -m "bump version to $NEW_VERSION"
+          echo "Committed version update"
 
-    - name: Create and push tag
-      env:
-        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
-      run: |
-        NEW_VERSION="${{ steps.new_version.outputs.version }}"
-        TAG_NAME="v$NEW_VERSION"
+      - name: Create and push tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          TAG_NAME="v$NEW_VERSION"
 
-        # Configure git to use the token for authentication
-        git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+          # Configure git to use the token for authentication
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
 
-        git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
-        git push origin "$TAG_NAME"
-        git push origin main
-        echo "Created and pushed tag: $TAG_NAME"
+          git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
+          git push origin "$TAG_NAME"
+          git push origin main
+          echo "Created and pushed tag: $TAG_NAME"
 
-    - name: Generate release notes
-      id: release_notes
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        NEW_VERSION="${{ steps.new_version.outputs.version }}"
-        TAG_NAME="v$NEW_VERSION"
+      - name: Generate release notes
+        id: release_notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          TAG_NAME="v$NEW_VERSION"
 
-        # Get the previous tag (if any)
-        PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          # Get the previous tag (if any)
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
 
-        if [ -z "$PREVIOUS_TAG" ]; then
-          echo "## What's New in $TAG_NAME" > release_notes.md
-          echo "" >> release_notes.md
-          echo "This is the first tagged release of the Generated Game Experiment!" >> release_notes.md
-          echo "" >> release_notes.md
-          echo "### 🎮 Features" >> release_notes.md
-          echo "- Browser-based side-scrolling platformer game" >> release_notes.md
-          echo "- Procedural level generation" >> release_notes.md
-          echo "- Collectibles and power-ups system" >> release_notes.md
-          echo "- Optional multiplayer support via WebSocket" >> release_notes.md
-          echo "- Real-time leaderboard" >> release_notes.md
-          echo "- Mobile-friendly controls" >> release_notes.md
-          echo "- Docker containerization for easy deployment" >> release_notes.md
-          echo "" >> release_notes.md
-          echo "### 🚀 Deployment" >> release_notes.md
-          echo "- **Play Online:** [GitHub Pages](https://commjoen.github.io/generated-game-experiment/) (Singleplayer)" >> release_notes.md
-          echo "- **Play Multiplayer:** [Render](https://generated-game-experiment.onrender.com/)" >> release_notes.md
-          echo "- **Docker:** \`docker pull ghcr.io/commjoen/generated-game-experiment:$NEW_VERSION\`" >> release_notes.md
-        else
-          echo "## What's Changed in $TAG_NAME" > release_notes.md
-          echo "" >> release_notes.md
-          echo "### 🔄 Merged Pull Requests since $PREVIOUS_TAG" >> release_notes.md
-          echo "" >> release_notes.md
+          if [ -z "$PREVIOUS_TAG" ]; then
+            {
+              echo "## What's New in $TAG_NAME"
+              echo ""
+              echo "This is the first tagged release of the Generated Game Experiment!"
+              echo ""
+              echo "### 🎮 Features"
+              echo "- Browser-based side-scrolling platformer game"
+              echo "- Procedural level generation"
+              echo "- Collectibles and power-ups system"
+              echo "- Optional multiplayer support via WebSocket"
+              echo "- Real-time leaderboard"
+              echo "- Mobile-friendly controls"
+              echo "- Docker containerization for easy deployment"
+              echo ""
+              echo "### 🚀 Deployment"
+              echo "- **Play Online:** [GitHub Pages](https://commjoen.github.io/generated-game-experiment/) (Singleplayer)"
+              echo "- **Play Multiplayer:** [Render](https://generated-game-experiment.onrender.com/)"
+              echo "- **Docker:** \`docker pull ghcr.io/commjoen/generated-game-experiment:$NEW_VERSION\`"
+            } > release_notes.md
+          else
+            {
+              echo "## What's Changed in $TAG_NAME"
+              echo ""
+              echo "### 🔄 Merged Pull Requests since $PREVIOUS_TAG"
+              echo ""
+            } > release_notes.md
 
-          # Get merge commits since the previous tag and extract PR information
-          # Get merge commits since the previous tag and extract PR information
-          if git log "$PREVIOUS_TAG..HEAD" --merges --oneline | grep -q .; then
-            # Process merge commits
-            git log "$PREVIOUS_TAG..HEAD" --merges --pretty=format:"%H|%s" > /tmp/merge_commits.txt
+            # Get merge commits since the previous tag and extract PR information
+            # Get merge commits since the previous tag and extract PR information
+            if git log "$PREVIOUS_TAG..HEAD" --merges --oneline | grep -q .; then
+              # Process merge commits
+              git log "$PREVIOUS_TAG..HEAD" --merges --pretty=format:"%H|%s" > /tmp/merge_commits.txt
 
-            while IFS='|' read -r commit_hash commit_msg; do
-              # Try to extract PR number from merge commit message
-              pr_number=$(echo "$commit_msg" | grep -oE 'Merge pull request #[0-9]+' | grep -oE '[0-9]+' || echo "")
+              while IFS='|' read -r commit_hash commit_msg; do
+                # Try to extract PR number from merge commit message
+                pr_number=$(echo "$commit_msg" | grep -oE 'Merge pull request #[0-9]+' | grep -oE '[0-9]+' || echo "")
 
-              if [ -n "$pr_number" ]; then
-                # Get PR title and info using GitHub CLI if available
-                if command -v gh >/dev/null 2>&1; then
-                  pr_info=$(gh pr view "$pr_number" --json title,author,number,url 2>/dev/null || echo "")
+                if [ -n "$pr_number" ]; then
+                  # Get PR title and info using GitHub CLI if available
+                  if command -v gh >/dev/null 2>&1; then
+                    pr_info=$(gh pr view "$pr_number" --json title,author,number,url 2>/dev/null || echo "")
 
-                  if [ -n "$pr_info" ] && echo "$pr_info" | jq -e . >/dev/null 2>&1; then
-                    pr_title=$(echo "$pr_info" | jq -r '.title // "Unknown PR"')
-                    pr_author=$(echo "$pr_info" | jq -r '.author.login // "Unknown"')
-                    pr_url="https://github.com/${{ github.repository }}/pull/$pr_number"
+                    if [ -n "$pr_info" ] && echo "$pr_info" | jq -e . >/dev/null 2>&1; then
+                      pr_title=$(echo "$pr_info" | jq -r '.title // "Unknown PR"')
+                      pr_author=$(echo "$pr_info" | jq -r '.author.login // "Unknown"')
+                      pr_url="https://github.com/${{ github.repository }}/pull/$pr_number"
 
-                    echo "- **[#$pr_number]($pr_url)** $pr_title by @$pr_author" >> release_notes.md
+                      echo "- **[#$pr_number]($pr_url)** $pr_title by @$pr_author" >> release_notes.md
+                    else
+                      # Fallback when GitHub CLI fails: extract info from commit message
+                      clean_msg=$(echo "$commit_msg" | sed 's/Merge pull request #[0-9]* from [^[:space:]]*//')
+                      clean_msg=$(echo "$clean_msg" | sed 's/^[[:space:]]*//')
+                      pr_url="https://github.com/${{ github.repository }}/pull/$pr_number"
+                      echo "- **[#$pr_number]($pr_url)** $clean_msg" >> release_notes.md
+                    fi
                   else
-                    # Fallback when GitHub CLI fails: extract info from commit message
+                    # Fallback when GitHub CLI is not available: extract info from commit message
                     clean_msg=$(echo "$commit_msg" | sed 's/Merge pull request #[0-9]* from [^[:space:]]*//')
                     clean_msg=$(echo "$clean_msg" | sed 's/^[[:space:]]*//')
                     pr_url="https://github.com/${{ github.repository }}/pull/$pr_number"
                     echo "- **[#$pr_number]($pr_url)** $clean_msg" >> release_notes.md
                   fi
                 else
-                  # Fallback when GitHub CLI is not available: extract info from commit message
-                  clean_msg=$(echo "$commit_msg" | sed 's/Merge pull request #[0-9]* from [^[:space:]]*//')
-                  clean_msg=$(echo "$clean_msg" | sed 's/^[[:space:]]*//')
-                  pr_url="https://github.com/${{ github.repository }}/pull/$pr_number"
-                  echo "- **[#$pr_number]($pr_url)** $clean_msg" >> release_notes.md
-                fi
-              else
-                # Handle non-PR merge commits (e.g., branch merges)
-                if echo "$commit_msg" | grep -q "Merge"; then
-                  clean_msg=$(echo "$commit_msg" | sed 's/Merge branch .*/Branch merge/' | sed 's/Merge .*/Merge commit/')
-                  if [ -n "$clean_msg" ] && [ "$clean_msg" != "Merge commit" ]; then
-                    echo "- $clean_msg (${commit_hash:0:7})" >> release_notes.md
+                  # Handle non-PR merge commits (e.g., branch merges)
+                  if echo "$commit_msg" | grep -q "Merge"; then
+                    clean_msg=$(echo "$commit_msg" | sed 's/Merge branch .*/Branch merge/' | sed 's/Merge .*/Merge commit/')
+                    if [ -n "$clean_msg" ] && [ "$clean_msg" != "Merge commit" ]; then
+                      echo "- $clean_msg (${commit_hash:0:7})" >> release_notes.md
+                    fi
+                  else
+                    echo "- $commit_msg (${commit_hash:0:7})" >> release_notes.md
                   fi
-                else
-                  echo "- $commit_msg (${commit_hash:0:7})" >> release_notes.md
                 fi
-              fi
-            done < /tmp/merge_commits.txt
+              done < /tmp/merge_commits.txt
 
-            rm -f /tmp/merge_commits.txt
-          else
-            # No merge commits found, fall back to regular commits
-            echo "" >> release_notes.md
-            echo "### 📝 Commits since $PREVIOUS_TAG" >> release_notes.md
-            git log "$PREVIOUS_TAG..HEAD" --pretty=format:"- %s (%h)" >> release_notes.md
+              rm -f /tmp/merge_commits.txt
+            else
+              # No merge commits found, fall back to regular commits
+              {
+                echo ""
+                echo "### 📝 Commits since $PREVIOUS_TAG"
+              } >> release_notes.md
+              git log "$PREVIOUS_TAG..HEAD" --pretty=format:"- %s (%h)" >> release_notes.md
+            fi
           fi
-        fi
 
-        echo "" >> release_notes.md
-        echo "### 🔧 Technical Details" >> release_notes.md
-        echo "- **Version:** $NEW_VERSION" >> release_notes.md
-        echo "- **Node.js:** $(node --version)" >> release_notes.md
-        echo "- **Built:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> release_notes.md
-        echo "- **Commit:** ${{ github.sha }}" >> release_notes.md
+          {
+            echo ""
+            echo "### 🔧 Technical Details"
+            echo "- **Version:** $NEW_VERSION"
+            echo "- **Node.js:** $(node --version)"
+            echo "- **Built:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+            echo "- **Commit:** ${{ github.sha }}"
+          } >> release_notes.md
 
-        # Store the release notes content
-        {
-          echo 'notes<<EOF'
-          cat release_notes.md
-          echo EOF
-        } >> $GITHUB_OUTPUT
+          # Store the release notes content
+          {
+            echo 'notes<<EOF'
+            cat release_notes.md
+            echo EOF
+          } >> $GITHUB_OUTPUT
 
-    - name: Create GitHub Release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        NEW_VERSION="${{ steps.new_version.outputs.version }}"
-        TAG_NAME="v$NEW_VERSION"
-        PRERELEASE_FLAG=""
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          TAG_NAME="v$NEW_VERSION"
+          PRERELEASE_FLAG=""
 
-        if [ "${{ github.event.inputs.prerelease }}" = "true" ]; then
-          PRERELEASE_FLAG="--prerelease"
-        fi
+          if [ "${{ github.event.inputs.prerelease }}" = "true" ]; then
+            PRERELEASE_FLAG="--prerelease"
+          fi
 
-        gh release create "$TAG_NAME" \
-          --title "Release $TAG_NAME" \
-          --notes-file release_notes.md \
-          $PRERELEASE_FLAG
+          gh release create "$TAG_NAME" \
+            --title "Release $TAG_NAME" \
+            --notes-file release_notes.md \
+            $PRERELEASE_FLAG
 
-    - name: Generate summary
-      run: |
-        NEW_VERSION="${{ steps.new_version.outputs.version }}"
-        TAG_NAME="v$NEW_VERSION"
+      - name: Generate summary
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          TAG_NAME="v$NEW_VERSION"
 
-        echo "## 🎉 Release Created Successfully!" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Version:** \`$NEW_VERSION\`" >> $GITHUB_STEP_SUMMARY
-        echo "**Tag:** \`$TAG_NAME\`" >> $GITHUB_STEP_SUMMARY
-        echo "**Pre-release:** ${{ github.event.inputs.prerelease }}" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 🔗 Links" >> $GITHUB_STEP_SUMMARY
-        echo "- [Release Page](https://github.com/${{ github.repository }}/releases/tag/$TAG_NAME)" >> $GITHUB_STEP_SUMMARY
-        echo "- [Docker Image](https://ghcr.io/${{ github.repository }}:$NEW_VERSION)" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 🚀 Docker Usage" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-        echo "docker pull ghcr.io/${{ github.repository }}:$NEW_VERSION" >> $GITHUB_STEP_SUMMARY
-        echo "docker run -p 8080:80 -p 3001:3001 ghcr.io/${{ github.repository }}:$NEW_VERSION" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### ⚡ What happens next" >> $GITHUB_STEP_SUMMARY
-        echo "- Docker images will be built automatically via existing workflows" >> $GITHUB_STEP_SUMMARY
-        echo "- Release will be available on GitHub Releases page" >> $GITHUB_STEP_SUMMARY
-        echo "- Docker Hub release (if configured) will be triggered" >> $GITHUB_STEP_SUMMARY
+          echo "## 🎉 Release Created Successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`$NEW_VERSION\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** \`$TAG_NAME\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Pre-release:** ${{ github.event.inputs.prerelease }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Links" >> $GITHUB_STEP_SUMMARY
+          echo "- [Release Page](https://github.com/${{ github.repository }}/releases/tag/$TAG_NAME)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Docker Image](https://ghcr.io/${{ github.repository }}:$NEW_VERSION)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 Docker Usage" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ghcr.io/${{ github.repository }}:$NEW_VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "docker run -p 8080:80 -p 3001:3001 ghcr.io/${{ github.repository }}:$NEW_VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ⚡ What happens next" >> $GITHUB_STEP_SUMMARY
+          echo "- Docker images will be built automatically via existing workflows" >> $GITHUB_STEP_SUMMARY
+          echo "- Release will be available on GitHub Releases page" >> $GITHUB_STEP_SUMMARY
+          echo "- Docker Hub release (if configured) will be triggered" >> $GITHUB_STEP_SUMMARY

@@ -25,6 +25,7 @@ docker run -p 8080:80 -p 3001:3001 platformer-game
 ```
 
 The game will be available at:
+
 - **Game**: http://localhost:8080
 - **Multiplayer**: Automatically detected and enabled
 
@@ -141,6 +142,7 @@ Docker health check runs automatically and verifies both services.
 This is expected behavior! The game is designed to work without multiplayer.
 
 Check multiplayer server:
+
 ```bash
 curl http://localhost:3001/health
 ```
@@ -180,6 +182,7 @@ For production deployment:
 5. **Consider load balancing** for multiple containers
 
 Example production run:
+
 ```bash
 docker run -d \
   --name platformer-game \

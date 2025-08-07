@@ -1,7 +1,6 @@
 # Stage 1: Build the game client
-FROM node:24 AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
-RUN apt-get update
 COPY package.json package-lock.json ./
 COPY vite.config.ts ./
 COPY index.html ./
@@ -25,14 +24,11 @@ ENV PORT=$PORT
 RUN npm install && npm run build
 
 # Stage 2: Final container with nginx + Node.js server
-FROM nginx:1.27
+FROM nginx:1.27-alpine
 
 # Install Node.js and curl for healthcheck
-# Using Debian-based nginx to avoid Alpine sqlite-libs CVE-2025-6965
-RUN apt-get update && \
-    apt-get install -y nodejs npm curl && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Using Alpine Linux for smaller image size
+RUN apk add --no-cache nodejs npm curl
 
 # Copy built game client
 COPY --from=builder /app/dist /usr/share/nginx/html

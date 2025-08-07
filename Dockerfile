@@ -25,10 +25,14 @@ ENV PORT=$PORT
 RUN npm install && npm run build
 
 # Stage 2: Final container with nginx + Node.js server
-FROM nginx:alpine
+FROM nginx:1.27
 
 # Install Node.js and curl for healthcheck
-RUN apk add --no-cache nodejs npm curl
+# Using Debian-based nginx to avoid Alpine sqlite-libs CVE-2025-6965
+RUN apt-get update && \
+    apt-get install -y nodejs npm curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy built game client
 COPY --from=builder /app/dist /usr/share/nginx/html

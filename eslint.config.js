@@ -80,6 +80,13 @@ export default [
         setInterval: 'readonly',
         clearTimeout: 'readonly',
         console: 'readonly',
+        // Browser globals for multiplayer.js
+        window: 'readonly',
+        document: 'readonly',
+        fetch: 'readonly',
+        AbortSignal: 'readonly',
+        WebSocket: 'readonly',
+        localStorage: 'readonly',
       },
     },
     rules: {
@@ -122,6 +129,11 @@ export default [
   },
   {
     files: ['**/*.test.ts', '**/*.test.tsx', 'test/**/*.ts', 'test/**/*.js'],
+    languageOptions: {
+      globals: {
+        global: 'readonly',
+      },
+    },
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
     },

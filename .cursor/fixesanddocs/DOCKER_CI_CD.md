@@ -16,11 +16,13 @@ Automated Docker container builds and releases for the multiplayer platformer ga
 ### 1. Docker Build and Release (`.github/workflows/docker-release.yml`)
 
 **Triggers:**
+
 - ✅ Pull requests to `main` branch
 - ✅ Pushes to `main` branch
 - ✅ GitHub releases
 
 **What it does:**
+
 - Builds multi-platform Docker images
 - Publishes to GitHub Container Registry (ghcr.io)
 - Tests the built containers
@@ -28,6 +30,7 @@ Automated Docker container builds and releases for the multiplayer platformer ga
 - Runs security scans
 
 **Output Images:**
+
 ```bash
 # For PRs
 ghcr.io/username/repo-name:pr-123
@@ -45,19 +48,23 @@ ghcr.io/username/repo-name:1
 ### 2. Docker Hub Release (`.github/workflows/docker-hub-release.yml`)
 
 **Triggers:**
+
 - ✅ GitHub releases
 - ✅ Manual workflow dispatch
 
 **Requirements:**
+
 - `DOCKERHUB_USERNAME` secret
 - `DOCKERHUB_TOKEN` secret
 
 **What it does:**
+
 - Builds and pushes to Docker Hub
 - Updates repository description
 - Creates release tags
 
 **Output Images:**
+
 ```bash
 # For releases
 username/platformer-game:latest
@@ -79,6 +86,7 @@ No setup required! Works automatically with GitHub permissions.
    - Create new access token with Read/Write permissions
 
 2. **Add GitHub Secrets:**
+
    ```
    Repository Settings → Secrets and Variables → Actions
 
@@ -94,19 +102,19 @@ No setup required! Works automatically with GitHub permissions.
 
 ### GitHub Container Registry (ghcr.io)
 
-| Event | Tag Examples | Description |
-|-------|-------------|-------------|
-| PR #123 | `pr-123` | PR-specific builds |
-| Main branch | `latest`, `main` | Latest stable build |
-| Release v1.2.3 | `v1.2.3`, `1.2`, `1` | Semantic versioning |
-| Commit abc123 | `main-abc123` | Commit-specific builds |
+| Event          | Tag Examples         | Description            |
+| -------------- | -------------------- | ---------------------- |
+| PR #123        | `pr-123`             | PR-specific builds     |
+| Main branch    | `latest`, `main`     | Latest stable build    |
+| Release v1.2.3 | `v1.2.3`, `1.2`, `1` | Semantic versioning    |
+| Commit abc123  | `main-abc123`        | Commit-specific builds |
 
 ### Docker Hub
 
-| Event | Tag Examples | Description |
-|-------|-------------|-------------|
+| Event          | Tag Examples                   | Description         |
+| -------------- | ------------------------------ | ------------------- |
 | Release v1.2.3 | `latest`, `v1.2.3`, `1.2`, `1` | Semantic versioning |
-| Manual trigger | `latest` | Manual builds |
+| Manual trigger | `latest`                       | Manual builds       |
 
 ## 🧪 Automated Testing
 
@@ -123,11 +131,13 @@ Each build includes automated tests:
 ## 🔒 Security Scanning
 
 **Trivy Security Scanner:**
+
 - Scans all built images for vulnerabilities
 - Results uploaded to GitHub Security tab
 - Fails build on critical vulnerabilities (configurable)
 
 **View Results:**
+
 ```
 Repository → Security → Code scanning alerts
 ```
@@ -171,23 +181,27 @@ When you create a PR:
 3. **Container Testing** runs automatically
 4. **PR Comment** added with build results:
 
-```markdown
+````markdown
 ## 🐳 Docker Image Built Successfully!
 
 **Image:** `ghcr.io/username/repo:pr-123`
 
 ### 🚀 Quick Test
+
 ```bash
 docker pull ghcr.io/username/repo:pr-123
 docker run -p 8080:80 -p 3001:3001 ghcr.io/username/repo:pr-123
 ```
+````
 
 ### 📋 Features Tested
+
 - ✅ Game client loads on port 80
 - ✅ Multiplayer server starts on port 3001
 - ✅ Health checks pass
 - ✅ Multi-platform build (amd64, arm64)
-```
+
+````
 
 ## 🌐 Deploy PR Images
 
@@ -198,7 +212,7 @@ Update your Render service to use the PR image:
 ```yaml
 # In Render dashboard, update image reference:
 ghcr.io/username/repo-name:pr-123
-```
+````
 
 ### To Any Docker Environment
 
@@ -213,6 +227,7 @@ docker run -p 8080:80 -p 3001:3001 ghcr.io/username/repo-name:pr-123
 ## 📊 Build Optimization
 
 ### Multi-Stage Builds
+
 ```dockerfile
 # Optimized for size and security
 Stage 1: Build game client (Node.js)
@@ -221,6 +236,7 @@ Stage 3: Final nginx + Node.js (Alpine)
 ```
 
 ### Caching Strategy
+
 ```yaml
 # GitHub Actions cache for faster builds
 cache-from: type=gha
@@ -228,6 +244,7 @@ cache-to: type=gha,mode=max
 ```
 
 ### Build Context
+
 ```yaml
 # Only triggers on relevant file changes
 paths:
@@ -243,16 +260,19 @@ paths:
 ### Build Failures
 
 **Check build logs:**
+
 ```
 Actions tab → Failed workflow → Build job → Logs
 ```
 
 **Common issues:**
+
 - Dockerfile syntax errors
 - Missing dependencies
 - Network timeouts during build
 
 **Local testing:**
+
 ```bash
 # Test build locally first
 docker build -t test-image .
@@ -262,11 +282,13 @@ docker run -p 8080:80 -p 3001:3001 test-image
 ### Registry Issues
 
 **GitHub Container Registry:**
+
 - Automatic with GITHUB_TOKEN
 - No additional setup required
 - Check repository permissions
 
 **Docker Hub:**
+
 - Verify DOCKERHUB_USERNAME secret
 - Verify DOCKERHUB_TOKEN secret
 - Check token permissions (Read/Write)
@@ -274,11 +296,13 @@ docker run -p 8080:80 -p 3001:3001 test-image
 ### Security Scan Failures
 
 **View scan results:**
+
 ```
 Security tab → Code scanning alerts → Trivy
 ```
 
 **Fix vulnerabilities:**
+
 - Update base images in Dockerfile
 - Update package dependencies
 - Review security recommendations
@@ -288,6 +312,7 @@ Security tab → Code scanning alerts → Trivy
 ### Creating a Release
 
 1. **Tag your release:**
+
    ```bash
    git tag -a v1.0.0 -m "Release v1.0.0"
    git push origin v1.0.0
@@ -307,30 +332,33 @@ Security tab → Code scanning alerts → Trivy
 ### Deployment Options
 
 **Render.com:**
+
 ```yaml
 # Update render.yaml or service settings
 image: ghcr.io/username/repo-name:v1.0.0
 ```
 
 **Docker Compose:**
+
 ```yaml
 services:
   game:
     image: ghcr.io/username/repo-name:v1.0.0
     ports:
-      - "8080:80"
-      - "3001:3001"
+      - '8080:80'
+      - '3001:3001'
 ```
 
 **Kubernetes:**
+
 ```yaml
 spec:
   containers:
-  - name: platformer-game
-    image: ghcr.io/username/repo-name:v1.0.0
-    ports:
-    - containerPort: 80
-    - containerPort: 3001
+    - name: platformer-game
+      image: ghcr.io/username/repo-name:v1.0.0
+      ports:
+        - containerPort: 80
+        - containerPort: 3001
 ```
 
 ## 📈 Monitoring & Analytics
@@ -347,6 +375,7 @@ Insights → Actions → Workflow runs
 ### Container Registry
 
 **GitHub Packages:**
+
 ```
 Packages tab → Container details
 - Download statistics
@@ -355,6 +384,7 @@ Packages tab → Container details
 ```
 
 **Docker Hub:**
+
 ```
 Repository → Insights
 - Pull statistics
@@ -365,21 +395,25 @@ Repository → Insights
 ## 🎯 Best Practices
 
 ### Version Management
+
 - Use semantic versioning (v1.2.3)
 - Tag releases consistently
 - Include changelog in releases
 
 ### Security
+
 - Regular dependency updates
 - Monitor vulnerability scans
 - Use minimal base images
 
 ### Performance
+
 - Optimize Dockerfile layers
 - Use build caching effectively
 - Monitor build times
 
 ### Testing
+
 - Test images before release
 - Include health checks
 - Verify multiplayer functionality

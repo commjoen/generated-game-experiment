@@ -1,9 +1,11 @@
 # Project Specification: Browser-Based Side-Scrolling Platformer Game
 
 ## Overview
+
 Create a game that runs in a web browser, featuring a side-scrolling platformer experience. The player controls a character that can move horizontally, jump, and interact with the environment. The game is visually engaging, responsive, and fun to play, with modern customization and deployment options.
 
 ## Core Features (Implemented)
+
 - **Player Character**: A controllable character that can move left/right and jump, always spawning on a block.
 - **Side-Scrolling World**: The camera follows the player as they move horizontally through a procedurally generated level.
 - **Platforms**: Static and moving platforms for the player to jump on, with longer and varied platform lengths.
@@ -40,6 +42,7 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
 - **Optional Progress Logging**: Player progress logging (position, score, collectibles) is enabled only in local development, and automatically disabled in Docker/Render/production environments.
 
 ## Stretch Goals (Optional/Future)
+
 - **Other Power-Ups**: Additional abilities (e.g., speed boost).
 - **Enemy AI**: Simple enemies with basic movement or attack patterns.
 - **Leaderboard**: Track and display player scores globally.
@@ -47,10 +50,12 @@ Create a game that runs in a web browser, featuring a side-scrolling platformer 
 - **Sound & Music**: Background music and sound effects.
 
 ## Art & Assets
+
 - Uses open-source or custom-made assets for characters, backgrounds, and objects.
 - All assets are properly credited if not original.
 
 ## Deliverables
+
 - Source code in the repository.
 - Instructions for running the game locally (in README.md).
 - All assets and dependencies included or linked.

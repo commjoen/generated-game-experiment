@@ -47,6 +47,7 @@ The release workflow can only be triggered manually by @commjoen. The workflow h
 ## 📋 Release Notes
 
 Release notes are generated automatically and include:
+
 - **First Release**: Feature overview and deployment information
 - **Subsequent Releases**: List of commits since the last tag
 - **Technical Details**: Version, build info, and commit hash
@@ -61,12 +62,14 @@ Release notes are generated automatically and include:
 ## 🐳 Docker Images
 
 After a successful release, Docker images will be available at:
+
 - **GitHub Container Registry**: `ghcr.io/commjoen/generated-game-experiment:v<version>`
 - **Docker Hub** (if configured): `<username>/platformer-game:v<version>`
 
 ## 🎮 Deployment
 
 Released versions are automatically deployed to:
+
 - **GitHub Pages**: [commjoen.github.io/generated-game-experiment](https://commjoen.github.io/generated-game-experiment/)
 - **Render**: [generated-game-experiment.onrender.com](https://generated-game-experiment.onrender.com/)
 
@@ -85,6 +88,7 @@ docker run -p 8080:80 -p 3001:3001 ghcr.io/commjoen/generated-game-experiment:v0
 ## 🛠️ Troubleshooting
 
 If the workflow fails:
+
 1. Check the workflow logs for specific error messages
 2. Ensure all tests are passing on the main branch
 3. Verify the version format is correct (if using custom version)

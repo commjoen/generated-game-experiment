@@ -26,6 +26,7 @@ Deploy your multiplayer platformer game to Render.com with automatic builds, HTT
    - Connect your GitHub repository
 
 2. **Configure Settings**:
+
    ```
    Name: platformer-game
    Environment: Docker
@@ -35,6 +36,7 @@ Deploy your multiplayer platformer game to Render.com with automatic builds, HTT
    ```
 
 3. **Environment Variables** (optional):
+
    ```
    NODE_ENV=production
    PORT=3001
@@ -51,15 +53,16 @@ services:
   - type: web
     name: platformer-game
     env: docker
-    plan: starter              # Free tier available
+    plan: starter # Free tier available
     region: oregon
-    autoDeploy: true          # Auto-deploy on git push
-    healthCheckPath: /        # Health monitoring
+    autoDeploy: true # Auto-deploy on git push
+    healthCheckPath: / # Health monitoring
 ```
 
 ### Auto-Detection
 
 The app automatically detects Render deployment:
+
 - ✅ Uses HTTPS/WSS for secure WebSocket connections
 - ✅ Configures proper proxy paths for multiplayer
 - ✅ Sets up health checks for both game and multiplayer server
@@ -68,6 +71,7 @@ The app automatically detects Render deployment:
 ## 🎮 How It Works on Render
 
 ### Architecture
+
 ```
 Internet → Render Load Balancer → Your Container
                                  ├─ nginx (port 80) → Game Client
@@ -75,12 +79,15 @@ Internet → Render Load Balancer → Your Container
 ```
 
 ### URL Structure
+
 - **Game**: `https://your-app.onrender.com/`
 - **Multiplayer WebSocket**: `wss://your-app.onrender.com/ws`
 - **Health Check**: `https://your-app.onrender.com/mp/health`
 
 ### WebSocket Proxying
+
 Nginx automatically proxies WebSocket connections:
+
 ```
 Client WebSocket Request → nginx → Node.js Multiplayer Server
 wss://your-app.onrender.com/ws → localhost:3001
@@ -113,6 +120,7 @@ RENDER_EXTERNAL_HOSTNAME     # Auto-set by Render
 ### Built-in Health Checks
 
 Render automatically monitors:
+
 - ✅ Main game client (HTTP GET to `/`)
 - ✅ Multiplayer server (HTTP GET to `/mp/health`)
 - ✅ Container health (Docker HEALTHCHECK)
@@ -120,6 +128,7 @@ Render automatically monitors:
 ### Logs
 
 View real-time logs in Render Dashboard:
+
 ```bash
 # Example log output
 🌐 Detected Render.com deployment
@@ -132,6 +141,7 @@ View real-time logs in Render Dashboard:
 ### Metrics
 
 Render provides:
+
 - CPU and Memory usage
 - Request count and response times
 - Health check status
@@ -140,6 +150,7 @@ Render provides:
 ## 🆓 Free Tier Limitations
 
 Render's free tier includes:
+
 - ✅ 750 hours/month (enough for personal projects)
 - ✅ Automatic HTTPS
 - ✅ WebSocket support
@@ -149,6 +160,7 @@ Render's free tier includes:
 ### Handling Sleep Mode
 
 The game handles cold starts gracefully:
+
 1. **Game loads** immediately (static files from CDN)
 2. **Multiplayer attempts connection** to server
 3. **If server is sleeping**, falls back to single-player mode
@@ -159,6 +171,7 @@ The game handles cold starts gracefully:
 ### HTTPS & WSS
 
 Render automatically provides:
+
 - ✅ SSL/TLS certificates
 - ✅ HTTP → HTTPS redirects
 - ✅ WebSocket Secure (WSS) connections
@@ -177,6 +190,7 @@ Render automatically provides:
 ## 🚀 Production Best Practices
 
 ### 1. Custom Domain
+
 ```bash
 # Better than .onrender.com subdomain
 your-game.com → Better branding
@@ -184,18 +198,21 @@ your-game.com/ws → Clean WebSocket URL
 ```
 
 ### 2. Monitoring
+
 - Set up Render alerts for downtime
 - Monitor health check endpoints
 - Watch build and deploy logs
 
 ### 3. Scaling
+
 ```yaml
 # Upgrade plan for production:
-plan: standard  # No sleep, better performance
-instances: 2    # Load balancing
+plan: standard # No sleep, better performance
+instances: 2 # Load balancing
 ```
 
 ### 4. Environment Management
+
 ```bash
 # Use environment-specific configs
 NODE_ENV=production
@@ -208,12 +225,14 @@ MULTIPLAYER_ENABLED=true
 ### Common Issues
 
 #### 1. Build Fails
+
 ```bash
 # Check Dockerfile and dependencies
 docker build -t test . # Test locally first
 ```
 
 #### 2. WebSocket Connection Issues
+
 ```javascript
 // Check browser console for errors
 // Verify WSS URL in Network tab
@@ -221,6 +240,7 @@ wss://your-app.onrender.com/ws
 ```
 
 #### 3. Health Check Failures
+
 ```bash
 # Test endpoints manually
 curl https://your-app.onrender.com/
@@ -234,6 +254,7 @@ curl https://your-app.onrender.com/mp/health
    - Look for startup errors
 
 2. **Test Locally**:
+
    ```bash
    docker build -t platformer-game .
    docker run -p 8080:80 -p 3001:3001 platformer-game
@@ -268,11 +289,13 @@ git push origin main
 ## 💰 Cost Optimization
 
 ### Free Tier Strategy
+
 - Use for development and testing
 - Accept sleep limitations
 - Monitor usage hours
 
 ### Paid Tier Benefits
+
 ```
 Starter ($7/month):
 ✅ No sleep
@@ -284,6 +307,7 @@ Starter ($7/month):
 ## 🌟 Advanced Features
 
 ### Environment-Based Configuration
+
 ```yaml
 # render.yaml
 envVars:
@@ -294,6 +318,7 @@ envVars:
 ```
 
 ### Build Optimization
+
 ```yaml
 buildFilter:
   paths:
@@ -305,6 +330,7 @@ buildFilter:
 ```
 
 ### Health Check Customization
+
 ```yaml
 healthCheckPath: /
 # Custom health check endpoint

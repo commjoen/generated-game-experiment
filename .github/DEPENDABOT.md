@@ -13,12 +13,15 @@ This repository uses GitHub Dependabot to automatically keep dependencies up to 
 You can manually trigger dependabot updates in several ways:
 
 ### Via GitHub UI
+
 1. Go to the **Security** tab in the repository
 2. Click on **Dependabot** in the left sidebar
 3. Click the **Check for updates** button for any ecosystem
 
 ### Via Dependabot Commands
+
 In any dependabot PR, you can comment with:
+
 - `@dependabot rebase` - Rebase the PR
 - `@dependabot recreate` - Recreate the PR from scratch
 - `@dependabot merge` - Merge the PR (if checks pass)
@@ -31,17 +34,21 @@ In any dependabot PR, you can comment with:
 ## Configuration Features
 
 ### Dependency Grouping
+
 Dependencies are automatically grouped into logical sets:
+
 - **TypeScript/ESLint**: All TypeScript and linting tools
 - **Dev Dependencies**: Development and build tools
 - **Server Dependencies**: Runtime server dependencies
 
 ### Smart Scheduling
+
 - Updates run every Monday at 6:00 AM UTC
 - Maximum 10 npm PRs, 5 Docker PRs, 5 GitHub Actions PRs
 - Automatic rebasing when conflicts occur
 
 ### PR Management
+
 - All PRs are automatically assigned to @commjoen for review
 - Clear commit message prefixes (`deps:`, `docker:`, `ci:`)
 - Automatic labeling for easy filtering

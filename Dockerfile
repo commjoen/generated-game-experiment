@@ -24,7 +24,7 @@ ENV BUILDDATE=$BUILDDATE
 ENV PORT=$PORT
 RUN npm install && npm run build
 
-# Stage 2: Final container with nginx + Node.js server  
+# Stage 2: Final container with nginx + Node.js server
 FROM nginx:1.27
 
 # Install Node.js and curl for healthcheck

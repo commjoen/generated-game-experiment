@@ -1,8 +1,10 @@
 <!-- Build & Test Status -->
 
 [![Test](https://github.com/commjoen/generated-game-experiment/actions/workflows/test.yml/badge.svg)](https://github.com/commjoen/generated-game-experiment/actions/workflows/test.yml)
+[![Pre-commit](https://github.com/commjoen/generated-game-experiment/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/commjoen/generated-game-experiment/actions/workflows/pre-commit.yml)
 [![Deploy to GitHub Pages](https://github.com/commjoen/generated-game-experiment/actions/workflows/deploy.yml/badge.svg)](https://github.com/commjoen/generated-game-experiment/actions/workflows/deploy.yml)
 [![Docker Build and Release](https://github.com/commjoen/generated-game-experiment/actions/workflows/docker-release.yml/badge.svg)](https://github.com/commjoen/generated-game-experiment/actions/workflows/docker-release.yml)
+[![Docker Hub Release](https://github.com/commjoen/generated-game-experiment/actions/workflows/docker-hub-release.yml/badge.svg)](https://github.com/commjoen/generated-game-experiment/actions/workflows/docker-hub-release.yml)
 [![Create Release](https://github.com/commjoen/generated-game-experiment/actions/workflows/release.yml/badge.svg)](https://github.com/commjoen/generated-game-experiment/actions/workflows/release.yml)
 
 <!-- Project Status -->

@@ -1471,7 +1471,16 @@ function openShareModal() {
     justify-content: center;
     padding: 20px;
     box-sizing: border-box;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   `;
+  
+  // Adjust modal padding for mobile devices
+  if (window.innerWidth <= 768) {
+    shareModal.style.padding = '10px';
+    shareModal.style.alignItems = 'flex-start';
+    shareModal.style.paddingTop = '20px';
+  }
 
   const modalContent = document.createElement('div');
   modalContent.style.cssText = `
@@ -1480,13 +1489,21 @@ function openShareModal() {
     box-shadow: 0 8px 32px rgba(0,0,0,0.8);
     max-width: 500px;
     width: 100%;
-    max-height: 90vh;
+    max-height: min(90vh, 600px);
     color: #fff;
     position: relative;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    margin: 10px;
   `;
+  
+  // Add responsive styles for mobile devices
+  if (window.innerWidth <= 768) {
+    modalContent.style.maxHeight = 'min(85vh, 500px)';
+    modalContent.style.margin = '5px';
+    modalContent.style.borderRadius = '12px';
+  }
 
   const header = document.createElement('div');
   header.style.cssText = `
@@ -1495,7 +1512,13 @@ function openShareModal() {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0;
   `;
+  
+  // Adjust header padding for mobile devices
+  if (window.innerWidth <= 768) {
+    header.style.padding = '16px 20px';
+  }
 
   const title = document.createElement('h2');
   title.textContent = '📤 Share Your Progress';
@@ -1520,8 +1543,16 @@ function openShareModal() {
   content.style.cssText = `
     padding: 24px 32px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     flex: 1;
+    min-height: 0;
+    scroll-behavior: smooth;
   `;
+  
+  // Adjust padding for mobile devices
+  if (window.innerWidth <= 768) {
+    content.style.padding = '16px 20px';
+  }
 
   // Preview section
   const previewSection = document.createElement('div');
@@ -1584,6 +1615,15 @@ function openShareModal() {
     grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
     gap: 10px;
   `;
+  
+  // Adjust grid layout for mobile devices
+  if (window.innerWidth <= 480) {
+    buttonsContainer.style.gridTemplateColumns = 'repeat(2, 1fr)';
+    buttonsContainer.style.gap = '8px';
+  } else if (window.innerWidth <= 768) {
+    buttonsContainer.style.gridTemplateColumns = 'repeat(3, 1fr)';
+    buttonsContainer.style.gap = '8px';
+  }
 
   // Create share buttons for different platforms
   const platforms = [
@@ -1666,7 +1706,17 @@ function openShareModal() {
       transition: opacity 0.2s;
       text-align: center;
       min-height: 44px;
+      word-wrap: break-word;
+      hyphens: auto;
     `;
+    
+    // Adjust button styles for mobile devices
+    if (window.innerWidth <= 480) {
+      button.style.fontSize = '0.8em';
+      button.style.padding = '10px 6px';
+      button.style.minHeight = '40px';
+    }
+    
     button.onclick = (event: Event) => platform.action(event);
     button.onmouseenter = () => (button.style.opacity = '0.8');
     button.onmouseleave = () => (button.style.opacity = '1');

@@ -13,7 +13,8 @@ on:
         default: 'latest'
 
 env:
-  IMAGE_NAME: platformer-game
+  IMAGE_NAME_1: platformer-game
+  IMAGE_NAME_2: platformer-game-1
 
 jobs:
   build-and-push-dockerhub:
@@ -46,20 +47,24 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set image name based on credential availability
-        id: image-name
+      - name: Set image names based on credential availability
+        id: image-names
         run: |
           if [[ -n "${{ secrets.DOCKERHUB_USERNAME }}" && -n "${{ secrets.DOCKERHUB_TOKEN }}" ]]; then
-            echo "IMAGE_NAME_FULL=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}" >> $GITHUB_OUTPUT
+            echo "IMAGE_NAME_1_FULL=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_1 }}" >> $GITHUB_OUTPUT
+            echo "IMAGE_NAME_2_FULL=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_2 }}" >> $GITHUB_OUTPUT
           else
-            echo "IMAGE_NAME_FULL=temp/build-test" >> $GITHUB_OUTPUT
+            echo "IMAGE_NAME_1_FULL=temp/build-test-1" >> $GITHUB_OUTPUT
+            echo "IMAGE_NAME_2_FULL=temp/build-test-2" >> $GITHUB_OUTPUT
           fi
 
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ steps.image-name.outputs.IMAGE_NAME_FULL }}
+          images: |
+            ${{ steps.image-names.outputs.IMAGE_NAME_1_FULL }}
+            ${{ steps.image-names.outputs.IMAGE_NAME_2_FULL }}
           tags: |
             type=ref,event=tag
             type=raw,value=latest,enable={{is_default_branch}}
@@ -87,13 +92,23 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Update Docker Hub description
+      - name: Update Docker Hub description for platformer-game
         uses: peter-evans/dockerhub-description@v4
         if: github.event_name == 'release' && env.DOCKER_HUB_AVAILABLE == 'true'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
+          repository: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_1 }}
+          short-description: '🎮 Multiplayer 2D platformer game with optional WebSocket multiplayer support'
+          readme-filepath: ./README.md
+
+      - name: Update Docker Hub description for platformer-game-1
+        uses: peter-evans/dockerhub-description@v4
+        if: github.event_name == 'release' && env.DOCKER_HUB_AVAILABLE == 'true'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_2 }}
           short-description: '🎮 Multiplayer 2D platformer game with optional WebSocket multiplayer support'
           readme-filepath: ./README.md
 
@@ -103,7 +118,9 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           if [[ "${{ env.DOCKER_HUB_AVAILABLE }}" == "true" ]]; then
             echo "**Status:** ✅ Built and pushed to Docker Hub" >> $GITHUB_STEP_SUMMARY
-            echo "**Repository:** \`${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "**Repositories:** " >> $GITHUB_STEP_SUMMARY
+            echo "- \`${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_1 }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- \`${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_2 }}\`" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### 📦 Published Tags" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
@@ -112,8 +129,13 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### 🚀 Usage" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-            echo "docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
-            echo "docker run -p 8080:80 -p 3001:3001 ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+            echo "# Pull from either repository (same image)" >> $GITHUB_STEP_SUMMARY
+            echo "docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_1 }}:latest" >> $GITHUB_STEP_SUMMARY
+            echo "# OR" >> $GITHUB_STEP_SUMMARY
+            echo "docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_2 }}:latest" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "# Run the container" >> $GITHUB_STEP_SUMMARY
+            echo "docker run -p 8080:80 -p 3001:3001 ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_1 }}:latest" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           else
             echo "**Status:** ⚠️  Build completed, but not pushed to Docker Hub" >> $GITHUB_STEP_SUMMARY

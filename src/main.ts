@@ -1802,8 +1802,8 @@ function shareToMastodon() {
       <p style="margin: 0 0 16px 0; color: #ccc; font-size: 0.9em;">
         Enter your Mastodon instance (e.g., mastodon.social):
       </p>
-      <input 
-        type="text" 
+      <input
+        type="text"
         id="mastodon-instance"
         placeholder="mastodon.social"
         style="
@@ -1818,7 +1818,7 @@ function shareToMastodon() {
         "
       />
       <div style="display: flex; gap: 12px; justify-content: center;">
-        <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+        <button onclick="this.parentElement.parentElement.parentElement.remove()"
           style="
             padding: 8px 16px;
             background: #666;

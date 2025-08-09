@@ -1317,7 +1317,6 @@ function showRestartButton() {
     btn.textContent = 'Restart';
     btn.style.position = 'fixed';
     btn.style.left = '50%';
-    btn.style.top = 'calc(50% + 160px)'; // moved down to make room for share button
     btn.style.transform = 'translateX(-50%)';
     btn.style.fontSize = '2em';
     btn.style.padding = '16px 32px';
@@ -1327,6 +1326,16 @@ function showRestartButton() {
     btn.style.border = '2px solid #0cf';
     btn.style.borderRadius = '12px';
     btn.style.cursor = 'pointer';
+    
+    // Responsive positioning to prevent overlap
+    if (window.innerWidth <= 768) {
+      btn.style.top = 'calc(50% + 180px)'; // More space on mobile
+      btn.style.fontSize = '1.6em';
+      btn.style.padding = '12px 24px';
+    } else {
+      btn.style.top = 'calc(50% + 160px)';
+    }
+    
     btn.onclick = () => {
       btn?.remove();
       hideShareButton();
@@ -1335,7 +1344,16 @@ function showRestartButton() {
     document.body.appendChild(btn);
   } else if (btn) {
     btn.style.display = 'block';
-    btn.style.top = 'calc(50% + 160px)';
+    // Update position on resize
+    if (window.innerWidth <= 768) {
+      btn.style.top = 'calc(50% + 180px)';
+      btn.style.fontSize = '1.6em';
+      btn.style.padding = '12px 24px';
+    } else {
+      btn.style.top = 'calc(50% + 160px)';
+      btn.style.fontSize = '2em';
+      btn.style.padding = '16px 32px';
+    }
     btn.style.transform = 'translateX(-50%)';
   }
 }
@@ -1348,7 +1366,6 @@ function showShareButton() {
     btn.textContent = '📤 Share Progress';
     btn.style.position = 'fixed';
     btn.style.left = '50%';
-    btn.style.top = 'calc(50% + 120px)'; // above the restart button
     btn.style.transform = 'translateX(-50%)';
     btn.style.fontSize = '1.8em';
     btn.style.padding = '12px 24px';
@@ -1358,13 +1375,32 @@ function showShareButton() {
     btn.style.border = '2px solid #0cf';
     btn.style.borderRadius = '12px';
     btn.style.cursor = 'pointer';
+    
+    // Responsive positioning to prevent overlap
+    if (window.innerWidth <= 768) {
+      btn.style.top = 'calc(50% + 120px)'; // Give more space from game over text
+      btn.style.fontSize = '1.4em';
+      btn.style.padding = '10px 20px';
+    } else {
+      btn.style.top = 'calc(50% + 120px)';
+    }
+    
     btn.onclick = () => {
       openShareModal();
     };
     document.body.appendChild(btn);
   } else if (btn) {
     btn.style.display = 'block';
-    btn.style.top = 'calc(50% + 120px)';
+    // Update position on resize
+    if (window.innerWidth <= 768) {
+      btn.style.top = 'calc(50% + 120px)';
+      btn.style.fontSize = '1.4em';
+      btn.style.padding = '10px 20px';
+    } else {
+      btn.style.top = 'calc(50% + 120px)';
+      btn.style.fontSize = '1.8em';
+      btn.style.padding = '12px 24px';
+    }
     btn.style.transform = 'translateX(-50%)';
   }
 }
@@ -1475,11 +1511,11 @@ function openShareModal() {
     -webkit-overflow-scrolling: touch;
   `;
 
-  // Adjust modal padding for mobile devices
+  // Better mobile handling for small screens
   if (window.innerWidth <= 768) {
-    shareModal.style.padding = '10px';
+    shareModal.style.padding = '8px';
     shareModal.style.alignItems = 'flex-start';
-    shareModal.style.paddingTop = '20px';
+    shareModal.style.paddingTop = '10px';
   }
 
   const modalContent = document.createElement('div');
@@ -1498,11 +1534,18 @@ function openShareModal() {
     margin: 10px;
   `;
 
-  // Add responsive styles for mobile devices
+  // Improved responsive styles for mobile devices
   if (window.innerWidth <= 768) {
-    modalContent.style.maxHeight = 'min(85vh, 500px)';
-    modalContent.style.margin = '5px';
+    modalContent.style.maxHeight = 'min(90vh, 500px)';
+    modalContent.style.margin = '2px';
     modalContent.style.borderRadius = '12px';
+  }
+  
+  // For very small screens
+  if (window.innerWidth <= 480) {
+    modalContent.style.maxHeight = '95vh';
+    modalContent.style.margin = '0px';
+    modalContent.style.borderRadius = '8px';
   }
 
   const header = document.createElement('div');
@@ -1519,10 +1562,19 @@ function openShareModal() {
   if (window.innerWidth <= 768) {
     header.style.padding = '16px 20px';
   }
+  
+  if (window.innerWidth <= 480) {
+    header.style.padding = '12px 16px';
+  }
 
   const title = document.createElement('h2');
   title.textContent = '📤 Share Your Progress';
   title.style.cssText = 'margin: 0; font-size: 1.5em; color: #0cf;';
+
+  // Smaller title on mobile
+  if (window.innerWidth <= 480) {
+    title.style.fontSize = '1.3em';
+  }
 
   const closeButton = document.createElement('button');
   closeButton.textContent = '✖️';
@@ -1547,11 +1599,16 @@ function openShareModal() {
     flex: 1;
     min-height: 0;
     scroll-behavior: smooth;
+    overscroll-behavior: contain;
   `;
 
   // Adjust padding for mobile devices
   if (window.innerWidth <= 768) {
     content.style.padding = '16px 20px';
+  }
+  
+  if (window.innerWidth <= 480) {
+    content.style.padding = '12px 16px';
   }
 
   // Preview section
@@ -4066,3 +4123,33 @@ export function generateBonusVerticalLevelForTest(canvasWidth: number) {
 //   }
 // }
 // addStartBonusLevelButton();
+
+// Handle window resize to update button positions on mobile devices
+window.addEventListener('resize', () => {
+  const shareBtn = document.getElementById('share-btn');
+  const restartBtn = document.getElementById('restart-btn');
+  
+  if (shareBtn && shareBtn.style.display !== 'none') {
+    if (window.innerWidth <= 768) {
+      shareBtn.style.top = 'calc(50% + 120px)';
+      shareBtn.style.fontSize = '1.4em';
+      shareBtn.style.padding = '10px 20px';
+    } else {
+      shareBtn.style.top = 'calc(50% + 120px)';
+      shareBtn.style.fontSize = '1.8em';
+      shareBtn.style.padding = '12px 24px';
+    }
+  }
+  
+  if (restartBtn && restartBtn.style.display !== 'none') {
+    if (window.innerWidth <= 768) {
+      restartBtn.style.top = 'calc(50% + 180px)';
+      restartBtn.style.fontSize = '1.6em';
+      restartBtn.style.padding = '12px 24px';
+    } else {
+      restartBtn.style.top = 'calc(50% + 160px)';
+      restartBtn.style.fontSize = '2em';
+      restartBtn.style.padding = '16px 32px';
+    }
+  }
+});

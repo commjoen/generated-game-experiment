@@ -1545,11 +1545,28 @@ function openShareModal() {
   const repoLink = document.createElement('p');
   repoLink.innerHTML =
     '🔗 <a href="https://github.com/commjoen/generated-game-experiment" target="_blank" style="color: #0cf; text-decoration: underline;">github.com/commjoen/generated-game-experiment</a>';
-  repoLink.style.cssText = 'margin: 0; font-size: 0.9em; color: #ccc;';
+  repoLink.style.cssText = 'margin: 0 0 8px 0; font-size: 0.9em; color: #ccc;';
+
+  // Screenshot tip
+  const screenshotTip = document.createElement('p');
+  screenshotTip.innerHTML = navigator.share 
+    ? '💡 <strong>Tip:</strong> Use "Share+📷" to include the screenshot automatically, or "Download📷" to save it first.'
+    : '💡 <strong>Tip:</strong> Use "Download📷" to save the screenshot, then attach it manually when posting to social media for better engagement!';
+  screenshotTip.style.cssText = `
+    margin: 0;
+    padding: 8px 12px;
+    background: rgba(12, 255, 255, 0.1);
+    border-left: 3px solid #0cf;
+    border-radius: 4px;
+    font-size: 0.85em;
+    color: #ccc;
+    line-height: 1.3;
+  `;
 
   previewSection.appendChild(previewTitle);
   previewSection.appendChild(shareText);
   previewSection.appendChild(repoLink);
+  previewSection.appendChild(screenshotTip);
 
   // Share buttons section
   const shareSection = document.createElement('div');
@@ -1563,8 +1580,8 @@ function openShareModal() {
   const buttonsContainer = document.createElement('div');
   buttonsContainer.style.cssText = `
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 10px;
   `;
 
   // Create share buttons for different platforms
@@ -1594,13 +1611,32 @@ function openShareModal() {
       action: (_event: Event) => shareToReddit(),
     },
     {
-      name: 'Copy Link',
+      name: 'Bluesky',
+      icon: '☁️',
+      color: '#0085ff',
+      action: (_event: Event) => shareToBluesky(),
+    },
+    {
+      name: 'Mastodon',
+      icon: '🐘',
+      color: '#563acc',
+      action: (_event: Event) => shareToMastodon(),
+    },
+    // Add Web Share API button for mobile devices
+    ...(navigator.share ? [{
+      name: 'Share+📷',
+      icon: '📤',
+      color: '#28a745',
+      action: (_event: Event) => shareWithWebAPI(),
+    }] : []),
+    {
+      name: 'Copy Text',
       icon: '📋',
       color: '#666',
       action: (event: Event) => copyToClipboard(event),
     },
     {
-      name: 'Download',
+      name: 'Download📷',
       icon: '💾',
       color: '#0cf',
       action: (_event: Event) => downloadScreenshot(),
@@ -1713,10 +1749,163 @@ function shareToReddit() {
   );
 }
 
+function shareToBluesky() {
+  const text = encodeURIComponent(
+    generateShareText() +
+      '\n\nPlay at: https://github.com/commjoen/generated-game-experiment'
+  );
+  
+  window.open(
+    `https://bsky.app/intent/compose?text=${text}`,
+    '_blank',
+    'width=600,height=500'
+  );
+}
+
+function shareToMastodon() {
+  const text = encodeURIComponent(
+    generateShareText() +
+      '\n\nPlay at: https://github.com/commjoen/generated-game-experiment'
+  );
+  
+  // Open a modal to let user choose their Mastodon instance
+  const mastodonModal = document.createElement('div');
+  mastodonModal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.8);
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  `;
+  
+  mastodonModal.innerHTML = `
+    <div style="
+      background: #222;
+      color: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+    ">
+      <h3 style="margin: 0 0 16px 0; color: #0cf;">Share to Mastodon</h3>
+      <p style="margin: 0 0 16px 0; color: #ccc; font-size: 0.9em;">
+        Enter your Mastodon instance (e.g., mastodon.social):
+      </p>
+      <input 
+        type="text" 
+        id="mastodon-instance"
+        placeholder="mastodon.social"
+        style="
+          width: 100%;
+          padding: 8px 12px;
+          margin-bottom: 16px;
+          border: 1px solid #666;
+          border-radius: 4px;
+          background: #333;
+          color: #fff;
+          font-size: 1em;
+        "
+      />
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+          style="
+            padding: 8px 16px;
+            background: #666;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+          ">Cancel</button>
+        <button id="mastodon-share-btn"
+          style="
+            padding: 8px 16px;
+            background: #0cf;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+          ">Share</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(mastodonModal);
+  
+  const instanceInput = document.getElementById('mastodon-instance') as HTMLInputElement;
+  const shareBtn = document.getElementById('mastodon-share-btn');
+  
+  if (shareBtn && instanceInput) {
+    shareBtn.onclick = () => {
+      let instance = instanceInput.value.trim();
+      if (!instance) instance = 'mastodon.social';
+      
+      // Remove protocol if user included it
+      instance = instance.replace(/^https?:\/\//, '');
+      
+      window.open(
+        `https://${instance}/share?text=${text}`,
+        '_blank',
+        'width=600,height=500'
+      );
+      mastodonModal.remove();
+    };
+    
+    instanceInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        shareBtn.click();
+      }
+    });
+  }
+  
+  // Close modal when clicking outside
+  mastodonModal.onclick = (e) => {
+    if (e.target === mastodonModal) {
+      mastodonModal.remove();
+    }
+  };
+}
+
+async function shareWithWebAPI() {
+  if (navigator.share) {
+    try {
+      // Get screenshot as blob for sharing
+      const screenshot = captureGameScreenshot();
+      const response = await fetch(screenshot);
+      const blob = await response.blob();
+      const file = new File([blob], `platformer-level-${level}-score-${score}.png`, { 
+        type: 'image/png' 
+      });
+
+      await navigator.share({
+        title: gameOver 
+          ? 'My Side-Scrolling Platformer Score!' 
+          : 'Victory in Side-Scrolling Platformer!',
+        text: generateShareText(),
+        url: 'https://github.com/commjoen/generated-game-experiment',
+        files: [file]
+      });
+    } catch (err) {
+      console.error('Web Share API failed:', err);
+      // Fallback to copying text
+      await copyToClipboard();
+    }
+  } else {
+    // Fallback for browsers without Web Share API
+    await copyToClipboard();
+  }
+}
+
 async function copyToClipboard(event?: Event) {
   const textToCopy =
     generateShareText() +
-    '\n\nPlay at: https://github.com/commjoen/generated-game-experiment';
+    '\n\nPlay at: https://github.com/commjoen/generated-game-experiment' +
+    '\n\n📎 Tip: Download the screenshot and attach it to your post for better engagement!';
 
   try {
     await navigator.clipboard.writeText(textToCopy);

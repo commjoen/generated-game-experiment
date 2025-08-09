@@ -1474,7 +1474,7 @@ function openShareModal() {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   `;
-  
+
   // Adjust modal padding for mobile devices
   if (window.innerWidth <= 768) {
     shareModal.style.padding = '10px';
@@ -1497,7 +1497,7 @@ function openShareModal() {
     overflow: hidden;
     margin: 10px;
   `;
-  
+
   // Add responsive styles for mobile devices
   if (window.innerWidth <= 768) {
     modalContent.style.maxHeight = 'min(85vh, 500px)';
@@ -1514,7 +1514,7 @@ function openShareModal() {
     align-items: center;
     flex-shrink: 0;
   `;
-  
+
   // Adjust header padding for mobile devices
   if (window.innerWidth <= 768) {
     header.style.padding = '16px 20px';
@@ -1548,7 +1548,7 @@ function openShareModal() {
     min-height: 0;
     scroll-behavior: smooth;
   `;
-  
+
   // Adjust padding for mobile devices
   if (window.innerWidth <= 768) {
     content.style.padding = '16px 20px';
@@ -1615,7 +1615,7 @@ function openShareModal() {
     grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
     gap: 10px;
   `;
-  
+
   // Adjust grid layout for mobile devices
   if (window.innerWidth <= 480) {
     buttonsContainer.style.gridTemplateColumns = 'repeat(2, 1fr)';
@@ -1709,14 +1709,14 @@ function openShareModal() {
       word-wrap: break-word;
       hyphens: auto;
     `;
-    
+
     // Adjust button styles for mobile devices
     if (window.innerWidth <= 480) {
       button.style.fontSize = '0.8em';
       button.style.padding = '10px 6px';
       button.style.minHeight = '40px';
     }
-    
+
     button.onclick = (event: Event) => platform.action(event);
     button.onmouseenter = () => (button.style.opacity = '0.8');
     button.onmouseleave = () => (button.style.opacity = '1');

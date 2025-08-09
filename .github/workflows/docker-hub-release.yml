@@ -18,8 +18,6 @@ env:
 jobs:
   build-and-push-dockerhub:
     runs-on: ubuntu-latest
-    # Only run if Docker Hub credentials are available
-    if: ${{ secrets.DOCKERHUB_USERNAME && secrets.DOCKERHUB_TOKEN }}
 
     steps:
       - name: Checkout repository
@@ -28,10 +26,21 @@ jobs:
       - name: Fetch full git history for version injection
         run: git fetch --unshallow || true
 
+      - name: Check Docker Hub credentials
+        run: |
+          if [[ -n "${{ secrets.DOCKERHUB_USERNAME }}" && -n "${{ secrets.DOCKERHUB_TOKEN }}" ]]; then
+            echo "✅ Docker Hub credentials available - will build and push"
+            echo "DOCKER_HUB_AVAILABLE=true" >> $GITHUB_ENV
+          else
+            echo "⚠️  Docker Hub credentials not available - will build only (no push)"
+            echo "DOCKER_HUB_AVAILABLE=false" >> $GITHUB_ENV
+          fi
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
+        if: ${{ secrets.DOCKERHUB_USERNAME && secrets.DOCKERHUB_TOKEN }}
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -41,7 +50,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
+          images: ${{ secrets.DOCKERHUB_USERNAME && secrets.DOCKERHUB_TOKEN && format('{0}/{1}', secrets.DOCKERHUB_USERNAME, env.IMAGE_NAME) || 'temp/build-test' }}
           tags: |
             type=ref,event=tag
             type=raw,value=latest,enable={{is_default_branch}}
@@ -63,7 +72,7 @@ jobs:
           context: .
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
-          push: true
+          push: ${{ secrets.DOCKERHUB_USERNAME && secrets.DOCKERHUB_TOKEN && 'true' || 'false' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -71,7 +80,7 @@ jobs:
 
       - name: Update Docker Hub description
         uses: peter-evans/dockerhub-description@v4
-        if: github.event_name == 'release'
+        if: github.event_name == 'release' && secrets.DOCKERHUB_USERNAME && secrets.DOCKERHUB_TOKEN
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -83,15 +92,32 @@ jobs:
         run: |
           echo "## 🐳 Docker Hub Release Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Repository:** \`${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📦 Published Tags" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🚀 Usage" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-          echo "docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
-          echo "docker run -p 8080:80 -p 3001:3001 ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ env.DOCKER_HUB_AVAILABLE }}" == "true" ]]; then
+            echo "**Status:** ✅ Built and pushed to Docker Hub" >> $GITHUB_STEP_SUMMARY
+            echo "**Repository:** \`${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 📦 Published Tags" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🚀 Usage" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+            echo "docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+            echo "docker run -p 8080:80 -p 3001:3001 ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Status:** ⚠️  Build completed, but not pushed to Docker Hub" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** Docker Hub credentials (DOCKERHUB_USERNAME and DOCKERHUB_TOKEN) not available" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🔧 To Enable Docker Hub Push" >> $GITHUB_STEP_SUMMARY
+            echo "1. Set \`DOCKERHUB_USERNAME\` secret to your Docker Hub username" >> $GITHUB_STEP_SUMMARY
+            echo "2. Set \`DOCKERHUB_TOKEN\` secret to your Docker Hub access token" >> $GITHUB_STEP_SUMMARY
+            echo "3. Re-run this workflow or create a new release" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🏗️ Build Verification" >> $GITHUB_STEP_SUMMARY
+            echo "Docker image was successfully built and validated with the following configuration:" >> $GITHUB_STEP_SUMMARY
+            echo "- **Platforms:** linux/amd64, linux/arm64" >> $GITHUB_STEP_SUMMARY
+            echo "- **Build Context:** \`.\`" >> $GITHUB_STEP_SUMMARY
+            echo "- **Dockerfile:** \`./Dockerfile\`" >> $GITHUB_STEP_SUMMARY
+          fi

@@ -119,7 +119,7 @@ jobs:
         run: |
           echo "## 🐳 Docker Hub Release Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Show trigger information
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "**Trigger:** Manual dispatch with custom tag \`${{ github.event.inputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
@@ -129,7 +129,7 @@ jobs:
             echo "**Trigger:** Push to main branch" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [[ "${{ env.DOCKER_HUB_AVAILABLE }}" == "true" ]]; then
             echo "**Status:** ✅ Built and pushed to Docker Hub" >> $GITHUB_STEP_SUMMARY
             echo "**Repositories:** " >> $GITHUB_STEP_SUMMARY

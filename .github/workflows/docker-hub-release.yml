@@ -11,8 +11,6 @@ on:
         description: 'Tag to build and push'
         required: true
         default: 'latest'
-  push:
-    branches: [copilot/fix-101]  # Allow testing on this branch
 
 env:
   IMAGE_NAME: platformer-game

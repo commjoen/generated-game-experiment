@@ -5,6 +5,8 @@ permissions:
 on:
   release:
     types: [published]
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       tag:
@@ -71,6 +73,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
+            type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag != '' }}
           labels: |
             org.opencontainers.image.title=Multiplayer Platformer Game
             org.opencontainers.image.description=A 2D platformer game with optional multiplayer support
@@ -116,6 +119,17 @@ jobs:
         run: |
           echo "## 🐳 Docker Hub Release Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Show trigger information
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "**Trigger:** Manual dispatch with custom tag \`${{ github.event.inputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "**Trigger:** Release \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "**Trigger:** Push to main branch" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
           if [[ "${{ env.DOCKER_HUB_AVAILABLE }}" == "true" ]]; then
             echo "**Status:** ✅ Built and pushed to Docker Hub" >> $GITHUB_STEP_SUMMARY
             echo "**Repositories:** " >> $GITHUB_STEP_SUMMARY
@@ -130,12 +144,24 @@ jobs:
             echo "### 🚀 Usage" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
             echo "# Pull from either repository (same image)" >> $GITHUB_STEP_SUMMARY
-            echo "docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_1 }}:latest" >> $GITHUB_STEP_SUMMARY
+            if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ github.event.inputs.tag }}" ]]; then
+              echo "docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_1 }}:${{ github.event.inputs.tag }}" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_1 }}:latest" >> $GITHUB_STEP_SUMMARY
+            fi
             echo "# OR" >> $GITHUB_STEP_SUMMARY
-            echo "docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_2 }}:latest" >> $GITHUB_STEP_SUMMARY
+            if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ github.event.inputs.tag }}" ]]; then
+              echo "docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_2 }}:${{ github.event.inputs.tag }}" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_2 }}:latest" >> $GITHUB_STEP_SUMMARY
+            fi
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "# Run the container" >> $GITHUB_STEP_SUMMARY
-            echo "docker run -p 8080:80 -p 3001:3001 ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_1 }}:latest" >> $GITHUB_STEP_SUMMARY
+            if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ github.event.inputs.tag }}" ]]; then
+              echo "docker run -p 8080:80 -p 3001:3001 ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_1 }}:${{ github.event.inputs.tag }}" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "docker run -p 8080:80 -p 3001:3001 ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_1 }}:latest" >> $GITHUB_STEP_SUMMARY
+            fi
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           else
             echo "**Status:** ⚠️  Build completed, but not pushed to Docker Hub" >> $GITHUB_STEP_SUMMARY

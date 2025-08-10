@@ -1326,16 +1326,20 @@ function showRestartButton() {
     btn.style.border = '2px solid #0cf';
     btn.style.borderRadius = '12px';
     btn.style.cursor = 'pointer';
-    
-    // Responsive positioning to prevent overlap
+
+    // Responsive positioning - side by side on mobile to prevent overlap
     if (window.innerWidth <= 768) {
-      btn.style.top = 'calc(50% + 180px)'; // More space on mobile
-      btn.style.fontSize = '1.6em';
-      btn.style.padding = '12px 24px';
+      btn.style.top = 'calc(50% + 140px)'; // Same vertical level as share button
+      btn.style.left = 'calc(50% + 10px)'; // Position to the right of center
+      btn.style.transform = 'translateX(0)'; // Don't center transform
+      btn.style.fontSize = '1.4em';
+      btn.style.padding = '12px 20px';
     } else {
       btn.style.top = 'calc(50% + 160px)';
+      btn.style.left = '50%';
+      btn.style.transform = 'translateX(-50%)';
     }
-    
+
     btn.onclick = () => {
       btn?.remove();
       hideShareButton();
@@ -1344,17 +1348,20 @@ function showRestartButton() {
     document.body.appendChild(btn);
   } else if (btn) {
     btn.style.display = 'block';
-    // Update position on resize
+    // Update position on resize - side by side on mobile
     if (window.innerWidth <= 768) {
-      btn.style.top = 'calc(50% + 180px)';
-      btn.style.fontSize = '1.6em';
-      btn.style.padding = '12px 24px';
+      btn.style.top = 'calc(50% + 140px)';
+      btn.style.left = 'calc(50% + 10px)';
+      btn.style.transform = 'translateX(0)';
+      btn.style.fontSize = '1.4em';
+      btn.style.padding = '12px 20px';
     } else {
       btn.style.top = 'calc(50% + 160px)';
+      btn.style.left = '50%';
+      btn.style.transform = 'translateX(-50%)';
       btn.style.fontSize = '2em';
       btn.style.padding = '16px 32px';
     }
-    btn.style.transform = 'translateX(-50%)';
   }
 }
 
@@ -1375,33 +1382,40 @@ function showShareButton() {
     btn.style.border = '2px solid #0cf';
     btn.style.borderRadius = '12px';
     btn.style.cursor = 'pointer';
-    
-    // Responsive positioning to prevent overlap
+
+    // Responsive positioning - side by side on mobile to prevent overlap
     if (window.innerWidth <= 768) {
-      btn.style.top = 'calc(50% + 120px)'; // Give more space from game over text
+      btn.style.top = 'calc(50% + 140px)'; // Same vertical level as restart button
+      btn.style.left = 'calc(50% - 120px)'; // Position to the left of center
+      btn.style.transform = 'translateX(0)'; // Don't center transform
       btn.style.fontSize = '1.4em';
-      btn.style.padding = '10px 20px';
+      btn.style.padding = '10px 18px';
     } else {
       btn.style.top = 'calc(50% + 120px)';
+      btn.style.left = '50%';
+      btn.style.transform = 'translateX(-50%)';
     }
-    
+
     btn.onclick = () => {
       openShareModal();
     };
     document.body.appendChild(btn);
   } else if (btn) {
     btn.style.display = 'block';
-    // Update position on resize
+    // Update position on resize - side by side on mobile
     if (window.innerWidth <= 768) {
-      btn.style.top = 'calc(50% + 120px)';
+      btn.style.top = 'calc(50% + 140px)';
+      btn.style.left = 'calc(50% - 120px)';
+      btn.style.transform = 'translateX(0)';
       btn.style.fontSize = '1.4em';
-      btn.style.padding = '10px 20px';
+      btn.style.padding = '10px 18px';
     } else {
       btn.style.top = 'calc(50% + 120px)';
+      btn.style.left = '50%';
+      btn.style.transform = 'translateX(-50%)';
       btn.style.fontSize = '1.8em';
       btn.style.padding = '12px 24px';
     }
-    btn.style.transform = 'translateX(-50%)';
   }
 }
 
@@ -1540,7 +1554,7 @@ function openShareModal() {
     modalContent.style.margin = '2px';
     modalContent.style.borderRadius = '12px';
   }
-  
+
   // For very small screens
   if (window.innerWidth <= 480) {
     modalContent.style.maxHeight = '95vh';
@@ -1562,7 +1576,7 @@ function openShareModal() {
   if (window.innerWidth <= 768) {
     header.style.padding = '16px 20px';
   }
-  
+
   if (window.innerWidth <= 480) {
     header.style.padding = '12px 16px';
   }
@@ -1606,7 +1620,7 @@ function openShareModal() {
   if (window.innerWidth <= 768) {
     content.style.padding = '16px 20px';
   }
-  
+
   if (window.innerWidth <= 480) {
     content.style.padding = '12px 16px';
   }
@@ -4128,26 +4142,34 @@ export function generateBonusVerticalLevelForTest(canvasWidth: number) {
 window.addEventListener('resize', () => {
   const shareBtn = document.getElementById('share-btn');
   const restartBtn = document.getElementById('restart-btn');
-  
+
   if (shareBtn && shareBtn.style.display !== 'none') {
     if (window.innerWidth <= 768) {
-      shareBtn.style.top = 'calc(50% + 120px)';
+      shareBtn.style.top = 'calc(50% + 140px)';
+      shareBtn.style.left = 'calc(50% - 120px)';
+      shareBtn.style.transform = 'translateX(0)';
       shareBtn.style.fontSize = '1.4em';
-      shareBtn.style.padding = '10px 20px';
+      shareBtn.style.padding = '10px 18px';
     } else {
       shareBtn.style.top = 'calc(50% + 120px)';
+      shareBtn.style.left = '50%';
+      shareBtn.style.transform = 'translateX(-50%)';
       shareBtn.style.fontSize = '1.8em';
       shareBtn.style.padding = '12px 24px';
     }
   }
-  
+
   if (restartBtn && restartBtn.style.display !== 'none') {
     if (window.innerWidth <= 768) {
-      restartBtn.style.top = 'calc(50% + 180px)';
-      restartBtn.style.fontSize = '1.6em';
-      restartBtn.style.padding = '12px 24px';
+      restartBtn.style.top = 'calc(50% + 140px)';
+      restartBtn.style.left = 'calc(50% + 10px)';
+      restartBtn.style.transform = 'translateX(0)';
+      restartBtn.style.fontSize = '1.4em';
+      restartBtn.style.padding = '12px 20px';
     } else {
       restartBtn.style.top = 'calc(50% + 160px)';
+      restartBtn.style.left = '50%';
+      restartBtn.style.transform = 'translateX(-50%)';
       restartBtn.style.fontSize = '2em';
       restartBtn.style.padding = '16px 32px';
     }

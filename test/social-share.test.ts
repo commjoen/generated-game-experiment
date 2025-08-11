@@ -205,7 +205,7 @@ describe('Social Share Functionality', () => {
       encodeURIComponent('github.com/commjoen/generated-game-experiment')
     );
 
-    // Test LinkedIn URL generation  
+    // Test LinkedIn URL generation
     const title = encodeURIComponent('Test Game Title');
     const linkedinUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${url}&title=${title}&summary=${text}`;
 

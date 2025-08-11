@@ -81,6 +81,30 @@ A browser-based, side-scrolling platformer game built with TypeScript, Vite, and
    ```
    Open two browser windows at http://localhost:5173 to test multiplayer.
 
+### Pre-commit Validation
+
+Before committing changes, always run the pre-commit validation to ensure code quality:
+
+```sh
+npm run precommit
+```
+
+This command will:
+- Install pre-commit hooks if not already installed
+- Ensure npm dependencies are up to date
+- Run all pre-commit checks including:
+  - Trim trailing whitespace
+  - Fix end-of-file formatting
+  - Validate YAML and JSON files
+  - Check for merge conflicts
+  - Lint GitHub Actions workflows
+  - Format TypeScript/JavaScript files with Prettier
+  - Run ESLint with auto-fix
+  - Perform TypeScript type checking
+  - Run related tests
+
+The pre-commit hooks will also run automatically when you commit via `git commit`.
+
 ## Environment Variables
 
 - `NODE_ENV`: Set to `production` in Docker/Render for optimized builds and to disable progress logging.

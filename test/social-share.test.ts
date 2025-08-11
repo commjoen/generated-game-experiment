@@ -205,10 +205,12 @@ describe('Social Share Functionality', () => {
       encodeURIComponent('github.com/commjoen/generated-game-experiment')
     );
 
-    // Test LinkedIn URL generation
-    const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}&summary=${text}`;
+    // Test LinkedIn URL generation  
+    const title = encodeURIComponent('Test Game Title');
+    const linkedinUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${url}&title=${title}&summary=${text}`;
 
-    expect(linkedinUrl).toContain('linkedin.com/sharing/share-offsite');
+    expect(linkedinUrl).toContain('linkedin.com/shareArticle');
+    expect(linkedinUrl).toContain('mini=true');
     expect(linkedinUrl).toContain('summary=');
   });
 

@@ -1858,9 +1858,14 @@ function shareToLinkedIn() {
   const url = encodeURIComponent(
     'https://github.com/commjoen/generated-game-experiment'
   );
+  const title = encodeURIComponent(
+    gameOver
+      ? 'My final score in Side-Scrolling Platformer!'
+      : 'Check out my progress in Side-Scrolling Platformer!'
+  );
 
   window.open(
-    `https://www.linkedin.com/sharing/share-offsite/?url=${url}&summary=${text}`,
+    `https://www.linkedin.com/shareArticle?mini=true&url=${url}&title=${title}&summary=${text}`,
     '_blank',
     'width=570,height=570'
   );

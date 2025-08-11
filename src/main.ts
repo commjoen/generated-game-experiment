@@ -1330,10 +1330,10 @@ function showRestartButton() {
     // Responsive positioning - side by side on mobile to prevent overlap
     if (window.innerWidth <= 768) {
       btn.style.top = 'calc(50% + 140px)'; // Same vertical level as share button
-      btn.style.left = 'calc(50% + 10px)'; // Position to the right of center
+      btn.style.left = 'calc(50% + 80px)'; // Position farther to the right
       btn.style.transform = 'translateX(0)'; // Don't center transform
-      btn.style.fontSize = '1.4em';
-      btn.style.padding = '12px 20px';
+      btn.style.fontSize = '1.2em';
+      btn.style.padding = '10px 16px';
     } else {
       btn.style.top = 'calc(50% + 160px)';
       btn.style.left = '50%';
@@ -1351,10 +1351,10 @@ function showRestartButton() {
     // Update position on resize - side by side on mobile
     if (window.innerWidth <= 768) {
       btn.style.top = 'calc(50% + 140px)';
-      btn.style.left = 'calc(50% + 10px)';
+      btn.style.left = 'calc(50% + 80px)'; // Farther to the right
       btn.style.transform = 'translateX(0)';
-      btn.style.fontSize = '1.4em';
-      btn.style.padding = '12px 20px';
+      btn.style.fontSize = '1.2em';
+      btn.style.padding = '10px 16px';
     } else {
       btn.style.top = 'calc(50% + 160px)';
       btn.style.left = '50%';
@@ -1386,10 +1386,10 @@ function showShareButton() {
     // Responsive positioning - side by side on mobile to prevent overlap
     if (window.innerWidth <= 768) {
       btn.style.top = 'calc(50% + 140px)'; // Same vertical level as restart button
-      btn.style.left = 'calc(50% - 120px)'; // Position to the left of center
+      btn.style.left = 'calc(50% - 160px)'; // Position farther to the left
       btn.style.transform = 'translateX(0)'; // Don't center transform
-      btn.style.fontSize = '1.4em';
-      btn.style.padding = '10px 18px';
+      btn.style.fontSize = '1.2em';
+      btn.style.padding = '10px 16px';
     } else {
       btn.style.top = 'calc(50% + 120px)';
       btn.style.left = '50%';
@@ -1405,10 +1405,10 @@ function showShareButton() {
     // Update position on resize - side by side on mobile
     if (window.innerWidth <= 768) {
       btn.style.top = 'calc(50% + 140px)';
-      btn.style.left = 'calc(50% - 120px)';
+      btn.style.left = 'calc(50% - 160px)'; // Farther to the left
       btn.style.transform = 'translateX(0)';
-      btn.style.fontSize = '1.4em';
-      btn.style.padding = '10px 18px';
+      btn.style.fontSize = '1.2em';
+      btn.style.padding = '10px 16px';
     } else {
       btn.style.top = 'calc(50% + 120px)';
       btn.style.left = '50%';
@@ -4146,10 +4146,10 @@ window.addEventListener('resize', () => {
   if (shareBtn && shareBtn.style.display !== 'none') {
     if (window.innerWidth <= 768) {
       shareBtn.style.top = 'calc(50% + 140px)';
-      shareBtn.style.left = 'calc(50% - 120px)';
+      shareBtn.style.left = 'calc(50% - 160px)'; // Farther to the left
       shareBtn.style.transform = 'translateX(0)';
-      shareBtn.style.fontSize = '1.4em';
-      shareBtn.style.padding = '10px 18px';
+      shareBtn.style.fontSize = '1.2em';
+      shareBtn.style.padding = '10px 16px';
     } else {
       shareBtn.style.top = 'calc(50% + 120px)';
       shareBtn.style.left = '50%';
@@ -4162,10 +4162,10 @@ window.addEventListener('resize', () => {
   if (restartBtn && restartBtn.style.display !== 'none') {
     if (window.innerWidth <= 768) {
       restartBtn.style.top = 'calc(50% + 140px)';
-      restartBtn.style.left = 'calc(50% + 10px)';
+      restartBtn.style.left = 'calc(50% + 80px)'; // Farther to the right
       restartBtn.style.transform = 'translateX(0)';
-      restartBtn.style.fontSize = '1.4em';
-      restartBtn.style.padding = '12px 20px';
+      restartBtn.style.fontSize = '1.2em';
+      restartBtn.style.padding = '10px 16px';
     } else {
       restartBtn.style.top = 'calc(50% + 160px)';
       restartBtn.style.left = '50%';

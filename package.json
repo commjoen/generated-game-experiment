@@ -10,7 +10,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:ci": "vitest run"
+    "test:ci": "vitest run",
+    "precommit": "./scripts/validate-precommit.sh"
   },
   "engines": {
     "node": ">=24.0.0"

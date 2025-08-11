@@ -1653,8 +1653,8 @@ function openShareModal() {
   const screenshotTip = document.createElement('p');
   screenshotTip.innerHTML =
     'share' in navigator
-      ? '💡 <strong>Tip:</strong> Use "Share+📷" to include the screenshot automatically, or "Download📷" to save it first.'
-      : '💡 <strong>Tip:</strong> Use "Download📷" to save the screenshot, then attach it manually when posting to social media for better engagement!';
+      ? '💡 <strong>Tip:</strong> Use "Share+📷" to include the screenshot automatically, or use any social media button below to open the share dialog <em>and</em> download the screenshot.'
+      : '💡 <strong>Tip:</strong> When you click any social media button below, the screenshot will be automatically downloaded and the share dialog will open. Just attach the downloaded image to your post!';
   screenshotTip.style.cssText = `
     margin: 0;
     padding: 8px 12px;
@@ -1816,6 +1816,9 @@ function openShareModal() {
 }
 
 function shareToTwitter() {
+  // Download screenshot first so user has it for manual attachment
+  downloadScreenshot();
+  
   const text = encodeURIComponent(generateShareText());
   const url = encodeURIComponent(
     'https://github.com/commjoen/generated-game-experiment'
@@ -1832,6 +1835,9 @@ function shareToTwitter() {
 }
 
 function shareToFacebook() {
+  // Download screenshot first so user has it for manual attachment
+  downloadScreenshot();
+  
   const url = encodeURIComponent(
     'https://github.com/commjoen/generated-game-experiment'
   );
@@ -1845,6 +1851,9 @@ function shareToFacebook() {
 }
 
 function shareToLinkedIn() {
+  // Download screenshot first so user has it for manual attachment
+  downloadScreenshot();
+  
   const text = encodeURIComponent(generateShareText());
   const url = encodeURIComponent(
     'https://github.com/commjoen/generated-game-experiment'
@@ -1858,6 +1867,9 @@ function shareToLinkedIn() {
 }
 
 function shareToReddit() {
+  // Download screenshot first so user has it for manual attachment
+  downloadScreenshot();
+  
   const title = encodeURIComponent(
     gameOver
       ? 'My final score in Side-Scrolling Platformer!'
@@ -1876,6 +1888,9 @@ function shareToReddit() {
 }
 
 function shareToBluesky() {
+  // Download screenshot first so user has it for manual attachment
+  downloadScreenshot();
+  
   const text = encodeURIComponent(
     generateShareText() +
       '\n\nPlay at: https://github.com/commjoen/generated-game-experiment'
@@ -1889,6 +1904,9 @@ function shareToBluesky() {
 }
 
 function shareToMastodon() {
+  // Download screenshot first so user has it for manual attachment
+  downloadScreenshot();
+  
   const text = encodeURIComponent(
     generateShareText() +
       '\n\nPlay at: https://github.com/commjoen/generated-game-experiment'
@@ -2037,7 +2055,7 @@ async function copyToClipboard(event?: Event) {
   const textToCopy =
     generateShareText() +
     '\n\nPlay at: https://github.com/commjoen/generated-game-experiment' +
-    '\n\n📎 Tip: Download the screenshot and attach it to your post for better engagement!';
+    '\n\n📎 Tip: The screenshot was automatically downloaded when you clicked any social media button above!';
 
   try {
     await navigator.clipboard.writeText(textToCopy);

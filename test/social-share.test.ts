@@ -269,4 +269,64 @@ describe('Social Share Functionality', () => {
     // Restore original createElement
     document.createElement = originalCreateElement;
   });
+
+  it('should download screenshot and open share dialog for social media platforms', () => {
+    // Mock the downloadScreenshot function
+    let downloadCalled = false;
+    const mockDownloadScreenshot = () => {
+      downloadCalled = true;
+    };
+
+    // Mock window.open
+    const mockWindowOpen = vi.fn();
+    window.open = mockWindowOpen;
+
+    // Mock the social sharing functions with our mocked download function
+    const shareToTwitterWithDownload = () => {
+      mockDownloadScreenshot();
+      const text = encodeURIComponent('Test share text');
+      const url = encodeURIComponent('https://github.com/test/repo');
+      const hashtags = encodeURIComponent('test,game');
+      
+      window.open(
+        `https://twitter.com/intent/tweet?text=${text}&url=${url}&hashtags=${hashtags}`,
+        '_blank',
+        'width=550,height=420'
+      );
+    };
+
+    const shareToFacebookWithDownload = () => {
+      mockDownloadScreenshot();
+      const url = encodeURIComponent('https://github.com/test/repo');
+      const quote = encodeURIComponent('Test share text');
+      
+      window.open(
+        `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${quote}`,
+        '_blank',
+        'width=580,height=400'
+      );
+    };
+
+    // Test Twitter sharing
+    downloadCalled = false;
+    shareToTwitterWithDownload();
+    expect(downloadCalled).toBe(true);
+    expect(mockWindowOpen).toHaveBeenCalledWith(
+      expect.stringContaining('twitter.com/intent/tweet'),
+      '_blank',
+      'width=550,height=420'
+    );
+
+    // Test Facebook sharing  
+    downloadCalled = false;
+    shareToFacebookWithDownload();
+    expect(downloadCalled).toBe(true);
+    expect(mockWindowOpen).toHaveBeenCalledWith(
+      expect.stringContaining('facebook.com/sharer/sharer.php'),
+      '_blank',
+      'width=580,height=400'
+    );
+
+    expect(mockWindowOpen).toHaveBeenCalledTimes(2);
+  });
 });

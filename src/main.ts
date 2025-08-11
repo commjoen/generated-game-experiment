@@ -1296,6 +1296,7 @@ function respawnPlayer() {
     setTopScore(score);
     gameOver = true;
     showRestartButton();
+    showShareButton();
     return;
   }
   // Reset power-ups on death
@@ -1316,7 +1317,6 @@ function showRestartButton() {
     btn.textContent = 'Restart';
     btn.style.position = 'fixed';
     btn.style.left = '50%';
-    btn.style.top = 'calc(50% + 120px)'; // below the game over text and score
     btn.style.transform = 'translateX(-50%)';
     btn.style.fontSize = '2em';
     btn.style.padding = '16px 32px';
@@ -1326,21 +1326,916 @@ function showRestartButton() {
     btn.style.border = '2px solid #0cf';
     btn.style.borderRadius = '12px';
     btn.style.cursor = 'pointer';
+
+    // Responsive positioning - side by side on mobile to prevent overlap
+    if (window.innerWidth <= 768) {
+      btn.style.top = 'calc(50% + 140px)'; // Same vertical level as share button
+      btn.style.left = 'calc(50% + 80px)'; // Position farther to the right
+      btn.style.transform = 'translateX(0)'; // Don't center transform
+      btn.style.fontSize = '1.2em';
+      btn.style.padding = '10px 16px';
+    } else {
+      btn.style.top = 'calc(50% + 160px)';
+      btn.style.left = '50%';
+      btn.style.transform = 'translateX(-50%)';
+    }
+
     btn.onclick = () => {
       btn?.remove();
+      hideShareButton();
       resetGame();
     };
     document.body.appendChild(btn);
   } else if (btn) {
     btn.style.display = 'block';
-    btn.style.top = 'calc(50% + 120px)';
-    btn.style.transform = 'translateX(-50%)';
+    // Update position on resize - side by side on mobile
+    if (window.innerWidth <= 768) {
+      btn.style.top = 'calc(50% + 140px)';
+      btn.style.left = 'calc(50% + 80px)'; // Farther to the right
+      btn.style.transform = 'translateX(0)';
+      btn.style.fontSize = '1.2em';
+      btn.style.padding = '10px 16px';
+    } else {
+      btn.style.top = 'calc(50% + 160px)';
+      btn.style.left = '50%';
+      btn.style.transform = 'translateX(-50%)';
+      btn.style.fontSize = '2em';
+      btn.style.padding = '16px 32px';
+    }
   }
+}
+
+function showShareButton() {
+  let btn = document.getElementById('share-btn');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'share-btn';
+    btn.textContent = '📤 Share Progress';
+    btn.style.position = 'fixed';
+    btn.style.left = '50%';
+    btn.style.transform = 'translateX(-50%)';
+    btn.style.fontSize = '1.8em';
+    btn.style.padding = '12px 24px';
+    btn.style.zIndex = '100';
+    btn.style.background = '#0cf';
+    btn.style.color = '#fff';
+    btn.style.border = '2px solid #0cf';
+    btn.style.borderRadius = '12px';
+    btn.style.cursor = 'pointer';
+
+    // Responsive positioning - side by side on mobile to prevent overlap
+    if (window.innerWidth <= 768) {
+      btn.style.top = 'calc(50% + 140px)'; // Same vertical level as restart button
+      btn.style.left = 'calc(50% - 160px)'; // Position farther to the left
+      btn.style.transform = 'translateX(0)'; // Don't center transform
+      btn.style.fontSize = '1.2em';
+      btn.style.padding = '10px 16px';
+    } else {
+      btn.style.top = 'calc(50% + 120px)';
+      btn.style.left = '50%';
+      btn.style.transform = 'translateX(-50%)';
+    }
+
+    btn.onclick = () => {
+      openShareModal();
+    };
+    document.body.appendChild(btn);
+  } else if (btn) {
+    btn.style.display = 'block';
+    // Update position on resize - side by side on mobile
+    if (window.innerWidth <= 768) {
+      btn.style.top = 'calc(50% + 140px)';
+      btn.style.left = 'calc(50% - 160px)'; // Farther to the left
+      btn.style.transform = 'translateX(0)';
+      btn.style.fontSize = '1.2em';
+      btn.style.padding = '10px 16px';
+    } else {
+      btn.style.top = 'calc(50% + 120px)';
+      btn.style.left = '50%';
+      btn.style.transform = 'translateX(-50%)';
+      btn.style.fontSize = '1.8em';
+      btn.style.padding = '12px 24px';
+    }
+  }
+}
+
+function hideShareButton() {
+  const btn = document.getElementById('share-btn');
+  if (btn) btn.style.display = 'none';
 }
 
 function hideRestartButton() {
   const btn = document.getElementById('restart-btn');
   if (btn) btn.style.display = 'none';
+}
+
+// Social Media Share functionality
+function captureGameScreenshot(): string {
+  // Create a temporary canvas to capture the game area
+  const tempCanvas = document.createElement('canvas');
+  const tempCtx = tempCanvas.getContext('2d')!;
+
+  // Set canvas size
+  tempCanvas.width = canvas.width;
+  tempCanvas.height = canvas.height;
+
+  // Copy the current game canvas to temporary canvas
+  tempCtx.drawImage(canvas, 0, 0);
+
+  // Add game info overlay
+  tempCtx.save();
+  tempCtx.globalAlpha = 0.8;
+  tempCtx.fillStyle = '#000';
+  tempCtx.fillRect(0, canvas.height - 120, canvas.width, 120);
+
+  tempCtx.globalAlpha = 1;
+  tempCtx.fillStyle = '#fff';
+  tempCtx.font = 'bold 24px sans-serif';
+  tempCtx.textAlign = 'center';
+  tempCtx.fillText(
+    'Side-Scrolling Platformer',
+    canvas.width / 2,
+    canvas.height - 90
+  );
+
+  tempCtx.font = '18px sans-serif';
+  tempCtx.fillText(
+    `Level ${level} • Score ${score}`,
+    canvas.width / 2,
+    canvas.height - 65
+  );
+  tempCtx.fillText(
+    'Play at: github.com/commjoen/generated-game-experiment',
+    canvas.width / 2,
+    canvas.height - 40
+  );
+
+  if (gameOver) {
+    tempCtx.fillStyle = '#e33';
+    tempCtx.font = 'bold 20px sans-serif';
+    tempCtx.fillText('Final Score!', canvas.width / 2, canvas.height - 15);
+  } else if (level >= 25) {
+    tempCtx.fillStyle = '#0cf';
+    tempCtx.font = 'bold 20px sans-serif';
+    tempCtx.fillText(
+      'Victory! Level 25 Reached!',
+      canvas.width / 2,
+      canvas.height - 15
+    );
+  }
+
+  tempCtx.restore();
+
+  return tempCanvas.toDataURL('image/png');
+}
+
+function generateShareText(): string {
+  if (gameOver) {
+    return `Just played Side-Scrolling Platformer! 🎮 Final score: ${score} points on level ${level}! Can you beat it?`;
+  } else if (level >= 25) {
+    return `Victory! 🏆 Just reached level 25 in Side-Scrolling Platformer with ${score} points! Amazing game!`;
+  } else {
+    return `Playing Side-Scrolling Platformer! 🎮 Currently on level ${level} with ${score} points!`;
+  }
+}
+
+function openShareModal() {
+  // Remove existing modal if present
+  const existingModal = document.getElementById('share-modal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+
+  const shareModal = document.createElement('div');
+  shareModal.id = 'share-modal';
+  shareModal.style.cssText = `
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.8);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  `;
+
+  // Better mobile handling for small screens
+  if (window.innerWidth <= 768) {
+    shareModal.style.padding = '8px';
+    shareModal.style.alignItems = 'flex-start';
+    shareModal.style.paddingTop = '10px';
+  }
+
+  const modalContent = document.createElement('div');
+  modalContent.style.cssText = `
+    background: #222;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+    max-width: 500px;
+    width: 100%;
+    max-height: min(90vh, 600px);
+    color: #fff;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin: 10px;
+  `;
+
+  // Improved responsive styles for mobile devices
+  if (window.innerWidth <= 768) {
+    modalContent.style.maxHeight = 'min(90vh, 500px)';
+    modalContent.style.margin = '2px';
+    modalContent.style.borderRadius = '12px';
+  }
+
+  // For very small screens
+  if (window.innerWidth <= 480) {
+    modalContent.style.maxHeight = '95vh';
+    modalContent.style.margin = '0px';
+    modalContent.style.borderRadius = '8px';
+  }
+
+  const header = document.createElement('div');
+  header.style.cssText = `
+    padding: 20px 32px;
+    border-bottom: 1px solid #444;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  `;
+
+  // Adjust header padding for mobile devices
+  if (window.innerWidth <= 768) {
+    header.style.padding = '16px 20px';
+  }
+
+  if (window.innerWidth <= 480) {
+    header.style.padding = '12px 16px';
+  }
+
+  const title = document.createElement('h2');
+  title.textContent = '📤 Share Your Progress';
+  title.style.cssText = 'margin: 0; font-size: 1.5em; color: #0cf;';
+
+  // Smaller title on mobile
+  if (window.innerWidth <= 480) {
+    title.style.fontSize = '1.3em';
+  }
+
+  const closeButton = document.createElement('button');
+  closeButton.textContent = '✖️';
+  closeButton.style.cssText = `
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 4px;
+  `;
+  closeButton.onclick = () => shareModal.remove();
+
+  header.appendChild(title);
+  header.appendChild(closeButton);
+
+  const content = document.createElement('div');
+  content.style.cssText = `
+    padding: 24px 32px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+    min-height: 0;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+  `;
+
+  // Adjust padding for mobile devices
+  if (window.innerWidth <= 768) {
+    content.style.padding = '16px 20px';
+  }
+
+  if (window.innerWidth <= 480) {
+    content.style.padding = '12px 16px';
+  }
+
+  // Preview section
+  const previewSection = document.createElement('div');
+  previewSection.style.cssText = 'margin-bottom: 24px;';
+
+  const previewTitle = document.createElement('h3');
+  previewTitle.textContent = 'Preview:';
+  previewTitle.style.cssText =
+    'margin: 0 0 12px 0; color: #0cf; font-size: 1.2em;';
+
+  const shareText = document.createElement('p');
+  shareText.textContent = generateShareText();
+  shareText.style.cssText = `
+    margin: 0 0 12px 0;
+    padding: 12px;
+    background: #333;
+    border-radius: 8px;
+    line-height: 1.4;
+  `;
+
+  const repoLink = document.createElement('p');
+  repoLink.innerHTML =
+    '🔗 <a href="https://github.com/commjoen/generated-game-experiment" target="_blank" style="color: #0cf; text-decoration: underline;">github.com/commjoen/generated-game-experiment</a>';
+  repoLink.style.cssText = 'margin: 0 0 8px 0; font-size: 0.9em; color: #ccc;';
+
+  // Screenshot tip
+  const screenshotTip = document.createElement('p');
+  screenshotTip.innerHTML =
+    'share' in navigator
+      ? '💡 <strong>Tip:</strong> Use "Share+📷" to include the screenshot automatically, or "Download📷" to save it first.'
+      : '💡 <strong>Tip:</strong> Use "Download📷" to save the screenshot, then attach it manually when posting to social media for better engagement!';
+  screenshotTip.style.cssText = `
+    margin: 0;
+    padding: 8px 12px;
+    background: rgba(12, 255, 255, 0.1);
+    border-left: 3px solid #0cf;
+    border-radius: 4px;
+    font-size: 0.85em;
+    color: #ccc;
+    line-height: 1.3;
+  `;
+
+  previewSection.appendChild(previewTitle);
+  previewSection.appendChild(shareText);
+  previewSection.appendChild(repoLink);
+  previewSection.appendChild(screenshotTip);
+
+  // Share buttons section
+  const shareSection = document.createElement('div');
+  shareSection.style.cssText = 'margin-bottom: 16px;';
+
+  const shareTitle = document.createElement('h3');
+  shareTitle.textContent = 'Share to:';
+  shareTitle.style.cssText =
+    'margin: 0 0 16px 0; color: #0cf; font-size: 1.2em;';
+
+  const buttonsContainer = document.createElement('div');
+  buttonsContainer.style.cssText = `
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 10px;
+  `;
+
+  // Adjust grid layout for mobile devices
+  if (window.innerWidth <= 480) {
+    buttonsContainer.style.gridTemplateColumns = 'repeat(2, 1fr)';
+    buttonsContainer.style.gap = '8px';
+  } else if (window.innerWidth <= 768) {
+    buttonsContainer.style.gridTemplateColumns = 'repeat(3, 1fr)';
+    buttonsContainer.style.gap = '8px';
+  }
+
+  // Create share buttons for different platforms
+  const platforms = [
+    {
+      name: 'Twitter',
+      icon: '🐦',
+      color: '#1DA1F2',
+      action: (_event: Event) => shareToTwitter(),
+    },
+    {
+      name: 'Facebook',
+      icon: '📘',
+      color: '#1877F2',
+      action: (_event: Event) => shareToFacebook(),
+    },
+    {
+      name: 'LinkedIn',
+      icon: '💼',
+      color: '#0A66C2',
+      action: (_event: Event) => shareToLinkedIn(),
+    },
+    {
+      name: 'Reddit',
+      icon: '🔶',
+      color: '#FF4500',
+      action: (_event: Event) => shareToReddit(),
+    },
+    {
+      name: 'Bluesky',
+      icon: '☁️',
+      color: '#0085ff',
+      action: (_event: Event) => shareToBluesky(),
+    },
+    {
+      name: 'Mastodon',
+      icon: '🐘',
+      color: '#563acc',
+      action: (_event: Event) => shareToMastodon(),
+    },
+    // Add Web Share API button for mobile devices
+    ...('share' in navigator
+      ? [
+          {
+            name: 'Share+📷',
+            icon: '📤',
+            color: '#28a745',
+            action: (_event: Event) => shareWithWebAPI(),
+          },
+        ]
+      : []),
+    {
+      name: 'Copy Text',
+      icon: '📋',
+      color: '#666',
+      action: (event: Event) => copyToClipboard(event),
+    },
+    {
+      name: 'Download📷',
+      icon: '💾',
+      color: '#0cf',
+      action: (_event: Event) => downloadScreenshot(),
+    },
+  ];
+
+  platforms.forEach((platform) => {
+    const button = document.createElement('button');
+    button.innerHTML = `<span style="font-size: 1.2em; margin-right: 4px;">${platform.icon}</span>${platform.name}`;
+    button.style.cssText = `
+      background: ${platform.color};
+      color: white;
+      border: none;
+      padding: 12px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9em;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.2s;
+      text-align: center;
+      min-height: 44px;
+      word-wrap: break-word;
+      hyphens: auto;
+    `;
+
+    // Adjust button styles for mobile devices
+    if (window.innerWidth <= 480) {
+      button.style.fontSize = '0.8em';
+      button.style.padding = '10px 6px';
+      button.style.minHeight = '40px';
+    }
+
+    button.onclick = (event: Event) => platform.action(event);
+    button.onmouseenter = () => (button.style.opacity = '0.8');
+    button.onmouseleave = () => (button.style.opacity = '1');
+
+    buttonsContainer.appendChild(button);
+  });
+
+  shareSection.appendChild(shareTitle);
+  shareSection.appendChild(buttonsContainer);
+
+  content.appendChild(previewSection);
+  content.appendChild(shareSection);
+
+  modalContent.appendChild(header);
+  modalContent.appendChild(content);
+  shareModal.appendChild(modalContent);
+
+  document.body.appendChild(shareModal);
+
+  // Close modal when clicking outside
+  shareModal.onclick = (e) => {
+    if (e.target === shareModal) {
+      shareModal.remove();
+    }
+  };
+}
+
+function shareToTwitter() {
+  const text = encodeURIComponent(generateShareText());
+  const url = encodeURIComponent(
+    'https://github.com/commjoen/generated-game-experiment'
+  );
+  const hashtags = encodeURIComponent(
+    'indiegaming,webgames,platformer,javascript'
+  );
+
+  window.open(
+    `https://twitter.com/intent/tweet?text=${text}&url=${url}&hashtags=${hashtags}`,
+    '_blank',
+    'width=550,height=420'
+  );
+}
+
+function shareToFacebook() {
+  const url = encodeURIComponent(
+    'https://github.com/commjoen/generated-game-experiment'
+  );
+  const quote = encodeURIComponent(generateShareText());
+
+  window.open(
+    `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${quote}`,
+    '_blank',
+    'width=580,height=400'
+  );
+}
+
+function shareToLinkedIn() {
+  const text = encodeURIComponent(generateShareText());
+  const url = encodeURIComponent(
+    'https://github.com/commjoen/generated-game-experiment'
+  );
+
+  window.open(
+    `https://www.linkedin.com/sharing/share-offsite/?url=${url}&summary=${text}`,
+    '_blank',
+    'width=570,height=570'
+  );
+}
+
+function shareToReddit() {
+  const title = encodeURIComponent(
+    gameOver
+      ? 'My final score in Side-Scrolling Platformer!'
+      : 'Reached level 25 in this amazing browser game!'
+  );
+  const text = encodeURIComponent(
+    generateShareText() +
+      '\n\nPlay at: https://github.com/commjoen/generated-game-experiment'
+  );
+
+  window.open(
+    `https://www.reddit.com/submit?title=${title}&text=${text}`,
+    '_blank',
+    'width=600,height=500'
+  );
+}
+
+function shareToBluesky() {
+  const text = encodeURIComponent(
+    generateShareText() +
+      '\n\nPlay at: https://github.com/commjoen/generated-game-experiment'
+  );
+
+  window.open(
+    `https://bsky.app/intent/compose?text=${text}`,
+    '_blank',
+    'width=600,height=500'
+  );
+}
+
+function shareToMastodon() {
+  const text = encodeURIComponent(
+    generateShareText() +
+      '\n\nPlay at: https://github.com/commjoen/generated-game-experiment'
+  );
+
+  // Open a modal to let user choose their Mastodon instance
+  const mastodonModal = document.createElement('div');
+  mastodonModal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.8);
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  `;
+
+  mastodonModal.innerHTML = `
+    <div style="
+      background: #222;
+      color: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+    ">
+      <h3 style="margin: 0 0 16px 0; color: #0cf;">Share to Mastodon</h3>
+      <p style="margin: 0 0 16px 0; color: #ccc; font-size: 0.9em;">
+        Enter your Mastodon instance (e.g., mastodon.social):
+      </p>
+      <input
+        type="text"
+        id="mastodon-instance"
+        placeholder="mastodon.social"
+        style="
+          width: 100%;
+          padding: 8px 12px;
+          margin-bottom: 16px;
+          border: 1px solid #666;
+          border-radius: 4px;
+          background: #333;
+          color: #fff;
+          font-size: 1em;
+        "
+      />
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button onclick="this.parentElement.parentElement.parentElement.remove()"
+          style="
+            padding: 8px 16px;
+            background: #666;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+          ">Cancel</button>
+        <button id="mastodon-share-btn"
+          style="
+            padding: 8px 16px;
+            background: #0cf;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+          ">Share</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(mastodonModal);
+
+  const instanceInput = document.getElementById(
+    'mastodon-instance'
+  ) as HTMLInputElement;
+  const shareBtn = document.getElementById('mastodon-share-btn');
+
+  if (shareBtn && instanceInput) {
+    shareBtn.onclick = () => {
+      let instance = instanceInput.value.trim();
+      if (!instance) instance = 'mastodon.social';
+
+      // Remove protocol if user included it
+      instance = instance.replace(/^https?:\/\//, '');
+
+      window.open(
+        `https://${instance}/share?text=${text}`,
+        '_blank',
+        'width=600,height=500'
+      );
+      mastodonModal.remove();
+    };
+
+    instanceInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        shareBtn.click();
+      }
+    });
+  }
+
+  // Close modal when clicking outside
+  mastodonModal.onclick = (e) => {
+    if (e.target === mastodonModal) {
+      mastodonModal.remove();
+    }
+  };
+}
+
+async function shareWithWebAPI() {
+  if (navigator.share) {
+    try {
+      // Get screenshot as blob for sharing
+      const screenshot = captureGameScreenshot();
+      const response = await fetch(screenshot);
+      const blob = await response.blob();
+      const file = new File(
+        [blob],
+        `platformer-level-${level}-score-${score}.png`,
+        {
+          type: 'image/png',
+        }
+      );
+
+      await navigator.share({
+        title: gameOver
+          ? 'My Side-Scrolling Platformer Score!'
+          : 'Victory in Side-Scrolling Platformer!',
+        text: generateShareText(),
+        url: 'https://github.com/commjoen/generated-game-experiment',
+        files: [file],
+      });
+    } catch (err) {
+      console.error('Web Share API failed:', err);
+      // Fallback to copying text
+      await copyToClipboard();
+    }
+  } else {
+    // Fallback for browsers without Web Share API
+    await copyToClipboard();
+  }
+}
+
+async function copyToClipboard(event?: Event) {
+  const textToCopy =
+    generateShareText() +
+    '\n\nPlay at: https://github.com/commjoen/generated-game-experiment' +
+    '\n\n📎 Tip: Download the screenshot and attach it to your post for better engagement!';
+
+  try {
+    await navigator.clipboard.writeText(textToCopy);
+
+    // Show success message
+    const button = event?.target as HTMLButtonElement;
+    if (button) {
+      const originalText = button.innerHTML;
+      button.innerHTML =
+        '<span style="font-size: 1.2em; margin-right: 4px;">✅</span>Copied!';
+      button.style.background = '#28a745';
+      setTimeout(() => {
+        button.innerHTML = originalText;
+        button.style.background = '#666';
+      }, 2000);
+    }
+  } catch (err) {
+    console.error('Failed to copy to clipboard:', err);
+
+    // Fallback: Show text in a modal for manual copy
+    const fallbackModal = document.createElement('div');
+    fallbackModal.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #222;
+      color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      z-index: 1001;
+      max-width: 90vw;
+    `;
+
+    fallbackModal.innerHTML = `
+      <h3>Copy this text:</h3>
+      <textarea readonly style="width: 300px; height: 80px; background: #333; color: #fff; border: 1px solid #666; padding: 8px;">${textToCopy}</textarea>
+      <br><button onclick="this.parentElement.remove()" style="margin-top: 8px; padding: 8px 16px; background: #0cf; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Close</button>
+    `;
+
+    document.body.appendChild(fallbackModal);
+    const textarea = fallbackModal.querySelector(
+      'textarea'
+    ) as HTMLTextAreaElement;
+    textarea.select();
+  }
+}
+
+function downloadScreenshot() {
+  const screenshot = captureGameScreenshot();
+  const link = document.createElement('a');
+  link.download = `platformer-game-level-${level}-score-${score}.png`;
+  link.href = screenshot;
+  link.click();
+}
+
+function showVictoryScreen() {
+  // Add total points for completing the game
+  addTotalPoints(score + 500); // Bonus points for victory
+  setTopScore(score);
+
+  // Create victory modal
+  const victoryModal = document.createElement('div');
+  victoryModal.id = 'victory-modal';
+  victoryModal.style.cssText = `
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.8);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+  `;
+
+  const modalContent = document.createElement('div');
+  modalContent.style.cssText = `
+    background: linear-gradient(135deg, #222, #333);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+    max-width: 600px;
+    width: 100%;
+    color: #fff;
+    position: relative;
+    text-align: center;
+    padding: 40px 20px;
+    border: 2px solid #ffd700;
+  `;
+
+  modalContent.innerHTML = `
+    <h1 style="margin: 0 0 16px 0; font-size: 3em; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">🏆 VICTORY! 🏆</h1>
+    <h2 style="margin: 0 0 20px 0; font-size: 1.8em; color: #0cf;">Congratulations!</h2>
+    <p style="margin: 0 0 16px 0; font-size: 1.3em; line-height: 1.4;">
+      You've reached <strong>Level 25</strong> and conquered the platformer!
+    </p>
+    <p style="margin: 0 0 24px 0; font-size: 1.2em; color: #ccc;">
+      Final Score: <span style="color: #ffd700; font-weight: bold;">${score} points</span>
+    </p>
+    <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 32px;">
+      <button id="victory-share-btn" style="
+        background: #0cf;
+        color: #fff;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1.1em;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.2s;
+      ">
+        📤 Share Victory
+      </button>
+      <button id="victory-continue-btn" style="
+        background: #28a745;
+        color: #fff;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1.1em;
+        font-weight: bold;
+        transition: background 0.2s;
+      ">
+        Continue Playing
+      </button>
+      <button id="victory-restart-btn" style="
+        background: #222;
+        color: #fff;
+        border: 2px solid #0cf;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1.1em;
+        font-weight: bold;
+        transition: all 0.2s;
+      ">
+        New Game
+      </button>
+    </div>
+  `;
+
+  victoryModal.appendChild(modalContent);
+  document.body.appendChild(victoryModal);
+
+  // Add event listeners
+  const shareBtn = document.getElementById('victory-share-btn');
+  const continueBtn = document.getElementById('victory-continue-btn');
+  const restartBtn = document.getElementById('victory-restart-btn');
+
+  if (shareBtn) {
+    shareBtn.onclick = () => {
+      openShareModal();
+    };
+    shareBtn.onmouseenter = () => (shareBtn.style.background = '#0a9fd9');
+    shareBtn.onmouseleave = () => (shareBtn.style.background = '#0cf');
+  }
+
+  if (continueBtn) {
+    continueBtn.onclick = () => {
+      victoryModal.remove();
+      // Continue to level 26 and beyond
+      level = 25; // Keep at 25, but continue generating new levels
+      (async () => {
+        await generateLevel();
+        resetPlayer();
+        launchConfetti();
+        nextLevelPending = false;
+        nextLevelTimer = 0;
+      })();
+    };
+    continueBtn.onmouseenter = () => (continueBtn.style.background = '#218838');
+    continueBtn.onmouseleave = () => (continueBtn.style.background = '#28a745');
+  }
+
+  if (restartBtn) {
+    restartBtn.onclick = () => {
+      victoryModal.remove();
+      resetGame();
+    };
+    restartBtn.onmouseenter = () => {
+      restartBtn.style.background = '#0cf';
+      restartBtn.style.color = '#222';
+    };
+    restartBtn.onmouseleave = () => {
+      restartBtn.style.background = '#222';
+      restartBtn.style.color = '#fff';
+    };
+  }
+
+  // Launch confetti for victory
+  launchConfetti();
 }
 
 function generateNewLevel() {
@@ -1352,6 +2247,12 @@ function generateNewLevel() {
   enemies.length = 0;
   tubes.length = 0;
   level++;
+
+  // Check if player reached level 25 - victory condition
+  if (level >= 25) {
+    showVictoryScreen();
+    return;
+  }
 
   let isBonusLevel = false;
 
@@ -2849,6 +3750,7 @@ function draw() {
     showRestartButton();
   } else {
     hideRestartButton();
+    hideShareButton();
   }
   // Draw finish flag just before confetti
   ctx.save();
@@ -3235,3 +4137,41 @@ export function generateBonusVerticalLevelForTest(canvasWidth: number) {
 //   }
 // }
 // addStartBonusLevelButton();
+
+// Handle window resize to update button positions on mobile devices
+window.addEventListener('resize', () => {
+  const shareBtn = document.getElementById('share-btn');
+  const restartBtn = document.getElementById('restart-btn');
+
+  if (shareBtn && shareBtn.style.display !== 'none') {
+    if (window.innerWidth <= 768) {
+      shareBtn.style.top = 'calc(50% + 140px)';
+      shareBtn.style.left = 'calc(50% - 160px)'; // Farther to the left
+      shareBtn.style.transform = 'translateX(0)';
+      shareBtn.style.fontSize = '1.2em';
+      shareBtn.style.padding = '10px 16px';
+    } else {
+      shareBtn.style.top = 'calc(50% + 120px)';
+      shareBtn.style.left = '50%';
+      shareBtn.style.transform = 'translateX(-50%)';
+      shareBtn.style.fontSize = '1.8em';
+      shareBtn.style.padding = '12px 24px';
+    }
+  }
+
+  if (restartBtn && restartBtn.style.display !== 'none') {
+    if (window.innerWidth <= 768) {
+      restartBtn.style.top = 'calc(50% + 140px)';
+      restartBtn.style.left = 'calc(50% + 80px)'; // Farther to the right
+      restartBtn.style.transform = 'translateX(0)';
+      restartBtn.style.fontSize = '1.2em';
+      restartBtn.style.padding = '10px 16px';
+    } else {
+      restartBtn.style.top = 'calc(50% + 160px)';
+      restartBtn.style.left = '50%';
+      restartBtn.style.transform = 'translateX(-50%)';
+      restartBtn.style.fontSize = '2em';
+      restartBtn.style.padding = '16px 32px';
+    }
+  }
+});

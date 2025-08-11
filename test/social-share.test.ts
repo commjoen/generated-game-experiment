@@ -287,7 +287,7 @@ describe('Social Share Functionality', () => {
       const text = encodeURIComponent('Test share text');
       const url = encodeURIComponent('https://github.com/test/repo');
       const hashtags = encodeURIComponent('test,game');
-      
+
       window.open(
         `https://twitter.com/intent/tweet?text=${text}&url=${url}&hashtags=${hashtags}`,
         '_blank',
@@ -299,7 +299,7 @@ describe('Social Share Functionality', () => {
       mockDownloadScreenshot();
       const url = encodeURIComponent('https://github.com/test/repo');
       const quote = encodeURIComponent('Test share text');
-      
+
       window.open(
         `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${quote}`,
         '_blank',
@@ -317,7 +317,7 @@ describe('Social Share Functionality', () => {
       'width=550,height=420'
     );
 
-    // Test Facebook sharing  
+    // Test Facebook sharing
     downloadCalled = false;
     shareToFacebookWithDownload();
     expect(downloadCalled).toBe(true);

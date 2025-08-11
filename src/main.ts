@@ -1818,7 +1818,7 @@ function openShareModal() {
 function shareToTwitter() {
   // Download screenshot first so user has it for manual attachment
   downloadScreenshot();
-  
+
   const text = encodeURIComponent(generateShareText());
   const url = encodeURIComponent(
     'https://github.com/commjoen/generated-game-experiment'
@@ -1837,7 +1837,7 @@ function shareToTwitter() {
 function shareToFacebook() {
   // Download screenshot first so user has it for manual attachment
   downloadScreenshot();
-  
+
   const url = encodeURIComponent(
     'https://github.com/commjoen/generated-game-experiment'
   );
@@ -1853,7 +1853,7 @@ function shareToFacebook() {
 function shareToLinkedIn() {
   // Download screenshot first so user has it for manual attachment
   downloadScreenshot();
-  
+
   const text = encodeURIComponent(generateShareText());
   const url = encodeURIComponent(
     'https://github.com/commjoen/generated-game-experiment'
@@ -1869,7 +1869,7 @@ function shareToLinkedIn() {
 function shareToReddit() {
   // Download screenshot first so user has it for manual attachment
   downloadScreenshot();
-  
+
   const title = encodeURIComponent(
     gameOver
       ? 'My final score in Side-Scrolling Platformer!'
@@ -1890,7 +1890,7 @@ function shareToReddit() {
 function shareToBluesky() {
   // Download screenshot first so user has it for manual attachment
   downloadScreenshot();
-  
+
   const text = encodeURIComponent(
     generateShareText() +
       '\n\nPlay at: https://github.com/commjoen/generated-game-experiment'
@@ -1906,7 +1906,7 @@ function shareToBluesky() {
 function shareToMastodon() {
   // Download screenshot first so user has it for manual attachment
   downloadScreenshot();
-  
+
   const text = encodeURIComponent(
     generateShareText() +
       '\n\nPlay at: https://github.com/commjoen/generated-game-experiment'

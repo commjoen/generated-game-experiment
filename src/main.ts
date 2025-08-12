@@ -635,6 +635,23 @@ let playerCharacter = localStorage.getItem('playerCharacter') || 'SQUARE'; // De
 let purchasedUpgrades: Record<string, boolean> = JSON.parse(
   localStorage.getItem('purchasedUpgrades') || '{}'
 );
+// Track which purchased upgrades are currently enabled (default: all purchased upgrades are enabled)
+let enabledUpgrades: Record<string, boolean> = JSON.parse(
+  localStorage.getItem('enabledUpgrades') || '{}'
+);
+
+// Helper function to check if an upgrade is both purchased and enabled
+function isUpgradeActive(upgradeId: string): boolean {
+  return Boolean(purchasedUpgrades[upgradeId] && (enabledUpgrades[upgradeId] !== false));
+}
+
+// Function to toggle an upgrade's enabled state
+function toggleUpgradeEnabled(upgradeId: string): void {
+  if (purchasedUpgrades[upgradeId]) {
+    enabledUpgrades[upgradeId] = !enabledUpgrades[upgradeId];
+    localStorage.setItem('enabledUpgrades', JSON.stringify(enabledUpgrades));
+  }
+}
 
 // Initialize game after loading upgrades - apply upgrades after everything is set up
 generateLevel()
@@ -643,13 +660,13 @@ generateLevel()
   })
   .then(() => {
     // Apply purchased upgrades to starting lives (after all initialization is complete)
-    if (purchasedUpgrades['extra_life']) {
+    if (isUpgradeActive('extra_life')) {
       lives = 4;
-    } else if (purchasedUpgrades['tough_skin']) {
+    } else if (isUpgradeActive('tough_skin')) {
       lives = 5;
     }
     // Apply other starting upgrades
-    if (purchasedUpgrades['double_jump_start']) {
+    if (isUpgradeActive('double_jump_start')) {
       player.hasDoubleJump = true;
     }
   });
@@ -765,7 +782,9 @@ function purchaseUpgrade(upgradeId: string): boolean {
   }
 
   purchasedUpgrades[upgradeId] = true;
+  enabledUpgrades[upgradeId] = true; // Enable newly purchased upgrades by default
   localStorage.setItem('purchasedUpgrades', JSON.stringify(purchasedUpgrades));
+  localStorage.setItem('enabledUpgrades', JSON.stringify(enabledUpgrades));
 
   // Handle character purchases
   if (UPGRADES.characters.some((c) => c.id === upgradeId)) {
@@ -855,6 +874,7 @@ function updateShopDisplay() {
     UPGRADES.gameplay.forEach((upgrade) => {
       const isOwned = purchasedUpgrades[upgrade.id];
       const canAfford = totalPoints >= upgrade.cost;
+      const isEnabled = enabledUpgrades[upgrade.id] !== false; // Default to true if not set
 
       const upgradeDiv = document.createElement('div');
       upgradeDiv.style.cssText = `
@@ -869,24 +889,55 @@ function updateShopDisplay() {
         transition:all 0.2s;
       `;
 
-      upgradeDiv.innerHTML = `
-        <div>
-          <div style="font-weight:bold;margin-bottom:4px;">${upgrade.name}</div>
-          <div style="font-size:0.9em;color:#ccc;">${upgrade.description}</div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:1.2em;color:${isOwned ? '#0cf' : canAfford ? '#ffd700' : '#999'};">
-            ${isOwned ? '✓ Owned' : `${upgrade.cost} pts`}
+      if (isOwned) {
+        // Show toggle switch for owned upgrades
+        upgradeDiv.innerHTML = `
+          <div>
+            <div style="font-weight:bold;margin-bottom:4px;">${upgrade.name}</div>
+            <div style="font-size:0.9em;color:#ccc;">${upgrade.description}</div>
           </div>
-        </div>
-      `;
+          <div style="text-align:right;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:0.9em;color:${isEnabled ? '#0cf' : '#999'};">
+              ${isEnabled ? 'Enabled' : 'Disabled'}
+            </span>
+            <label style="position:relative;display:inline-block;width:40px;height:20px;">
+              <input type="checkbox" ${isEnabled ? 'checked' : ''} style="opacity:0;width:0;height:0;">
+              <span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:${isEnabled ? '#0cf' : '#666'};border-radius:20px;transition:.4s;">
+                <span style="position:absolute;content:'';height:16px;width:16px;left:${isEnabled ? '22px' : '2px'};bottom:2px;background:white;border-radius:50%;transition:.4s;"></span>
+              </span>
+            </label>
+          </div>
+        `;
+        
+        // Add toggle functionality
+        const toggle = upgradeDiv.querySelector('input[type="checkbox"]');
+        if (toggle) {
+          toggle.addEventListener('change', () => {
+            toggleUpgradeEnabled(upgrade.id);
+            updateShopDisplay(); // Refresh display to show new state
+          });
+        }
+      } else {
+        // Show purchase option for unowned upgrades
+        upgradeDiv.innerHTML = `
+          <div>
+            <div style="font-weight:bold;margin-bottom:4px;">${upgrade.name}</div>
+            <div style="font-size:0.9em;color:#ccc;">${upgrade.description}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:1.2em;color:${canAfford ? '#ffd700' : '#999'};">
+              ${upgrade.cost} pts
+            </div>
+          </div>
+        `;
 
-      if (!isOwned && canAfford) {
-        upgradeDiv.addEventListener('click', () => {
-          if (purchaseUpgrade(upgrade.id)) {
-            updateShopDisplay();
-          }
-        });
+        if (canAfford) {
+          upgradeDiv.addEventListener('click', () => {
+            if (purchaseUpgrade(upgrade.id)) {
+              updateShopDisplay();
+            }
+          });
+        }
       }
 
       gameplayContainer.appendChild(upgradeDiv);
@@ -899,10 +950,10 @@ function resetGame() {
   level = 1;
   // Apply purchased upgrades to starting lives
   lives = 3;
-  if (purchasedUpgrades['extra_life']) {
+  if (isUpgradeActive('extra_life')) {
     lives = 4;
   }
-  if (purchasedUpgrades['tough_skin']) {
+  if (isUpgradeActive('tough_skin')) {
     lives = 5;
   }
   localStorage.setItem('levelType', 'horizontal');
@@ -923,7 +974,7 @@ function resetGame() {
   generateLevel();
 
   // Apply purchased upgrades
-  if (purchasedUpgrades['double_jump_start']) {
+  if (isUpgradeActive('double_jump_start')) {
     player.hasDoubleJump = true;
   }
 
@@ -2364,7 +2415,7 @@ function update(deltaTime: number) {
   // Horizontal movement (frame-rate independent)
   player.vx = 0;
   const speedMultiplier =
-    currentSpeedMultiplier * (purchasedUpgrades['speed_boost'] ? 1.5 : 1);
+    currentSpeedMultiplier * (isUpgradeActive('speed_boost') ? 1.5 : 1);
   if (keys['ArrowLeft'] || keys['KeyA'])
     player.vx = -MOVE_SPEED * speedMultiplier * deltaTime * 60;
   if (keys['ArrowRight'] || keys['KeyD'])
@@ -2613,7 +2664,7 @@ function update(deltaTime: number) {
         multiplayerManager.collectItem((c as any).id);
       }
       if (c.type === 'coin') {
-        const coinValue = purchasedUpgrades['lucky_coins'] ? 2 : 1;
+        const coinValue = isUpgradeActive('lucky_coins') ? 2 : 1;
         if (multiplayerEnabled) {
           // In multiplayer mode, only update total points locally.
           // Score will be updated by the server through multiplayer events.

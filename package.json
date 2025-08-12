@@ -1,6 +1,6 @@
 {
   "name": "generated-game-experiment",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "type": "module",
   "description": "Private experiment to create a game with cursor",
   "main": "index.js",

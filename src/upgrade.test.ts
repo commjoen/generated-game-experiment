@@ -168,28 +168,35 @@ describe('Upgrade System', () => {
 
   it('should track enabled/disabled state for purchased upgrades', () => {
     // Simulate purchasing upgrades
-    const purchasedUpgrades = { 
-      extra_life: true, 
-      speed_boost: true, 
-      lucky_coins: true 
+    const purchasedUpgrades = {
+      extra_life: true,
+      speed_boost: true,
+      lucky_coins: true,
     };
-    localStorage.setItem('purchasedUpgrades', JSON.stringify(purchasedUpgrades));
+    localStorage.setItem(
+      'purchasedUpgrades',
+      JSON.stringify(purchasedUpgrades)
+    );
 
     // Simulate enabling/disabling upgrades
-    const enabledUpgrades = { 
-      extra_life: true, 
-      speed_boost: false, 
-      lucky_coins: true 
+    const enabledUpgrades = {
+      extra_life: true,
+      speed_boost: false,
+      lucky_coins: true,
     };
     localStorage.setItem('enabledUpgrades', JSON.stringify(enabledUpgrades));
 
     // Load upgrades
-    const loadedPurchased = JSON.parse(localStorage.getItem('purchasedUpgrades') || '{}');
-    const loadedEnabled = JSON.parse(localStorage.getItem('enabledUpgrades') || '{}');
+    const loadedPurchased = JSON.parse(
+      localStorage.getItem('purchasedUpgrades') || '{}'
+    );
+    const loadedEnabled = JSON.parse(
+      localStorage.getItem('enabledUpgrades') || '{}'
+    );
 
     // Test helper function logic (equivalent to isUpgradeActive)
-    const isUpgradeActive = (id: string) => 
-      Boolean(loadedPurchased[id] && (loadedEnabled[id] !== false));
+    const isUpgradeActive = (id: string) =>
+      Boolean(loadedPurchased[id] && loadedEnabled[id] !== false);
 
     expect(isUpgradeActive('extra_life')).toBe(true); // purchased and enabled
     expect(isUpgradeActive('speed_boost')).toBe(false); // purchased but disabled
@@ -200,47 +207,55 @@ describe('Upgrade System', () => {
   it('should default new purchases to enabled state', () => {
     // Start with empty upgrades
     localStorage.clear();
-    
+
     // Simulate purchasing a new upgrade
     const purchasedUpgrades = { speed_boost: true };
     const enabledUpgrades = { speed_boost: true }; // Should be enabled by default
-    
-    localStorage.setItem('purchasedUpgrades', JSON.stringify(purchasedUpgrades));
+
+    localStorage.setItem(
+      'purchasedUpgrades',
+      JSON.stringify(purchasedUpgrades)
+    );
     localStorage.setItem('enabledUpgrades', JSON.stringify(enabledUpgrades));
 
-    const loadedPurchased = JSON.parse(localStorage.getItem('purchasedUpgrades') || '{}');
-    const loadedEnabled = JSON.parse(localStorage.getItem('enabledUpgrades') || '{}');
+    const loadedPurchased = JSON.parse(
+      localStorage.getItem('purchasedUpgrades') || '{}'
+    ) as Record<string, boolean>;
+    const loadedEnabled = JSON.parse(
+      localStorage.getItem('enabledUpgrades') || '{}'
+    ) as Record<string, boolean>;
 
     expect(loadedPurchased['speed_boost']).toBe(true);
     expect(loadedEnabled['speed_boost']).toBe(true);
   });
 
   it('should apply upgrades only when both purchased and enabled', () => {
-    const purchasedUpgrades = { 
-      extra_life: true, 
+    const purchasedUpgrades: Record<string, boolean> = {
+      extra_life: true,
       tough_skin: true,
       speed_boost: true,
-      double_jump_start: true
+      double_jump_start: true,
     };
-    const enabledUpgrades = { 
-      extra_life: true,     // enabled
-      tough_skin: false,    // disabled
-      speed_boost: true,    // enabled
-      double_jump_start: false // disabled
+    const enabledUpgrades: Record<string, boolean> = {
+      extra_life: true, // enabled
+      tough_skin: false, // disabled
+      speed_boost: true, // enabled
+      double_jump_start: false, // disabled
     };
 
-    const isUpgradeActive = (id: string) => 
-      purchasedUpgrades[id] && (enabledUpgrades[id] !== false);
+    const isUpgradeActive = (id: string) =>
+      purchasedUpgrades[id] && enabledUpgrades[id] !== false;
 
     // Test starting lives calculation with enabled/disabled upgrades
     let lives = 3;
     if (isUpgradeActive('extra_life')) lives = 4; // Should apply (enabled)
-    if (isUpgradeActive('tough_skin')) lives = 5;  // Should not apply (disabled)
+    if (isUpgradeActive('tough_skin')) lives = 5; // Should not apply (disabled)
     expect(lives).toBe(4); // Only extra_life should apply
 
     // Test speed boost
     const currentSpeedMultiplier = 1;
-    const speedMultiplier = currentSpeedMultiplier * (isUpgradeActive('speed_boost') ? 1.5 : 1);
+    const speedMultiplier =
+      currentSpeedMultiplier * (isUpgradeActive('speed_boost') ? 1.5 : 1);
     expect(speedMultiplier).toBe(1.5); // Should apply (enabled)
 
     // Test double jump

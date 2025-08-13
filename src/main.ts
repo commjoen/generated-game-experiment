@@ -642,7 +642,9 @@ let enabledUpgrades: Record<string, boolean> = JSON.parse(
 
 // Helper function to check if an upgrade is both purchased and enabled
 function isUpgradeActive(upgradeId: string): boolean {
-  return Boolean(purchasedUpgrades[upgradeId] && (enabledUpgrades[upgradeId] !== false));
+  return Boolean(
+    purchasedUpgrades[upgradeId] && enabledUpgrades[upgradeId] !== false
+  );
 }
 
 // Function to toggle an upgrade's enabled state
@@ -908,7 +910,7 @@ function updateShopDisplay() {
             </label>
           </div>
         `;
-        
+
         // Add toggle functionality
         const toggle = upgradeDiv.querySelector('input[type="checkbox"]');
         if (toggle) {

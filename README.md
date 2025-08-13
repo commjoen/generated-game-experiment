@@ -90,6 +90,7 @@ npm run precommit
 ```
 
 This command will:
+
 - Install pre-commit hooks if not already installed
 - Ensure npm dependencies are up to date
 - Run all pre-commit checks including:

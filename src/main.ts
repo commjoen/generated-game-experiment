@@ -3280,6 +3280,95 @@ function drawConfetti() {
   }
 }
 
+// Helper functions for 2.5D visual effects
+function drawRect3D(x: number, y: number, width: number, height: number, color: string, depth: number = 8) {
+  // Draw main face
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, width, height);
+  
+  // Draw right side (darker)
+  const sideColor = darkenColor(color, 0.3);
+  ctx.fillStyle = sideColor;
+  ctx.beginPath();
+  ctx.moveTo(x + width, y);
+  ctx.lineTo(x + width + depth, y - depth);
+  ctx.lineTo(x + width + depth, y + height - depth);
+  ctx.lineTo(x + width, y + height);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Draw top side (lighter)
+  const topColor = lightenColor(color, 0.2);
+  ctx.fillStyle = topColor;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x + depth, y - depth);
+  ctx.lineTo(x + width + depth, y - depth);
+  ctx.lineTo(x + width, y);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawShadow(x: number, y: number, width: number, height: number, offsetX: number = 3, offsetY: number = 3) {
+  ctx.save();
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+  ctx.fillRect(x + offsetX, y + offsetY, width, height);
+  ctx.restore();
+}
+
+function darkenColor(color: string, factor: number): string {
+  if (color.startsWith('#')) {
+    // Handle hex colors
+    const hex = color.slice(1);
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    return `rgb(${Math.floor(r * (1 - factor))}, ${Math.floor(g * (1 - factor))}, ${Math.floor(b * (1 - factor))})`;
+  }
+  // Return as-is for named colors or rgb colors - we'll handle the main cases
+  return color;
+}
+
+function lightenColor(color: string, factor: number): string {
+  if (color.startsWith('#')) {
+    // Handle hex colors
+    const hex = color.slice(1);
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    return `rgb(${Math.floor(r + (255 - r) * factor)}, ${Math.floor(g + (255 - g) * factor)}, ${Math.floor(b + (255 - b) * factor)})`;
+  }
+  // Return as-is for named colors or rgb colors
+  return color;
+}
+
+function drawCoin3D(x: number, y: number, radius: number) {
+  // Draw shadow first
+  ctx.save();
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+  ctx.beginPath();
+  ctx.ellipse(x + 2, y + 3, radius * 0.8, radius * 0.3, 0, 0, 2 * Math.PI);
+  ctx.fill();
+  ctx.restore();
+  
+  // Draw coin with gradient
+  const gradient = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, 0, x, y, radius);
+  gradient.addColorStop(0, '#4df');
+  gradient.addColorStop(0.7, '#0cf');
+  gradient.addColorStop(1, '#0af');
+  
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, 2 * Math.PI);
+  ctx.fill();
+  
+  // Add highlight
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.beginPath();
+  ctx.arc(x - radius * 0.3, y - radius * 0.3, radius * 0.3, 0, 2 * Math.PI);
+  ctx.fill();
+}
+
 function draw() {
   // Draw background
   if (imageBg && imageBgLoaded && imageBgObj) {
@@ -3346,8 +3435,7 @@ function draw() {
     ctx.scale(scale, scale);
   }
   ctx.translate(-cameraX, -cameraY);
-  // Draw platforms
-  ctx.fillStyle = '#654321';
+  // Draw platforms with 3D effect
   let lowestPlatformIndex = -1;
   if (levelType === 'vertical' && platforms.length > 0) {
     let maxY = -Infinity;
@@ -3361,6 +3449,15 @@ function draw() {
   for (let i = 0; i < platforms.length; i++) {
     const plat = platforms[i];
     if ('isSlope' in plat && plat.isSlope) {
+      // Draw shadow for slope platforms
+      drawShadow(plat.x, plat.y, plat.width, plat.height);
+      
+      // Draw slope platform with gradient
+      const gradient = ctx.createLinearGradient(plat.x, plat.y, plat.x, plat.y + plat.height);
+      gradient.addColorStop(0, '#8b6f47');
+      gradient.addColorStop(1, '#654321');
+      ctx.fillStyle = gradient;
+      
       ctx.beginPath();
       ctx.moveTo(plat.x, plat.y);
       ctx.lineTo(plat.x + plat.width, plat.endY);
@@ -3369,7 +3466,11 @@ function draw() {
       ctx.closePath();
       ctx.fill();
     } else {
-      ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
+      // Draw shadow first
+      drawShadow(plat.x, plat.y, plat.width, plat.height);
+      
+      // Draw 3D platform
+      drawRect3D(plat.x, plat.y, plat.width, plat.height, '#654321', 6);
     }
     // Draw up-arrow on the visually lowest platform in vertical mode
     if (levelType === 'vertical' && i === lowestPlatformIndex) {
@@ -3379,29 +3480,34 @@ function draw() {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.globalAlpha = 0.85;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
+      ctx.shadowBlur = 4;
       ctx.fillText('↑', plat.x + plat.width / 2, plat.y + plat.height / 2);
       ctx.globalAlpha = 1;
+      ctx.shadowColor = 'transparent';
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.shadowBlur = 0;
       ctx.restore();
     }
   }
-  // Draw moving platforms
-  ctx.fillStyle = '#888';
+  // Draw moving platforms with 3D effect
   for (const plat of movingPlatforms) {
-    ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
+    drawShadow(plat.x, plat.y, plat.width, plat.height);
+    drawRect3D(plat.x, plat.y, plat.width, plat.height, '#888', 4);
   }
-  // Draw boxes
-  ctx.fillStyle = '#b5651d';
+  // Draw boxes with 3D effect
   for (const box of boxes) {
-    ctx.fillRect(box.x, box.y, box.width, box.height);
+    drawShadow(box.x, box.y, box.width, box.height);
+    drawRect3D(box.x, box.y, box.width, box.height, '#b5651d', 5);
   }
-  // Draw collectibles
+  // Draw collectibles with 3D effects
   for (const c of collectibles) {
     if (!c.collected) {
       if (c.type === 'coin') {
-        ctx.fillStyle = '#0cf';
-        ctx.beginPath();
-        ctx.arc(c.x + c.width / 2, c.y + c.height / 2, 10, 0, 2 * Math.PI);
-        ctx.fill();
+        drawCoin3D(c.x + c.width / 2, c.y + c.height / 2, 10);
       } else if (c.type === 'heart') {
         // Draw a heart shape
         ctx.save();
@@ -3453,25 +3559,62 @@ function draw() {
       }
     }
   }
-  // Draw spikes
-  ctx.fillStyle = '#e33';
+  // Draw spikes with 3D effect
   for (const spike of spikes) {
+    // Draw shadow
+    ctx.save();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.beginPath();
+    ctx.moveTo(spike.x + 2, spike.y + spike.height + 2);
+    ctx.lineTo(spike.x + spike.width / 2 + 2, spike.y + 2);
+    ctx.lineTo(spike.x + spike.width + 2, spike.y + spike.height + 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+    
+    // Draw spike with gradient
+    const gradient = ctx.createLinearGradient(spike.x, spike.y, spike.x + spike.width, spike.y + spike.height);
+    gradient.addColorStop(0, '#f55');
+    gradient.addColorStop(0.5, '#e33');
+    gradient.addColorStop(1, '#c22');
+    ctx.fillStyle = gradient;
+    
     ctx.beginPath();
     ctx.moveTo(spike.x, spike.y + spike.height);
     ctx.lineTo(spike.x + spike.width / 2, spike.y);
     ctx.lineTo(spike.x + spike.width, spike.y + spike.height);
     ctx.closePath();
     ctx.fill();
+    
+    // Add highlight
+    ctx.strokeStyle = '#f77';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(spike.x + spike.width / 2, spike.y);
+    ctx.lineTo(spike.x + spike.width / 4, spike.y + spike.height / 2);
+    ctx.stroke();
   }
-  // Draw spawn tubes
-  ctx.fillStyle = '#0a8000'; // Dark green for tubes
+  // Draw spawn tubes with 3D effect
   for (const tube of tubes) {
-    // Draw tube body
-    ctx.fillRect(tube.x, tube.y, tube.width, tube.height);
+    // Draw shadow
+    drawShadow(tube.x, tube.y, tube.width, tube.height);
+    
+    // Draw tube body with 3D effect
+    drawRect3D(tube.x, tube.y, tube.width, tube.height, '#0a8000', 3);
 
     // Draw tube opening (darker green) - larger opening for bigger tubes at the TOP where it meets the platform
-    ctx.fillStyle = '#064000';
-    const openingY = Math.max(tube.y, GROUND_Y - 15); // Position opening at platform level
+    const gradient = ctx.createRadialGradient(
+      tube.x + tube.width / 2, 
+      Math.max(tube.y, GROUND_Y - 15) + 7, 
+      0,
+      tube.x + tube.width / 2, 
+      Math.max(tube.y, GROUND_Y - 15) + 7, 
+      tube.width / 2
+    );
+    gradient.addColorStop(0, '#064000');
+    gradient.addColorStop(1, '#032000');
+    ctx.fillStyle = gradient;
+    const openingY = Math.max(tube.y, GROUND_Y - 15);
     ctx.fillRect(tube.x + 4, openingY, tube.width - 8, 15);
 
     // Draw pipe details (light green lines) - adjusted for longer tubes
@@ -3479,19 +3622,50 @@ function draw() {
     ctx.fillRect(tube.x + 8, tube.y + 8, 3, tube.height - 16);
     ctx.fillRect(tube.x + tube.width - 11, tube.y + 8, 3, tube.height - 16);
 
-    // Add more horizontal bands for longer tubes
+    // Add more horizontal bands for longer tubes with gradient
+    const bandGradient = ctx.createLinearGradient(tube.x, 0, tube.x + tube.width, 0);
+    bandGradient.addColorStop(0, '#0c8000');
+    bandGradient.addColorStop(0.5, '#0e9000');
+    bandGradient.addColorStop(1, '#0c8000');
+    ctx.fillStyle = bandGradient;
     ctx.fillRect(tube.x + 4, tube.y + tube.height / 4, tube.width - 8, 2);
     ctx.fillRect(tube.x + 4, tube.y + tube.height / 2, tube.width - 8, 2);
     ctx.fillRect(tube.x + 4, tube.y + (3 * tube.height) / 4, tube.width - 8, 2);
-
-    ctx.fillStyle = '#0a8000'; // Reset to main tube color
   }
-  // Draw enemies
+  // Draw enemies with 3D effects
   for (const enemy of enemies) {
     if (enemy.alive && ropeAnimation.targetEnemy !== enemy) {
+      // Draw shadow
+      ctx.save();
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      ctx.beginPath();
+      ctx.ellipse(
+        enemy.x + enemy.width / 2 + 2,
+        enemy.y + enemy.height + 2,
+        enemy.width * 0.4,
+        enemy.height * 0.2,
+        0,
+        0,
+        2 * Math.PI
+      );
+      ctx.fill();
+      ctx.restore();
+      
       if (enemy.type === 'circle') {
-        // Draw circle enemies as circles
-        ctx.fillStyle = '#f06'; // Pink color for circle enemies
+        // Draw circle enemies with 3D gradient
+        const gradient = ctx.createRadialGradient(
+          enemy.x + enemy.width / 2 - enemy.width * 0.2,
+          enemy.y + enemy.height / 2 - enemy.height * 0.2,
+          0,
+          enemy.x + enemy.width / 2,
+          enemy.y + enemy.height / 2,
+          enemy.width / 2
+        );
+        gradient.addColorStop(0, '#f8a');
+        gradient.addColorStop(0.7, '#f06');
+        gradient.addColorStop(1, '#d04');
+        
+        ctx.fillStyle = gradient;
         ctx.beginPath();
         ctx.arc(
           enemy.x + enemy.width / 2,
@@ -3501,15 +3675,28 @@ function draw() {
           2 * Math.PI
         );
         ctx.fill();
+        
+        // Add highlight
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.beginPath();
+        ctx.arc(
+          enemy.x + enemy.width / 2 - enemy.width * 0.25,
+          enemy.y + enemy.height / 2 - enemy.height * 0.25,
+          enemy.width * 0.15,
+          0,
+          2 * Math.PI
+        );
+        ctx.fill();
+        
         // Add simple eyes to make it look more enemy-like
         ctx.fillStyle = '#000';
         const eyeSize = 3;
         ctx.fillRect(enemy.x + 8, enemy.y + 8, eyeSize, eyeSize);
         ctx.fillRect(enemy.x + enemy.width - 11, enemy.y + 8, eyeSize, eyeSize);
       } else {
-        // Draw square enemies as rectangles (original behavior)
-        ctx.fillStyle = '#f90'; // Orange color for square enemies
-        ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+        // Draw square enemies with 3D effect
+        drawRect3D(enemy.x, enemy.y, enemy.width, enemy.height, '#f90', 3);
+        
         // Add simple eyes to make it look more enemy-like
         ctx.fillStyle = '#000';
         const eyeSize = 4;
@@ -3532,14 +3719,27 @@ function draw() {
 
   // Draw player character (original square or custom emoji)
   ctx.save();
+  
+  // Draw player shadow first
+  ctx.save();
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+  ctx.fillRect(
+    player.x - cameraX + 3,
+    player.y - cameraY + player.height - 2,
+    player.width,
+    8
+  );
+  ctx.restore();
+  
   if (playerCharacter === 'SQUARE') {
-    // Draw original yellow rectangle
-    ctx.fillStyle = '#ff0';
-    ctx.fillRect(
+    // Draw original yellow rectangle with 3D effect
+    drawRect3D(
       player.x - cameraX,
       player.y - cameraY,
       player.width,
-      player.height
+      player.height,
+      '#ff0',
+      4
     );
   } else {
     // Draw custom emoji character

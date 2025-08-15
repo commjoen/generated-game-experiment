@@ -3316,6 +3316,19 @@ function drawShadow(x: number, y: number, width: number, height: number, offsetX
   ctx.restore();
 }
 
+function drawSlopeShadow(x: number, y: number, width: number, height: number, endY: number, offsetX: number = 3, offsetY: number = 3) {
+  ctx.save();
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+  ctx.beginPath();
+  ctx.moveTo(x + offsetX, y + offsetY);
+  ctx.lineTo(x + width + offsetX, endY + offsetY);
+  ctx.lineTo(x + width + offsetX, endY + height + offsetY);
+  ctx.lineTo(x + offsetX, y + height + offsetY);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
 function darkenColor(color: string, factor: number): string {
   if (color.startsWith('#')) {
     // Handle hex colors
@@ -3449,8 +3462,8 @@ function draw() {
   for (let i = 0; i < platforms.length; i++) {
     const plat = platforms[i];
     if ('isSlope' in plat && plat.isSlope) {
-      // Draw shadow for slope platforms
-      drawShadow(plat.x, plat.y, plat.width, plat.height);
+      // Draw shadow for slope platforms with matching diagonal shape
+      drawSlopeShadow(plat.x, plat.y, plat.width, plat.height, plat.endY);
       
       // Draw slope platform with gradient
       const gradient = ctx.createLinearGradient(plat.x, plat.y, plat.x, plat.y + plat.height);

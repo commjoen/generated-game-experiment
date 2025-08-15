@@ -3281,11 +3281,18 @@ function drawConfetti() {
 }
 
 // Helper functions for 2.5D visual effects
-function drawRect3D(x: number, y: number, width: number, height: number, color: string, depth: number = 8) {
+function drawRect3D(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  color: string,
+  depth: number = 8
+) {
   // Draw main face
   ctx.fillStyle = color;
   ctx.fillRect(x, y, width, height);
-  
+
   // Draw right side (darker)
   const sideColor = darkenColor(color, 0.3);
   ctx.fillStyle = sideColor;
@@ -3296,7 +3303,7 @@ function drawRect3D(x: number, y: number, width: number, height: number, color: 
   ctx.lineTo(x + width, y + height);
   ctx.closePath();
   ctx.fill();
-  
+
   // Draw top side (lighter)
   const topColor = lightenColor(color, 0.2);
   ctx.fillStyle = topColor;
@@ -3309,14 +3316,29 @@ function drawRect3D(x: number, y: number, width: number, height: number, color: 
   ctx.fill();
 }
 
-function drawShadow(x: number, y: number, width: number, height: number, offsetX: number = 3, offsetY: number = 3) {
+function drawShadow(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  offsetX: number = 3,
+  offsetY: number = 3
+) {
   ctx.save();
   ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
   ctx.fillRect(x + offsetX, y + offsetY, width, height);
   ctx.restore();
 }
 
-function drawSlopeShadow(x: number, y: number, width: number, height: number, endY: number, offsetX: number = 3, offsetY: number = 3) {
+function drawSlopeShadow(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  endY: number,
+  offsetX: number = 3,
+  offsetY: number = 3
+) {
   ctx.save();
   ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
   ctx.beginPath();
@@ -3363,18 +3385,25 @@ function drawCoin3D(x: number, y: number, radius: number) {
   ctx.ellipse(x + 2, y + 3, radius * 0.8, radius * 0.3, 0, 0, 2 * Math.PI);
   ctx.fill();
   ctx.restore();
-  
+
   // Draw coin with gradient
-  const gradient = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, 0, x, y, radius);
+  const gradient = ctx.createRadialGradient(
+    x - radius * 0.3,
+    y - radius * 0.3,
+    0,
+    x,
+    y,
+    radius
+  );
   gradient.addColorStop(0, '#4df');
   gradient.addColorStop(0.7, '#0cf');
   gradient.addColorStop(1, '#0af');
-  
+
   ctx.fillStyle = gradient;
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, 2 * Math.PI);
   ctx.fill();
-  
+
   // Add highlight
   ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
   ctx.beginPath();
@@ -3464,13 +3493,18 @@ function draw() {
     if ('isSlope' in plat && plat.isSlope) {
       // Draw shadow for slope platforms with matching diagonal shape
       drawSlopeShadow(plat.x, plat.y, plat.width, plat.height, plat.endY);
-      
+
       // Draw slope platform with gradient
-      const gradient = ctx.createLinearGradient(plat.x, plat.y, plat.x, plat.y + plat.height);
+      const gradient = ctx.createLinearGradient(
+        plat.x,
+        plat.y,
+        plat.x,
+        plat.y + plat.height
+      );
       gradient.addColorStop(0, '#8b6f47');
       gradient.addColorStop(1, '#654321');
       ctx.fillStyle = gradient;
-      
+
       ctx.beginPath();
       ctx.moveTo(plat.x, plat.y);
       ctx.lineTo(plat.x + plat.width, plat.endY);
@@ -3481,7 +3515,7 @@ function draw() {
     } else {
       // Draw shadow first
       drawShadow(plat.x, plat.y, plat.width, plat.height);
-      
+
       // Draw 3D platform
       drawRect3D(plat.x, plat.y, plat.width, plat.height, '#654321', 6);
     }
@@ -3584,21 +3618,26 @@ function draw() {
     ctx.closePath();
     ctx.fill();
     ctx.restore();
-    
+
     // Draw spike with gradient
-    const gradient = ctx.createLinearGradient(spike.x, spike.y, spike.x + spike.width, spike.y + spike.height);
+    const gradient = ctx.createLinearGradient(
+      spike.x,
+      spike.y,
+      spike.x + spike.width,
+      spike.y + spike.height
+    );
     gradient.addColorStop(0, '#f55');
     gradient.addColorStop(0.5, '#e33');
     gradient.addColorStop(1, '#c22');
     ctx.fillStyle = gradient;
-    
+
     ctx.beginPath();
     ctx.moveTo(spike.x, spike.y + spike.height);
     ctx.lineTo(spike.x + spike.width / 2, spike.y);
     ctx.lineTo(spike.x + spike.width, spike.y + spike.height);
     ctx.closePath();
     ctx.fill();
-    
+
     // Add highlight
     ctx.strokeStyle = '#f77';
     ctx.lineWidth = 1;
@@ -3611,17 +3650,17 @@ function draw() {
   for (const tube of tubes) {
     // Draw shadow
     drawShadow(tube.x, tube.y, tube.width, tube.height);
-    
+
     // Draw tube body with 3D effect
     drawRect3D(tube.x, tube.y, tube.width, tube.height, '#0a8000', 3);
 
     // Draw tube opening (darker green) - larger opening for bigger tubes at the TOP where it meets the platform
     const gradient = ctx.createRadialGradient(
-      tube.x + tube.width / 2, 
-      Math.max(tube.y, GROUND_Y - 15) + 7, 
+      tube.x + tube.width / 2,
+      Math.max(tube.y, GROUND_Y - 15) + 7,
       0,
-      tube.x + tube.width / 2, 
-      Math.max(tube.y, GROUND_Y - 15) + 7, 
+      tube.x + tube.width / 2,
+      Math.max(tube.y, GROUND_Y - 15) + 7,
       tube.width / 2
     );
     gradient.addColorStop(0, '#064000');
@@ -3636,7 +3675,12 @@ function draw() {
     ctx.fillRect(tube.x + tube.width - 11, tube.y + 8, 3, tube.height - 16);
 
     // Add more horizontal bands for longer tubes with gradient
-    const bandGradient = ctx.createLinearGradient(tube.x, 0, tube.x + tube.width, 0);
+    const bandGradient = ctx.createLinearGradient(
+      tube.x,
+      0,
+      tube.x + tube.width,
+      0
+    );
     bandGradient.addColorStop(0, '#0c8000');
     bandGradient.addColorStop(0.5, '#0e9000');
     bandGradient.addColorStop(1, '#0c8000');
@@ -3663,7 +3707,7 @@ function draw() {
       );
       ctx.fill();
       ctx.restore();
-      
+
       if (enemy.type === 'circle') {
         // Draw circle enemies with 3D gradient
         const gradient = ctx.createRadialGradient(
@@ -3677,7 +3721,7 @@ function draw() {
         gradient.addColorStop(0, '#f8a');
         gradient.addColorStop(0.7, '#f06');
         gradient.addColorStop(1, '#d04');
-        
+
         ctx.fillStyle = gradient;
         ctx.beginPath();
         ctx.arc(
@@ -3688,7 +3732,7 @@ function draw() {
           2 * Math.PI
         );
         ctx.fill();
-        
+
         // Add highlight
         ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
         ctx.beginPath();
@@ -3700,7 +3744,7 @@ function draw() {
           2 * Math.PI
         );
         ctx.fill();
-        
+
         // Add simple eyes to make it look more enemy-like
         ctx.fillStyle = '#000';
         const eyeSize = 3;
@@ -3709,7 +3753,7 @@ function draw() {
       } else {
         // Draw square enemies with 3D effect
         drawRect3D(enemy.x, enemy.y, enemy.width, enemy.height, '#f90', 3);
-        
+
         // Add simple eyes to make it look more enemy-like
         ctx.fillStyle = '#000';
         const eyeSize = 4;
@@ -3732,7 +3776,7 @@ function draw() {
 
   // Draw player character (original square or custom emoji)
   ctx.save();
-  
+
   // Draw player shadow first
   ctx.save();
   ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
@@ -3743,7 +3787,7 @@ function draw() {
     8
   );
   ctx.restore();
-  
+
   if (playerCharacter === 'SQUARE') {
     // Draw original yellow rectangle with 3D effect
     drawRect3D(

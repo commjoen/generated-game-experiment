@@ -11,7 +11,11 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:ci": "vitest run",
-    "precommit": "./scripts/validate-precommit.sh"
+    "precommit": "./scripts/validate-precommit.sh",
+    "mcp": "github-mcp-server",
+    "mcp:help": "github-mcp-server --help",
+    "git:status": "gstatus",
+    "git:flow": "gflow"
   },
   "engines": {
     "node": ">=24.0.0"
@@ -46,6 +50,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "github-mcp-server": "^1.8.7",
     "install": "^0.13.0",
     "npm": "^11.5.2",
     "ws": "^8.18.3"

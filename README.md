@@ -128,6 +128,7 @@ gflow "message"           # Complete workflow (add→commit→push)
 ```
 
 Available features:
+
 - **30+ Git operations** with CLI aliases (gstatus, gadd, gcommit, etc.)
 - **Advanced workflows** (gflow, gquick, gsync, gdev)
 - **Model Context Protocol** integration for AI assistants

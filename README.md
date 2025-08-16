@@ -63,6 +63,7 @@ A browser-based, side-scrolling platformer game built with TypeScript, Vite, and
 - **Testing & CI**: Unit and integration tests for singleplayer and multiplayer (Vitest, ws, node-fetch). CI/CD with GitHub Actions and Docker.
 - **Deployment**: Dockerfile and nginx for production. Render.yaml for Render.com. CORS handled globally. Health checks and build filters included.
 - **Documentation**: Up-to-date README, project spec, and conversation transcript.
+- **GitHub MCP Server**: Integrated Model Context Protocol server providing Git repository management capabilities, AI assistant integration, and 30+ Git operations with CLI aliases for enhanced developer productivity.
 
 ## Development
 
@@ -105,6 +106,32 @@ This command will:
   - Run related tests
 
 The pre-commit hooks will also run automatically when you commit via `git commit`.
+
+### GitHub MCP Server
+
+The repository includes a GitHub MCP (Model Context Protocol) server that provides enhanced Git repository management capabilities:
+
+```sh
+# Access MCP server help
+npm run mcp:help
+
+# Quick Git operations using MCP aliases
+npm run git:status         # Check repository status
+npm run git:flow "message" # Complete workflow (add→commit→push)
+
+# Or use the CLI aliases directly:
+gstatus                    # Check status
+gadd                       # Add all files
+gcommit "message"         # Commit changes
+gpush                     # Push to remote
+gflow "message"           # Complete workflow (add→commit→push)
+```
+
+Available features:
+- **30+ Git operations** with CLI aliases (gstatus, gadd, gcommit, etc.)
+- **Advanced workflows** (gflow, gquick, gsync, gdev)
+- **Model Context Protocol** integration for AI assistants
+- **Developer productivity tools** (gbackup, gclean, grelease)
 
 ## Environment Variables
 

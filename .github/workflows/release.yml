@@ -46,7 +46,7 @@ jobs:
           echo "✅ Authorized user: ${{ github.actor }}"
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           # Use PAT_TOKEN if available for bypassing branch protection, fallback to GITHUB_TOKEN

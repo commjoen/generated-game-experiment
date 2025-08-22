@@ -16,10 +16,10 @@ class AudioManager {
     music: null as GainNode | null,
     sfx: null as GainNode | null,
   };
-  
+
   private backgroundMusic: HTMLAudioElement | null = null;
   private soundEffects: Map<string, HTMLAudioElement> = new Map();
-  
+
   private settings: AudioSettings = {
     masterVolume: 0.7,
     musicVolume: 0.6,
@@ -73,7 +73,6 @@ class AudioManager {
 
       // Load sound effects from data URLs (simple tones)
       this.loadSoundEffects();
-      
     } catch (error) {
       console.warn('Failed to initialize audio:', error);
     }
@@ -96,20 +95,24 @@ class AudioManager {
     }
   }
 
-  private generateTone(frequency: number, duration: number, type: OscillatorType): string {
+  private generateTone(
+    frequency: number,
+    duration: number,
+    type: OscillatorType
+  ): string {
     // Create a simple tone using Web Audio API and convert to data URL
     const sampleRate = 44100;
     const samples = Math.floor(sampleRate * duration);
     const buffer = new ArrayBuffer(44 + samples * 2);
     const view = new DataView(buffer);
-    
+
     // WAV header
     const writeString = (offset: number, string: string) => {
       for (let i = 0; i < string.length; i++) {
         view.setUint8(offset + i, string.charCodeAt(i));
       }
     };
-    
+
     writeString(0, 'RIFF');
     view.setUint32(4, 36 + samples * 2, true);
     writeString(8, 'WAVE');
@@ -123,29 +126,31 @@ class AudioManager {
     view.setUint16(34, 16, true);
     writeString(36, 'data');
     view.setUint32(40, samples * 2, true);
-    
+
     // Generate audio data
     for (let i = 0; i < samples; i++) {
       const t = i / sampleRate;
       let sample = 0;
-      
+
       if (type === 'sine') {
         sample = Math.sin(2 * Math.PI * frequency * t);
       } else if (type === 'square') {
         sample = Math.sin(2 * Math.PI * frequency * t) > 0 ? 1 : -1;
       } else if (type === 'triangle') {
-        sample = (2 / Math.PI) * Math.asin(Math.sin(2 * Math.PI * frequency * t));
+        sample =
+          (2 / Math.PI) * Math.asin(Math.sin(2 * Math.PI * frequency * t));
       } else if (type === 'sawtooth') {
         sample = 2 * (frequency * t - Math.floor(frequency * t + 0.5));
       }
-      
+
       // Apply envelope (fade in/out)
-      const envelope = Math.min(t * 10, 1) * Math.max(0, 1 - (t - duration + 0.1) * 10);
+      const envelope =
+        Math.min(t * 10, 1) * Math.max(0, 1 - (t - duration + 0.1) * 10);
       sample *= envelope * 0.3; // Reduce amplitude
-      
+
       view.setInt16(44 + i * 2, sample * 32767, true);
     }
-    
+
     const blob = new Blob([buffer], { type: 'audio/wav' });
     return URL.createObjectURL(blob);
   }
@@ -155,14 +160,14 @@ class AudioManager {
     const samples = Math.floor(sampleRate * duration);
     const buffer = new ArrayBuffer(44 + samples * 2);
     const view = new DataView(buffer);
-    
+
     // WAV header (same as above)
     const writeString = (offset: number, string: string) => {
       for (let i = 0; i < string.length; i++) {
         view.setUint8(offset + i, string.charCodeAt(i));
       }
     };
-    
+
     writeString(0, 'RIFF');
     view.setUint32(4, 36 + samples * 2, true);
     writeString(8, 'WAVE');
@@ -176,22 +181,23 @@ class AudioManager {
     view.setUint16(34, 16, true);
     writeString(36, 'data');
     view.setUint32(40, samples * 2, true);
-    
+
     // Generate chord
     for (let i = 0; i < samples; i++) {
       const t = i / sampleRate;
       let sample = 0;
-      
+
       for (const freq of frequencies) {
         sample += Math.sin(2 * Math.PI * freq * t) / frequencies.length;
       }
-      
-      const envelope = Math.min(t * 5, 1) * Math.max(0, 1 - (t - duration + 0.2) * 2);
+
+      const envelope =
+        Math.min(t * 5, 1) * Math.max(0, 1 - (t - duration + 0.2) * 2);
       sample *= envelope * 0.2;
-      
+
       view.setInt16(44 + i * 2, sample * 32767, true);
     }
-    
+
     const blob = new Blob([buffer], { type: 'audio/wav' });
     return URL.createObjectURL(blob);
   }
@@ -208,27 +214,32 @@ class AudioManager {
 
   public playSound(soundName: string): void {
     if (!this.settings.sfxEnabled) return;
-    
+
     const sound = this.soundEffects.get(soundName);
     if (sound) {
       this.ensureAudioContext();
       sound.volume = this.settings.masterVolume * this.settings.sfxVolume;
       sound.currentTime = 0; // Reset to beginning
-      sound.play().catch(e => console.warn('Failed to play sound:', e));
+      sound.play().catch((e) => console.warn('Failed to play sound:', e));
     }
   }
 
   public startBackgroundMusic(): void {
     if (!this.settings.musicEnabled || this.backgroundMusic) return;
-    
+
     // Generate a simple looping background music
     const musicDataUrl = this.generateBackgroundMusic();
     this.backgroundMusic = new (window as any).Audio(musicDataUrl);
-    this.backgroundMusic.loop = true;
-    this.backgroundMusic.volume = this.settings.masterVolume * this.settings.musicVolume;
-    
-    this.ensureAudioContext();
-    this.backgroundMusic.play().catch(e => console.warn('Failed to play background music:', e));
+    if (this.backgroundMusic) {
+      this.backgroundMusic.loop = true;
+      this.backgroundMusic.volume =
+        this.settings.masterVolume * this.settings.musicVolume;
+
+      this.ensureAudioContext();
+      this.backgroundMusic
+        .play()
+        .catch((e) => console.warn('Failed to play background music:', e));
+    }
   }
 
   public stopBackgroundMusic(): void {
@@ -245,14 +256,14 @@ class AudioManager {
     const samples = Math.floor(sampleRate * duration);
     const buffer = new ArrayBuffer(44 + samples * 2);
     const view = new DataView(buffer);
-    
+
     // WAV header
     const writeString = (offset: number, string: string) => {
       for (let i = 0; i < string.length; i++) {
         view.setUint8(offset + i, string.charCodeAt(i));
       }
     };
-    
+
     writeString(0, 'RIFF');
     view.setUint32(4, 36 + samples * 2, true);
     writeString(8, 'WAVE');
@@ -266,33 +277,33 @@ class AudioManager {
     view.setUint16(34, 16, true);
     writeString(36, 'data');
     view.setUint32(40, samples * 2, true);
-    
+
     // Simple melody: C-E-G-F pattern
-    const melody = [261.63, 329.63, 392.00, 349.23]; // C4, E4, G4, F4
+    const melody = [261.63, 329.63, 392.0, 349.23]; // C4, E4, G4, F4
     const noteLength = duration / melody.length;
-    
+
     for (let i = 0; i < samples; i++) {
       const t = i / sampleRate;
       const noteIndex = Math.floor(t / noteLength) % melody.length;
       const noteTime = (t % noteLength) / noteLength;
       const frequency = melody[noteIndex];
-      
+
       // Primary melody
       let sample = Math.sin(2 * Math.PI * frequency * t) * 0.3;
-      
+
       // Add harmony (fifth)
       sample += Math.sin(2 * Math.PI * frequency * 1.5 * t) * 0.15;
-      
+
       // Add subtle bass line
       sample += Math.sin(2 * Math.PI * frequency * 0.5 * t) * 0.1;
-      
+
       // Envelope for each note
       const envelope = Math.sin(Math.PI * noteTime);
       sample *= envelope * 0.4;
-      
+
       view.setInt16(44 + i * 2, sample * 32767, true);
     }
-    
+
     const blob = new Blob([buffer], { type: 'audio/wav' });
     return URL.createObjectURL(blob);
   }
@@ -302,7 +313,8 @@ class AudioManager {
       this.gainNodes.master.gain.value = this.settings.masterVolume;
     }
     if (this.backgroundMusic) {
-      this.backgroundMusic.volume = this.settings.masterVolume * this.settings.musicVolume;
+      this.backgroundMusic.volume =
+        this.settings.masterVolume * this.settings.musicVolume;
     }
     // Sound effects volumes are updated when played
   }
@@ -341,11 +353,21 @@ class AudioManager {
   }
 
   // Getters for current settings
-  public getMasterVolume(): number { return this.settings.masterVolume; }
-  public getMusicVolume(): number { return this.settings.musicVolume; }
-  public getSfxVolume(): number { return this.settings.sfxVolume; }
-  public isMusicEnabled(): boolean { return this.settings.musicEnabled; }
-  public isSfxEnabled(): boolean { return this.settings.sfxEnabled; }
+  public getMasterVolume(): number {
+    return this.settings.masterVolume;
+  }
+  public getMusicVolume(): number {
+    return this.settings.musicVolume;
+  }
+  public getSfxVolume(): number {
+    return this.settings.sfxVolume;
+  }
+  public isMusicEnabled(): boolean {
+    return this.settings.musicEnabled;
+  }
+  public isSfxEnabled(): boolean {
+    return this.settings.sfxEnabled;
+  }
 }
 
 // Export singleton instance

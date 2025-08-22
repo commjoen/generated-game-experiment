@@ -2969,7 +2969,7 @@ window.addEventListener('DOMContentLoaded', () => {
   levelTypeToggle = document.getElementById(
     'level-type-toggle'
   ) as HTMLInputElement;
-  
+
   // Audio controls
   const masterVolumeSlider = document.getElementById(
     'master-volume-slider'
@@ -2983,9 +2983,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const musicToggle = document.getElementById(
     'music-toggle'
   ) as HTMLInputElement;
-  const sfxToggle = document.getElementById(
-    'sfx-toggle'
-  ) as HTMLInputElement;
+  const sfxToggle = document.getElementById('sfx-toggle') as HTMLInputElement;
   const masterVolumeValue = document.getElementById('master-volume-value');
   const musicVolumeValue = document.getElementById('music-volume-value');
   const sfxVolumeValue = document.getElementById('sfx-volume-value');
@@ -3029,14 +3027,20 @@ window.addEventListener('DOMContentLoaded', () => {
       if (levelTypeToggle)
         levelTypeToggle.checked =
           manualLevelType && manualLevelTypeValue === 'vertical';
-          
+
       // Set audio control values
-      masterVolumeSlider.value = String(Math.round(audioManager.getMasterVolume() * 100));
-      musicVolumeSlider.value = String(Math.round(audioManager.getMusicVolume() * 100));
-      sfxVolumeSlider.value = String(Math.round(audioManager.getSfxVolume() * 100));
+      masterVolumeSlider.value = String(
+        Math.round(audioManager.getMasterVolume() * 100)
+      );
+      musicVolumeSlider.value = String(
+        Math.round(audioManager.getMusicVolume() * 100)
+      );
+      sfxVolumeSlider.value = String(
+        Math.round(audioManager.getSfxVolume() * 100)
+      );
       musicToggle.checked = audioManager.isMusicEnabled();
       sfxToggle.checked = audioManager.isSfxEnabled();
-      
+
       // Update value displays
       masterVolumeValue.textContent = masterVolumeSlider.value + '%';
       musicVolumeValue.textContent = musicVolumeSlider.value + '%';
@@ -3121,34 +3125,34 @@ window.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('levelType', levelType);
       resetGame();
     });
-    
+
     // Audio control event listeners
     masterVolumeSlider.addEventListener('input', () => {
       const volume = parseInt(masterVolumeSlider.value) / 100;
       audioManager.setMasterVolume(volume);
       masterVolumeValue.textContent = masterVolumeSlider.value + '%';
     });
-    
+
     musicVolumeSlider.addEventListener('input', () => {
       const volume = parseInt(musicVolumeSlider.value) / 100;
       audioManager.setMusicVolume(volume);
       musicVolumeValue.textContent = musicVolumeSlider.value + '%';
     });
-    
+
     sfxVolumeSlider.addEventListener('input', () => {
       const volume = parseInt(sfxVolumeSlider.value) / 100;
       audioManager.setSfxVolume(volume);
       sfxVolumeValue.textContent = sfxVolumeSlider.value + '%';
     });
-    
+
     musicToggle.addEventListener('change', () => {
       audioManager.setMusicEnabled(musicToggle.checked);
     });
-    
+
     sfxToggle.addEventListener('change', () => {
       audioManager.setSfxEnabled(sfxToggle.checked);
     });
-    
+
     if (playerNameInput) {
       playerNameInput.addEventListener('input', () => {
         playerName = playerNameInput!.value.slice(0, 12);

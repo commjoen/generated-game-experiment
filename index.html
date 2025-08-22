@@ -609,6 +609,113 @@
                 placeholder="Player"
               />
             </label>
+            
+            <!-- Audio Controls Section -->
+            <div
+              style="
+                margin-top: 24px;
+                padding-top: 16px;
+                border-top: 1px solid #444;
+              "
+            >
+              <h3 style="margin: 0 0 16px 0; font-size: 1.1em; color: #0cf">🔊 Audio</h3>
+              
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  margin: 12px 0;
+                "
+              >
+                <span style="min-width: 100px; font-size: 14px">Master Volume:</span>
+                <input
+                  type="range"
+                  id="master-volume-slider"
+                  min="0"
+                  max="100"
+                  value="70"
+                  style="
+                    flex: 1;
+                    margin: 0 8px;
+                    accent-color: #0cf;
+                  "
+                />
+                <span id="master-volume-value" style="min-width: 35px; font-size: 14px; color: #aaa">70%</span>
+              </label>
+              
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  margin: 12px 0;
+                "
+              >
+                <span style="min-width: 100px; font-size: 14px">Music Volume:</span>
+                <input
+                  type="range"
+                  id="music-volume-slider"
+                  min="0"
+                  max="100"
+                  value="60"
+                  style="
+                    flex: 1;
+                    margin: 0 8px;
+                    accent-color: #0cf;
+                  "
+                />
+                <span id="music-volume-value" style="min-width: 35px; font-size: 14px; color: #aaa">60%</span>
+              </label>
+              
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  margin: 12px 0;
+                "
+              >
+                <span style="min-width: 100px; font-size: 14px">SFX Volume:</span>
+                <input
+                  type="range"
+                  id="sfx-volume-slider"
+                  min="0"
+                  max="100"
+                  value="80"
+                  style="
+                    flex: 1;
+                    margin: 0 8px;
+                    accent-color: #0cf;
+                  "
+                />
+                <span id="sfx-volume-value" style="min-width: 35px; font-size: 14px; color: #aaa">80%</span>
+              </label>
+              
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  margin: 16px 0 8px 0;
+                "
+              >
+                <input type="checkbox" id="music-toggle" checked />
+                Enable Background Music
+              </label>
+              
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  margin: 8px 0;
+                "
+              >
+                <input type="checkbox" id="sfx-toggle" checked />
+                Enable Sound Effects
+              </label>
+            </div>
             <div
               style="
                 margin-top: 24px;

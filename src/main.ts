@@ -1,4 +1,5 @@
 import { multiplayerManager } from './multiplayer.js';
+import { audioManager } from './audio.js';
 
 const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
@@ -1352,6 +1353,7 @@ function drawRopeAnimation() {
 }
 
 function respawnPlayer() {
+  audioManager.playSound('death');
   lives--;
   if (lives <= 0) {
     setTopScore(score);
@@ -2179,6 +2181,7 @@ function downloadScreenshot() {
 }
 
 function showVictoryScreen() {
+  audioManager.playSound('victory');
   // Add total points for completing the game
   addTotalPoints(score + 500); // Bonus points for victory
   setTopScore(score);
@@ -2445,10 +2448,12 @@ function update(deltaTime: number) {
       player.onGround = false;
       if (player.hasDoubleJump) player.canDoubleJump = true;
       jumpCooldown = 8; // Small cooldown to prevent infinite jumping
+      audioManager.playSound('jump');
     } else if (player.hasDoubleJump && player.canDoubleJump) {
       player.vy = -JUMP_POWER;
       player.canDoubleJump = false;
       jumpCooldown = 8; // Cooldown for double jump too
+      audioManager.playSound('jump');
     }
   }
   _prevJumpKey = jumpKey;
@@ -2674,6 +2679,7 @@ function update(deltaTime: number) {
         multiplayerManager.collectItem((c as any).id);
       }
       if (c.type === 'coin') {
+        audioManager.playSound('collect');
         const coinValue = isUpgradeActive('lucky_coins') ? 2 : 1;
         if (multiplayerEnabled) {
           // In multiplayer mode, only update total points locally.
@@ -2686,11 +2692,14 @@ function update(deltaTime: number) {
           setTopScore(score);
         }
       } else if (c.type === 'heart') {
+        audioManager.playSound('collect');
         if (lives < 5) lives++;
       } else if (c.type === 'doublejump') {
+        audioManager.playSound('powerup');
         player.hasDoubleJump = true;
         player.canDoubleJump = false; // must jump once before using
       } else if (c.type === 'grow') {
+        audioManager.playSound('powerup');
         if (player.growLevel < 3) player.growLevel++;
         setPlayerSizeByGrowLevel();
       }
@@ -2960,6 +2969,26 @@ window.addEventListener('DOMContentLoaded', () => {
   levelTypeToggle = document.getElementById(
     'level-type-toggle'
   ) as HTMLInputElement;
+  
+  // Audio controls
+  const masterVolumeSlider = document.getElementById(
+    'master-volume-slider'
+  ) as HTMLInputElement;
+  const musicVolumeSlider = document.getElementById(
+    'music-volume-slider'
+  ) as HTMLInputElement;
+  const sfxVolumeSlider = document.getElementById(
+    'sfx-volume-slider'
+  ) as HTMLInputElement;
+  const musicToggle = document.getElementById(
+    'music-toggle'
+  ) as HTMLInputElement;
+  const sfxToggle = document.getElementById(
+    'sfx-toggle'
+  ) as HTMLInputElement;
+  const masterVolumeValue = document.getElementById('master-volume-value');
+  const musicVolumeValue = document.getElementById('music-volume-value');
+  const sfxVolumeValue = document.getElementById('sfx-volume-value');
   if (
     settingsBtn &&
     settingsModal &&
@@ -2972,7 +3001,15 @@ window.addEventListener('DOMContentLoaded', () => {
     teslaModeToggle &&
     multiplayerToggle &&
     playerNameInput &&
-    levelTypeToggle
+    levelTypeToggle &&
+    masterVolumeSlider &&
+    musicVolumeSlider &&
+    sfxVolumeSlider &&
+    musicToggle &&
+    sfxToggle &&
+    masterVolumeValue &&
+    musicVolumeValue &&
+    sfxVolumeValue
   ) {
     settingsBtn.addEventListener('click', () => {
       settingsModal.style.display = 'flex';
@@ -2992,6 +3029,18 @@ window.addEventListener('DOMContentLoaded', () => {
       if (levelTypeToggle)
         levelTypeToggle.checked =
           manualLevelType && manualLevelTypeValue === 'vertical';
+          
+      // Set audio control values
+      masterVolumeSlider.value = String(Math.round(audioManager.getMasterVolume() * 100));
+      musicVolumeSlider.value = String(Math.round(audioManager.getMusicVolume() * 100));
+      sfxVolumeSlider.value = String(Math.round(audioManager.getSfxVolume() * 100));
+      musicToggle.checked = audioManager.isMusicEnabled();
+      sfxToggle.checked = audioManager.isSfxEnabled();
+      
+      // Update value displays
+      masterVolumeValue.textContent = masterVolumeSlider.value + '%';
+      musicVolumeValue.textContent = musicVolumeSlider.value + '%';
+      sfxVolumeValue.textContent = sfxVolumeSlider.value + '%';
     });
     closeSettings.addEventListener('click', () => {
       settingsModal.style.display = 'none';
@@ -3072,6 +3121,34 @@ window.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('levelType', levelType);
       resetGame();
     });
+    
+    // Audio control event listeners
+    masterVolumeSlider.addEventListener('input', () => {
+      const volume = parseInt(masterVolumeSlider.value) / 100;
+      audioManager.setMasterVolume(volume);
+      masterVolumeValue.textContent = masterVolumeSlider.value + '%';
+    });
+    
+    musicVolumeSlider.addEventListener('input', () => {
+      const volume = parseInt(musicVolumeSlider.value) / 100;
+      audioManager.setMusicVolume(volume);
+      musicVolumeValue.textContent = musicVolumeSlider.value + '%';
+    });
+    
+    sfxVolumeSlider.addEventListener('input', () => {
+      const volume = parseInt(sfxVolumeSlider.value) / 100;
+      audioManager.setSfxVolume(volume);
+      sfxVolumeValue.textContent = sfxVolumeSlider.value + '%';
+    });
+    
+    musicToggle.addEventListener('change', () => {
+      audioManager.setMusicEnabled(musicToggle.checked);
+    });
+    
+    sfxToggle.addEventListener('change', () => {
+      audioManager.setSfxEnabled(sfxToggle.checked);
+    });
+    
     if (playerNameInput) {
       playerNameInput.addEventListener('input', () => {
         playerName = playerNameInput!.value.slice(0, 12);
@@ -4249,6 +4326,23 @@ if (multiplayerEnabled) {
 } else {
   console.log('Running in single-player mode');
 }
+
+// Initialize audio on first user interaction
+let audioInitialized = false;
+function initializeAudioOnInteraction() {
+  if (!audioInitialized) {
+    audioInitialized = true;
+    audioManager.ensureAudioContext();
+    if (audioManager.isMusicEnabled()) {
+      audioManager.startBackgroundMusic();
+    }
+  }
+}
+
+// Add event listeners for user interaction to start audio
+document.addEventListener('click', initializeAudioOnInteraction);
+document.addEventListener('keydown', initializeAudioOnInteraction);
+document.addEventListener('touchstart', initializeAudioOnInteraction);
 
 gameLoop();
 

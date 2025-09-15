@@ -2742,10 +2742,7 @@ function update(deltaTime: number) {
         // Circle enemy collision - check if player is red circle for love behavior
         if (playerCharacter === '🔴') {
           // Red circle player touching red circle enemy - show love!
-          showLoveHeart(
-            enemy.x + enemy.width / 2,
-            enemy.y + enemy.height / 2
-          );
+          showLoveHeart(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
           // No damage - just love!
         } else {
           // Other players - handle damage based on player size
@@ -3342,7 +3339,7 @@ function drawLoveHearts() {
     ctx.globalAlpha = alpha;
     ctx.translate(heart.x - cameraX, heart.y - cameraY);
     ctx.scale(heart.size / 20, heart.size / 20);
-    
+
     // Draw heart shape
     ctx.beginPath();
     ctx.moveTo(0, 6);
@@ -3353,7 +3350,7 @@ function drawLoveHearts() {
     ctx.closePath();
     ctx.fillStyle = '#ff1493'; // Deep pink for love hearts
     ctx.fill();
-    
+
     // Add a white highlight
     ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
     ctx.beginPath();
@@ -3364,7 +3361,7 @@ function drawLoveHearts() {
     ctx.bezierCurveTo(-2, 0, -5, 0, -5, 3);
     ctx.closePath();
     ctx.fill();
-    
+
     ctx.restore();
   }
 }

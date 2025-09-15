@@ -50,7 +50,7 @@ describe('Red Circle Love Feature Integration', () => {
     // Reset state for each test
     loveHeartsShown = false;
     mockLoveHearts = [];
-    
+
     mockPlayer = {
       x: 100,
       y: 300,
@@ -112,7 +112,7 @@ describe('Red Circle Love Feature Integration', () => {
 
   it('should animate love hearts with proper physics', () => {
     mockPlayerCharacter = '🔴';
-    
+
     // Trigger love hearts
     if (rectsCollide(mockPlayer, mockEnemy)) {
       if (mockEnemy.type === 'circle' && mockPlayerCharacter === '🔴') {
@@ -124,15 +124,18 @@ describe('Red Circle Love Feature Integration', () => {
     }
 
     expect(mockLoveHearts.length).toBe(3);
-    
+
     // Store initial positions
-    const initialPositions = mockLoveHearts.map(heart => ({ x: heart.x, y: heart.y }));
-    
+    const initialPositions = mockLoveHearts.map((heart) => ({
+      x: heart.x,
+      y: heart.y,
+    }));
+
     // Simulate a few animation frames
     for (let i = 0; i < 10; i++) {
       mockUpdateLoveHearts();
     }
-    
+
     // Hearts should have moved
     mockLoveHearts.forEach((heart, index) => {
       expect(heart.x).not.toBe(initialPositions[index].x);
@@ -199,7 +202,7 @@ describe('Red Circle Love Feature Integration', () => {
 
   it('should create love hearts at the correct position', () => {
     mockPlayerCharacter = '🔴';
-    
+
     const expectedX = mockEnemy.x + mockEnemy.width / 2;
     const expectedY = mockEnemy.y + mockEnemy.height / 2;
 
@@ -210,9 +213,9 @@ describe('Red Circle Love Feature Integration', () => {
     }
 
     expect(mockLoveHearts.length).toBe(3);
-    
+
     // Hearts should be positioned around the enemy center
-    mockLoveHearts.forEach(heart => {
+    mockLoveHearts.forEach((heart) => {
       expect(heart.x).toBeGreaterThan(expectedX - 40);
       expect(heart.x).toBeLessThan(expectedX + 40);
       expect(heart.y).toBeGreaterThan(expectedY - 20);

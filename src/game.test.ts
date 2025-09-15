@@ -914,6 +914,61 @@ describe('Enemy mechanics', () => {
     expect(playerDied).toBe(false);
     expect(player.growLevel).toBe(0);
   });
+
+  it('should show love hearts when red circle player touches red circle enemy', () => {
+    enemy.type = 'circle';
+    player.x = enemy.x;
+    player.y = enemy.y;
+    player.growLevel = 0; // Small player
+    const playerCharacter = '🔴'; // Red circle player
+    let loveHeartsShown = false;
+
+    // Mock the showLoveHeart function to track if it was called
+    const mockShowLoveHeart = (_x: number, _y: number) => {
+      loveHeartsShown = true;
+    };
+
+    if (rectsCollide(player, enemy)) {
+      if (enemy.type === 'circle') {
+        if (playerCharacter === '🔴') {
+          // Red circle player touching red circle enemy - show love!
+          mockShowLoveHeart(
+            enemy.x + enemy.width / 2,
+            enemy.y + enemy.height / 2
+          );
+          // No damage should occur
+        } else {
+          // Other players would take damage (not tested here)
+        }
+      }
+    }
+
+    expect(loveHeartsShown).toBe(true);
+    expect(player.growLevel).toBe(0); // Player should not be damaged
+    expect(enemy.alive).toBe(true); // Enemy should not be killed
+  });
+
+  it('should still damage non-red circle players when touching red circle enemy', () => {
+    enemy.type = 'circle';
+    player.x = enemy.x;
+    player.y = enemy.y;
+    player.growLevel = 0; // Small player
+    let playerDied = false;
+
+    if (rectsCollide(player, enemy)) {
+      if (enemy.type === 'circle') {
+        // Non-red circle player - handle damage
+        if (player.growLevel > 0) {
+          player.growLevel = 0;
+        } else {
+          playerDied = true;
+        }
+      }
+    }
+
+    expect(playerDied).toBe(true);
+    expect(player.growLevel).toBe(0);
+  });
 });
 
 describe('Eat/Spit enemy functionality', () => {

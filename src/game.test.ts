@@ -953,20 +953,15 @@ describe('Enemy mechanics', () => {
     player.x = enemy.x;
     player.y = enemy.y;
     player.growLevel = 0; // Small player
-    const playerCharacter = '🟡'; // Yellow circle player (not red)
     let playerDied = false;
 
     if (rectsCollide(player, enemy)) {
       if (enemy.type === 'circle') {
-        if (playerCharacter === '🔴') {
-          // Red circle player - would show love (not tested here)
+        // Non-red circle player - handle damage
+        if (player.growLevel > 0) {
+          player.growLevel = 0;
         } else {
-          // Other players - handle damage
-          if (player.growLevel > 0) {
-            player.growLevel = 0;
-          } else {
-            playerDied = true;
-          }
+          playerDied = true;
         }
       }
     }

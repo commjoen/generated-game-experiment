@@ -924,7 +924,7 @@ describe('Enemy mechanics', () => {
     let loveHeartsShown = false;
 
     // Mock the showLoveHeart function to track if it was called
-    const mockShowLoveHeart = (x: number, y: number) => {
+    const mockShowLoveHeart = (_x: number, _y: number) => {
       loveHeartsShown = true;
     };
 

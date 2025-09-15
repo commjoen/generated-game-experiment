@@ -2739,17 +2739,27 @@ function update(deltaTime: number) {
           break;
         }
       } else if (enemy.type === 'circle') {
-        // Circle enemy collision - handle damage based on player size
-        if (player.growLevel > 0) {
-          // Big player hit - shrink without losing life
-          player.growLevel = 0;
-          setPlayerSizeByGrowLevel();
-
-          // Add brief invincibility frames to prevent immediate re-collision
-          respawnTimer = 30; // Reuse respawn timer for invincibility
+        // Circle enemy collision - check if player is red circle for love behavior
+        if (playerCharacter === '🔴') {
+          // Red circle player touching red circle enemy - show love!
+          showLoveHeart(
+            enemy.x + enemy.width / 2,
+            enemy.y + enemy.height / 2
+          );
+          // No damage - just love!
         } else {
-          // Small player hit - lose a life
-          respawnPlayer();
+          // Other players - handle damage based on player size
+          if (player.growLevel > 0) {
+            // Big player hit - shrink without losing life
+            player.growLevel = 0;
+            setPlayerSizeByGrowLevel();
+
+            // Add brief invincibility frames to prevent immediate re-collision
+            respawnTimer = 30; // Reuse respawn timer for invincibility
+          } else {
+            // Small player hit - lose a life
+            respawnPlayer();
+          }
         }
         break;
       }
@@ -3284,6 +3294,77 @@ function drawConfetti() {
     ctx.rotate(p.angle);
     ctx.fillStyle = p.color;
     ctx.fillRect(-p.size / 2, -p.size / 6, p.size, p.size / 3);
+    ctx.restore();
+  }
+}
+
+// --- Love Heart Animation ---
+interface LoveHeart {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  size: number;
+}
+let loveHearts: LoveHeart[] = [];
+
+function showLoveHeart(x: number, y: number) {
+  // Create multiple hearts floating upward
+  for (let i = 0; i < 3; i++) {
+    loveHearts.push({
+      x: x + (Math.random() - 0.5) * 40,
+      y: y + (Math.random() - 0.5) * 20,
+      vx: (Math.random() - 0.5) * 2,
+      vy: -2 - Math.random() * 2,
+      life: 90 + Math.random() * 30,
+      maxLife: 120,
+      size: 20 + Math.random() * 10,
+    });
+  }
+}
+
+function updateLoveHearts() {
+  for (const heart of loveHearts) {
+    heart.x += heart.vx;
+    heart.y += heart.vy;
+    heart.vy += 0.02; // Slight gravity
+    heart.life--;
+  }
+  loveHearts = loveHearts.filter((heart) => heart.life > 0);
+}
+
+function drawLoveHearts() {
+  for (const heart of loveHearts) {
+    const alpha = heart.life / heart.maxLife;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(heart.x - cameraX, heart.y - cameraY);
+    ctx.scale(heart.size / 20, heart.size / 20);
+    
+    // Draw heart shape
+    ctx.beginPath();
+    ctx.moveTo(0, 6);
+    ctx.bezierCurveTo(0, 0, -10, 0, -10, 6);
+    ctx.bezierCurveTo(-10, 12, 0, 16, 0, 20);
+    ctx.bezierCurveTo(0, 16, 10, 12, 10, 6);
+    ctx.bezierCurveTo(10, 0, 0, 0, 0, 6);
+    ctx.closePath();
+    ctx.fillStyle = '#ff1493'; // Deep pink for love hearts
+    ctx.fill();
+    
+    // Add a white highlight
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.beginPath();
+    ctx.moveTo(-5, 3);
+    ctx.bezierCurveTo(-5, 0, -8, 0, -8, 3);
+    ctx.bezierCurveTo(-8, 6, -5, 8, -5, 10);
+    ctx.bezierCurveTo(-5, 8, -2, 6, -2, 3);
+    ctx.bezierCurveTo(-2, 0, -5, 0, -5, 3);
+    ctx.closePath();
+    ctx.fill();
+    
     ctx.restore();
   }
 }
@@ -4108,8 +4189,9 @@ function draw() {
   ctx.fillStyle = '#e33';
   ctx.fill();
   ctx.restore();
-  // Draw confetti last so it appears on top
+  // Draw confetti and love hearts last so they appear on top
   drawConfetti();
+  drawLoveHearts();
 }
 
 function gameLoop() {
@@ -4130,6 +4212,7 @@ function gameLoop() {
 
     update(deltaTime / 1000); // Pass actual delta time in seconds
     updateConfetti();
+    updateLoveHearts();
     lastFrameTime = currentTime;
   }
   requestAnimationFrame(gameLoop);

@@ -1,4 +1,12 @@
 import { multiplayerManager } from './multiplayer.js';
+import { 
+  findProductByBarcode, 
+  getCategories, 
+  getProductsByCategory, 
+  ShoppingCart, 
+  isValidBarcode,
+  PRODUCTS 
+} from './products.js';
 
 const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
@@ -954,6 +962,328 @@ function updateShopDisplay() {
     });
   }
 }
+
+// Scanner functionality
+let scannerCart: ShoppingCart;
+let selectedCategory = 'All';
+
+function initializeScanner() {
+  scannerCart = new ShoppingCart();
+  updateScannerDisplay();
+  populateProductCategories();
+  displayProductsForCategory('All');
+}
+
+function openScannerModal() {
+  const scannerModal = document.getElementById('scanner-modal');
+  if (scannerModal) {
+    scannerModal.style.display = 'flex';
+    // Hide GitHub star button to prevent touch interference on mobile
+    const githubStarBtn = document.getElementById('github-star-btn');
+    if (githubStarBtn) githubStarBtn.style.display = 'none';
+    updateScannerDisplay();
+  }
+}
+
+function updateScannerDisplay() {
+  // Update cart totals in header
+  const cartTotalEl = document.getElementById('cart-total');
+  const cartItemsEl = document.getElementById('cart-items');
+  
+  if (cartTotalEl) {
+    cartTotalEl.textContent = scannerCart.getTotalPrice().toFixed(2);
+  }
+  if (cartItemsEl) {
+    cartItemsEl.textContent = scannerCart.getTotalItems().toString();
+  }
+
+  // Update cart items list
+  updateCartItemsList();
+}
+
+function updateCartItemsList() {
+  const cartItemsList = document.getElementById('cart-items-list');
+  if (!cartItemsList) return;
+
+  const items = scannerCart.getItems();
+  
+  if (items.length === 0) {
+    cartItemsList.innerHTML = `
+      <div style="color: #888; text-align: center; padding: 20px;">
+        Cart is empty
+      </div>
+    `;
+    return;
+  }
+
+  cartItemsList.innerHTML = items.map(item => `
+    <div style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      margin-bottom: 8px;
+      background: #444;
+      border-radius: 8px;
+      border: 1px solid #555;
+    ">
+      <div style="flex: 1;">
+        <div style="font-weight: bold; color: #fff;">${item.product.name}</div>
+        <div style="font-size: 0.9em; color: #ccc;">
+          ${item.product.category} • $${item.product.price.toFixed(2)} each
+        </div>
+        <div style="font-size: 0.8em; color: #888; font-family: monospace;">
+          ${item.product.barcode}
+        </div>
+      </div>
+      <div style="
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #0cf;
+      ">
+        <button 
+          onclick="removeFromCart('${item.product.id}', 1)"
+          style="
+            background: #555;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 0.8em;
+          "
+        >−</button>
+        <span style="
+          min-width: 20px;
+          text-align: center;
+          font-weight: bold;
+        ">×${item.quantity}</span>
+        <button 
+          onclick="addToCartById('${item.product.id}', 1)"
+          style="
+            background: #555;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 0.8em;
+          "
+        >+</button>
+        <span style="
+          min-width: 60px;
+          text-align: right;
+          font-weight: bold;
+          color: #0cf;
+        ">$${(item.product.price * item.quantity).toFixed(2)}</span>
+        <button 
+          onclick="removeFromCart('${item.product.id}')"
+          style="
+            background: #d63031;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 0.8em;
+            margin-left: 8px;
+          "
+        >🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function scanBarcode(barcode: string) {
+  const scanResultEl = document.getElementById('scan-result');
+  if (!scanResultEl) return;
+
+  // Clear previous results
+  scanResultEl.style.background = '#444';
+  scanResultEl.style.border = '1px solid #555';
+  
+  if (!isValidBarcode(barcode)) {
+    scanResultEl.innerHTML = `
+      <div style="color: #ff6b6b; text-align: center;">
+        <div style="font-size: 1.2em;">❌ Invalid Barcode</div>
+        <div style="font-size: 0.9em; margin-top: 4px;">
+          Please enter a 12-digit barcode
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const product = findProductByBarcode(barcode);
+  
+  if (!product) {
+    scanResultEl.innerHTML = `
+      <div style="color: #ff6b6b; text-align: center;">
+        <div style="font-size: 1.2em;">❌ Product Not Found</div>
+        <div style="font-size: 0.9em; margin-top: 4px;">
+          Barcode: ${barcode}
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // Product found - show success and add to cart
+  const success = scannerCart.addProduct(product, 1);
+  
+  if (success) {
+    scanResultEl.style.background = '#2d5a2d';
+    scanResultEl.style.border = '1px solid #4a934a';
+    scanResultEl.innerHTML = `
+      <div style="color: #4a934a; text-align: center;">
+        <div style="font-size: 1.2em;">✅ ${product.name}</div>
+        <div style="color: #0cf; font-weight: bold; margin: 4px 0;">
+          $${product.price.toFixed(2)}
+        </div>
+        <div style="font-size: 0.9em;">
+          Added to cart
+        </div>
+      </div>
+    `;
+    updateScannerDisplay();
+    
+    // Clear barcode input
+    const barcodeInput = document.getElementById('barcode-input') as HTMLInputElement;
+    if (barcodeInput) {
+      barcodeInput.value = '';
+    }
+  } else {
+    scanResultEl.style.background = '#5a2d2d';
+    scanResultEl.style.border = '1px solid #944a4a';
+    scanResultEl.innerHTML = `
+      <div style="color: #ff6b6b; text-align: center;">
+        <div style="font-size: 1.2em;">⚠️ Cannot Add</div>
+        <div style="font-size: 0.9em; margin-top: 4px;">
+          Not enough stock or invalid quantity
+        </div>
+      </div>
+    `;
+  }
+}
+
+function populateProductCategories() {
+  const categoriesContainer = document.getElementById('product-categories');
+  if (!categoriesContainer) return;
+
+  const categories = ['All', ...getCategories()];
+  
+  categoriesContainer.innerHTML = categories.map(category => `
+    <button 
+      onclick="selectCategory('${category}')"
+      id="category-${category}"
+      style="
+        padding: 8px 16px;
+        background: ${category === selectedCategory ? '#0cf' : '#555'};
+        color: ${category === selectedCategory ? '#000' : '#fff'};
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9em;
+        white-space: nowrap;
+      "
+    >
+      ${category}
+    </button>
+  `).join('');
+}
+
+function selectCategory(category: string) {
+  selectedCategory = category;
+  populateProductCategories();
+  displayProductsForCategory(category);
+}
+
+function displayProductsForCategory(category: string) {
+  const productListEl = document.getElementById('product-list');
+  if (!productListEl) return;
+
+  const products = category === 'All' ? PRODUCTS : getProductsByCategory(category);
+  
+  if (products.length === 0) {
+    productListEl.innerHTML = `
+      <div style="color: #888; text-align: center; padding: 20px;">
+        No products in this category
+      </div>
+    `;
+    return;
+  }
+
+  productListEl.innerHTML = products.map(product => `
+    <div style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      margin-bottom: 8px;
+      background: #444;
+      border-radius: 8px;
+      border: 1px solid #555;
+    ">
+      <div style="flex: 1;">
+        <div style="font-weight: bold; color: #fff;">${product.name}</div>
+        <div style="font-size: 0.9em; color: #0cf;">$${product.price.toFixed(2)}</div>
+        <div style="font-size: 0.8em; color: #888; font-family: monospace;">
+          ${product.barcode} • Stock: ${product.quantity}
+        </div>
+      </div>
+      <button 
+        onclick="quickScanProduct('${product.barcode}')"
+        style="
+          padding: 8px 16px;
+          background: #ff6b6b;
+          color: #fff;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          white-space: nowrap;
+        "
+      >
+        🔍 Scan
+      </button>
+    </div>
+  `).join('');
+}
+
+// Global functions for HTML onclick handlers
+function addToCartById(productId: string, quantity: number = 1) {
+  const product = PRODUCTS.find(p => p.id === productId);
+  if (product) {
+    scannerCart.addProduct(product, quantity);
+    updateScannerDisplay();
+  }
+}
+
+function removeFromCart(productId: string, quantity?: number) {
+  scannerCart.removeProduct(productId, quantity);
+  updateScannerDisplay();
+}
+
+function clearCart() {
+  scannerCart.clear();
+  updateScannerDisplay();
+}
+
+function quickScanProduct(barcode: string) {
+  // Populate barcode input and trigger scan
+  const barcodeInput = document.getElementById('barcode-input') as HTMLInputElement;
+  if (barcodeInput) {
+    barcodeInput.value = barcode;
+  }
+  scanBarcode(barcode);
+}
+
+// Make functions available globally for HTML onclick handlers
+(window as any).addToCartById = addToCartById;
+(window as any).removeFromCart = removeFromCart;
+(window as any).clearCart = clearCart;
+(window as any).quickScanProduct = quickScanProduct;
+(window as any).selectCategory = selectCategory;
 
 function resetGame() {
   score = 0;
@@ -3104,6 +3434,72 @@ window.addEventListener('DOMContentLoaded', () => {
       if (githubStarBtn) githubStarBtn.style.display = 'flex';
     });
   }
+
+  // Scanner modal handling
+  const scannerBtn = document.getElementById('scanner-btn');
+  const scannerModal = document.getElementById('scanner-modal');
+  const closeScanner = document.getElementById('close-scanner');
+  const scanBtn = document.getElementById('scan-btn');
+  const barcodeInput = document.getElementById('barcode-input') as HTMLInputElement;
+  const clearCartBtn = document.getElementById('clear-cart-btn');
+
+  if (scannerBtn && scannerModal && closeScanner) {
+    scannerBtn.addEventListener('click', () => {
+      openScannerModal();
+    });
+
+    closeScanner.addEventListener('click', () => {
+      scannerModal.style.display = 'none';
+      // Show GitHub star button again
+      const githubStarBtn = document.getElementById('github-star-btn');
+      if (githubStarBtn) githubStarBtn.style.display = 'flex';
+    });
+  }
+
+  if (scanBtn && barcodeInput) {
+    scanBtn.addEventListener('click', () => {
+      const barcode = barcodeInput.value.trim();
+      if (barcode) {
+        scanBarcode(barcode);
+      }
+    });
+
+    barcodeInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const barcode = barcodeInput.value.trim();
+        if (barcode) {
+          scanBarcode(barcode);
+        }
+      }
+    });
+
+    // Format barcode input as user types
+    barcodeInput.addEventListener('input', (e) => {
+      const input = e.target as HTMLInputElement;
+      // Remove any non-digit characters
+      input.value = input.value.replace(/\D/g, '');
+    });
+  }
+
+  if (clearCartBtn) {
+    clearCartBtn.addEventListener('click', () => {
+      clearCart();
+    });
+  }
+
+  // Set up quick scan buttons
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    if (target.classList.contains('quick-scan')) {
+      const barcode = target.getAttribute('data-barcode');
+      if (barcode) {
+        quickScanProduct(barcode);
+      }
+    }
+  });
+
+  // Initialize scanner
+  initializeScanner();
 
   // Set version in settings modal if present
   const versionEl = document.querySelector(

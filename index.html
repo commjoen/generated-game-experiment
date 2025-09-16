@@ -394,6 +394,29 @@
         🛒
       </button>
       <button
+        id="scanner-btn"
+        style="
+          position: fixed;
+          top: 20px;
+          right: 140px;
+          z-index: 30;
+          font-size: 1.5em;
+          padding: 8px 16px;
+          border-radius: 8px;
+          border: none;
+          background: #222;
+          color: #ff6b6b;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 1;
+        "
+        title="Hand Scanner"
+      >
+        📱
+      </button>
+      <button
         id="github-star-btn"
         style="
           position: fixed;
@@ -751,6 +774,271 @@
               "
             >
               <!-- Gameplay upgrades will be populated by JavaScript -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hand Scanner Modal -->
+      <div
+        id="scanner-modal"
+        style="
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          background: rgba(0, 0, 0, 0.5);
+          z-index: 50;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          box-sizing: border-box;
+        "
+      >
+        <div
+          style="
+            background: #222;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px #0008;
+            max-width: 600px;
+            max-height: 90vh;
+            color: #fff;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            overflow: hidden;
+          "
+        >
+          <div
+            style="
+              padding: 20px 32px;
+              border-bottom: 1px solid #444;
+              flex-shrink: 0;
+            "
+          >
+            <button
+              id="close-scanner"
+              style="
+                position: absolute;
+                top: 12px;
+                right: 12px;
+                font-size: 1.2em;
+                background: none;
+                border: none;
+                color: #fff;
+                cursor: pointer;
+              "
+            >
+              ✖️
+            </button>
+            <h2 style="margin: 0; font-size: 1.5em; color: #ff6b6b;">
+              📱 Hand Scanner
+            </h2>
+            <div
+              style="
+                margin-top: 16px;
+                padding: 12px;
+                background: #333;
+                border-radius: 8px;
+                color: #0cf;
+                font-weight: bold;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <span>Cart Total: $<span id="cart-total">0.00</span></span>
+              <span>Items: <span id="cart-items">0</span></span>
+            </div>
+          </div>
+
+          <div
+            style="
+              padding: 0 32px;
+              overflow-y: auto;
+              flex: 1;
+              -webkit-overflow-scrolling: touch;
+            "
+            class="modal-content"
+          >
+            <!-- Scanner Device Section -->
+            <div style="margin: 20px 0;">
+              <h3 style="color: #ff6b6b; margin: 0 0 16px 0; display: flex; align-items: center;">
+                🔍 Scanner Device
+              </h3>
+              <div style="
+                background: #333;
+                border-radius: 12px;
+                padding: 20px;
+                border: 2px solid #ff6b6b;
+                box-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
+              ">
+                <div style="
+                  display: flex;
+                  gap: 12px;
+                  align-items: center;
+                  margin-bottom: 16px;
+                ">
+                  <input
+                    type="text"
+                    id="barcode-input"
+                    placeholder="Scan or type barcode..."
+                    maxlength="12"
+                    pattern="[0-9]{12}"
+                    style="
+                      flex: 1;
+                      padding: 12px;
+                      border: 2px solid #555;
+                      border-radius: 8px;
+                      background: #444;
+                      color: #fff;
+                      font-size: 1.1em;
+                      font-family: 'Courier New', monospace;
+                    "
+                  />
+                  <button
+                    id="scan-btn"
+                    style="
+                      padding: 12px 20px;
+                      background: #ff6b6b;
+                      color: #fff;
+                      border: none;
+                      border-radius: 8px;
+                      cursor: pointer;
+                      font-weight: bold;
+                      white-space: nowrap;
+                    "
+                  >
+                    🔍 Scan
+                  </button>
+                </div>
+                <div style="
+                  display: flex;
+                  gap: 8px;
+                  flex-wrap: wrap;
+                ">
+                  <button class="quick-scan" data-barcode="123456789012" style="
+                    padding: 6px 12px;
+                    background: #555;
+                    color: #fff;
+                    border: 1px solid #777;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 0.9em;
+                  ">Apple 🍎</button>
+                  <button class="quick-scan" data-barcode="234567890123" style="
+                    padding: 6px 12px;
+                    background: #555;
+                    color: #fff;
+                    border: 1px solid #777;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 0.9em;
+                  ">Banana 🍌</button>
+                  <button class="quick-scan" data-barcode="345678901234" style="
+                    padding: 6px 12px;
+                    background: #555;
+                    color: #fff;
+                    border: 1px solid #777;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 0.9em;
+                  ">Milk 🥛</button>
+                  <button class="quick-scan" data-barcode="456789012345" style="
+                    padding: 6px 12px;
+                    background: #555;
+                    color: #fff;
+                    border: 1px solid #777;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 0.9em;
+                  ">Bread 🍞</button>
+                </div>
+                <div id="scan-result" style="
+                  margin-top: 16px;
+                  padding: 12px;
+                  border-radius: 8px;
+                  min-height: 60px;
+                  background: #444;
+                  border: 1px solid #555;
+                  color: #ccc;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                ">
+                  Ready to scan...
+                </div>
+              </div>
+            </div>
+
+            <!-- Shopping Cart Section -->
+            <div style="margin: 20px 0;">
+              <h3 style="color: #0cf; margin: 0 0 16px 0; display: flex; align-items: center; justify-content: space-between;">
+                🛒 Shopping Cart
+                <button
+                  id="clear-cart-btn"
+                  style="
+                    padding: 6px 12px;
+                    background: #d63031;
+                    color: #fff;
+                    border: none;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 0.9em;
+                  "
+                >
+                  Clear All
+                </button>
+              </h3>
+              <div
+                id="cart-items-list"
+                style="
+                  max-height: 300px;
+                  overflow-y: auto;
+                  background: #333;
+                  border-radius: 8px;
+                  padding: 16px;
+                  border: 1px solid #555;
+                "
+              >
+                <div style="color: #888; text-align: center; padding: 20px;">
+                  Cart is empty
+                </div>
+              </div>
+            </div>
+
+            <!-- Product Browser Section -->
+            <div style="margin: 20px 0 32px 0;">
+              <h3 style="color: #74b9ff; margin: 0 0 16px 0;">
+                📦 Product Browser
+              </h3>
+              <div
+                id="product-categories"
+                style="
+                  display: flex;
+                  gap: 8px;
+                  flex-wrap: wrap;
+                  margin-bottom: 16px;
+                "
+              >
+                <!-- Category buttons will be populated by JavaScript -->
+              </div>
+              <div
+                id="product-list"
+                style="
+                  background: #333;
+                  border-radius: 8px;
+                  padding: 16px;
+                  border: 1px solid #555;
+                  max-height: 300px;
+                  overflow-y: auto;
+                "
+              >
+                <!-- Products will be populated by JavaScript -->
+              </div>
             </div>
           </div>
         </div>

@@ -75,7 +75,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '24'
       - run: npm install
       - run: npm run test:unit
       - run: npm run test:e2e

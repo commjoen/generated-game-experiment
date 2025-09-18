@@ -1,5 +1,10 @@
 import { multiplayerManager } from './multiplayer.js';
-import { t, setLanguage, getCurrentLanguage, type TranslationData } from './translations.js';
+import {
+  t,
+  setLanguage,
+  getCurrentLanguage,
+  type TranslationData,
+} from './translations.js';
 
 const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
@@ -2956,7 +2961,7 @@ function updateUITranslations() {
       }
     }
   });
-  
+
   // Update shop if it's open
   updateShopDisplay();
 }
@@ -2964,25 +2969,25 @@ function updateUITranslations() {
 // Helper function to get translated character name
 function getCharacterName(charId: string): string {
   const mapping: Record<string, keyof TranslationData> = {
-    'yellow_square': 'yellowSquare',
-    'yellow_circle': 'yellowCircle',
-    'red_circle': 'redCircle',
-    'blue_circle': 'blueCircle',
-    'green_circle': 'greenCircle',
-    'smiley': 'smileyFace',
-    'grinning': 'grinningFace',
-    'cool': 'coolFace',
-    'beaming': 'beamingFace',
-    'star': 'star',
-    'rofl': 'roflFace',
-    'crown': 'crown',
-    'hugging': 'huggingFace',
-    'party': 'partyFace',
-    'rocket': 'rocket',
-    'cherry_blossom': 'cherryBlossom',
-    'hearts': 'revolvingHearts',
-    'alien': 'alien',
-    'koala': 'koala',
+    yellow_square: 'yellowSquare',
+    yellow_circle: 'yellowCircle',
+    red_circle: 'redCircle',
+    blue_circle: 'blueCircle',
+    green_circle: 'greenCircle',
+    smiley: 'smileyFace',
+    grinning: 'grinningFace',
+    cool: 'coolFace',
+    beaming: 'beamingFace',
+    star: 'star',
+    rofl: 'roflFace',
+    crown: 'crown',
+    hugging: 'huggingFace',
+    party: 'partyFace',
+    rocket: 'rocket',
+    cherry_blossom: 'cherryBlossom',
+    hearts: 'revolvingHearts',
+    alien: 'alien',
+    koala: 'koala',
   };
   return t(mapping[charId] || 'yellowSquare');
 }
@@ -2990,11 +2995,11 @@ function getCharacterName(charId: string): string {
 // Helper function to get translated upgrade name
 function getUpgradeName(upgradeId: string): string {
   const mapping: Record<string, keyof TranslationData> = {
-    'extra_life': 'extraLife',
-    'double_jump_start': 'doubleJumpStart',
-    'speed_boost': 'speedBoost',
-    'lucky_coins': 'coinValue',
-    'tough_skin': 'megaLife',
+    extra_life: 'extraLife',
+    double_jump_start: 'doubleJumpStart',
+    speed_boost: 'speedBoost',
+    lucky_coins: 'coinValue',
+    tough_skin: 'megaLife',
   };
   return t(mapping[upgradeId] || 'extraLife');
 }
@@ -3002,11 +3007,11 @@ function getUpgradeName(upgradeId: string): string {
 // Helper function to get translated upgrade description
 function getUpgradeDescription(upgradeId: string): string {
   const mapping: Record<string, keyof TranslationData> = {
-    'extra_life': 'extraLifeDesc',
-    'double_jump_start': 'doubleJumpStartDesc',
-    'speed_boost': 'speedBoostDesc',
-    'lucky_coins': 'coinValueDesc',
-    'tough_skin': 'megaLifeDesc',
+    extra_life: 'extraLifeDesc',
+    double_jump_start: 'doubleJumpStartDesc',
+    speed_boost: 'speedBoostDesc',
+    lucky_coins: 'coinValueDesc',
+    tough_skin: 'megaLifeDesc',
   };
   return t(mapping[upgradeId] || 'extraLifeDesc');
 }
@@ -3166,7 +3171,7 @@ window.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('playerName', playerName);
       });
     }
-    
+
     // Language selector handler
     if (languageSelect) {
       languageSelect.addEventListener('change', () => {
@@ -3202,7 +3207,7 @@ window.addEventListener('DOMContentLoaded', () => {
     versionEl.textContent = `Version: ${VERSION} (tag: ${GITTAG}, ${BRANCH}, ${COMMITHASH}, built: ${BUILDDATE})`;
   }
   updateOnscreenControlsVisibility();
-  
+
   // Initialize translations
   updateUITranslations();
 });

@@ -12,14 +12,14 @@ export interface TranslationData {
   verticalMode: string;
   playerName: string;
   language: string;
-  
+
   // Keyboard controls
   keyboardControls: string;
   pressT: string;
   arrowKeys: string;
   spaceJump: string;
   pressE: string;
-  
+
   // Shop items - Characters
   characters: string;
   yellowSquare: string;
@@ -41,7 +41,7 @@ export interface TranslationData {
   revolvingHearts: string;
   alien: string;
   koala: string;
-  
+
   // Shop items - Gameplay upgrades
   gameplay: string;
   extraLife: string;
@@ -54,15 +54,15 @@ export interface TranslationData {
   coinValueDesc: string;
   megaLife: string;
   megaLifeDesc: string;
-  
+
   // Shop status text
   selected: string;
   owned: string;
   points: string;
-  
+
   // Game UI
   installGame: string;
-  
+
   // Common words
   close: string;
 }
@@ -81,14 +81,14 @@ export const translations: Record<string, TranslationData> = {
     verticalMode: 'Vertical Mode (manual)',
     playerName: 'Player Name:',
     language: 'Language:',
-    
+
     // Keyboard controls
     keyboardControls: 'Keyboard Controls:',
     pressT: '• Press T to toggle speed',
     arrowKeys: '• Arrow keys or WASD to move',
     spaceJump: '• Space or Up arrow to jump',
     pressE: '• Press E to eat/spit circle enemies',
-    
+
     // Shop items - Characters
     characters: 'Characters',
     yellowSquare: 'Yellow Square',
@@ -110,7 +110,7 @@ export const translations: Record<string, TranslationData> = {
     revolvingHearts: 'Revolving Hearts',
     alien: 'Alien',
     koala: 'Koala',
-    
+
     // Shop items - Gameplay upgrades
     gameplay: 'Gameplay',
     extraLife: 'Start with Extra Life',
@@ -123,25 +123,26 @@ export const translations: Record<string, TranslationData> = {
     coinValueDesc: 'Coins are worth 2 points each',
     megaLife: 'Start with Mega Life',
     megaLifeDesc: 'Start each game with 5 lives instead of 3',
-    
+
     // Shop status text
     selected: 'Selected',
     owned: 'Owned',
     points: 'pts',
-    
+
     // Game UI
     installGame: 'Install Game',
-    
+
     // Common words
     close: 'Close',
   },
-  
+
   nl: {
     // Settings modal
     settings: 'Instellingen',
     fixedGradient: 'Vaste achtergrondverloop',
     scrollGradient: 'Scrollende achtergrondverloop',
-    randomLandscape: 'Willekeurige landschapsachtergrond (scrollt mee met speler)',
+    randomLandscape:
+      'Willekeurige landschapsachtergrond (scrollt mee met speler)',
     unlockSpeed: 'Ontgrendel maximale snelheid (2x bewegingssnelheid)',
     showFPS: 'Toon FPS-teller',
     teslaMode: 'Tesla-modus (toon altijd schermknoppen)',
@@ -149,14 +150,14 @@ export const translations: Record<string, TranslationData> = {
     verticalMode: 'Verticale modus (handmatig)',
     playerName: 'Spelersnaam:',
     language: 'Taal:',
-    
+
     // Keyboard controls
     keyboardControls: 'Toetsenbordbesturing:',
     pressT: '• Druk op T om snelheid te schakelen',
     arrowKeys: '• Pijltoetsen of WASD om te bewegen',
     spaceJump: '• Spatie of pijl omhoog om te springen',
     pressE: '• Druk op E om cirkelvijanden te eten/uitspugen',
-    
+
     // Shop items - Characters
     characters: 'Karakters',
     yellowSquare: 'Geel Vierkant',
@@ -178,7 +179,7 @@ export const translations: Record<string, TranslationData> = {
     revolvingHearts: 'Draaiende Hartjes',
     alien: 'Alien',
     koala: 'Koala',
-    
+
     // Shop items - Gameplay upgrades
     gameplay: 'Gameplay',
     extraLife: 'Start met Extra Leven',
@@ -191,40 +192,41 @@ export const translations: Record<string, TranslationData> = {
     coinValueDesc: 'Munten zijn 2 punten waard elk',
     megaLife: 'Start met Mega Leven',
     megaLifeDesc: 'Start elk spel met 5 levens in plaats van 3',
-    
+
     // Shop status text
     selected: 'Geselecteerd',
     owned: 'In Bezit',
     points: 'ptn',
-    
+
     // Game UI
     installGame: 'Spel Installeren',
-    
+
     // Common words
     close: 'Sluiten',
   },
-  
+
   de: {
     // Settings modal
     settings: 'Einstellungen',
     fixedGradient: 'Fester Hintergrundverlauf',
     scrollGradient: 'Scrollender Hintergrundverlauf',
     randomLandscape: 'Zufälliger Landschaftshintergrund (scrollt mit Spieler)',
-    unlockSpeed: 'Maximale Geschwindigkeit freischalten (2x Bewegungsgeschwindigkeit)',
+    unlockSpeed:
+      'Maximale Geschwindigkeit freischalten (2x Bewegungsgeschwindigkeit)',
     showFPS: 'FPS-Zähler anzeigen',
     teslaMode: 'Tesla-Modus (immer Bildschirmsteuerung anzeigen)',
     enableMultiplayer: 'Mehrspieler aktivieren (optional)',
     verticalMode: 'Vertikaler Modus (manuell)',
     playerName: 'Spielername:',
     language: 'Sprache:',
-    
+
     // Keyboard controls
     keyboardControls: 'Tastatursteuerung:',
     pressT: '• T drücken um Geschwindigkeit zu wechseln',
     arrowKeys: '• Pfeiltasten oder WASD zum Bewegen',
     spaceJump: '• Leertaste oder Pfeil nach oben zum Springen',
     pressE: '• E drücken um Kreisfeinde zu fressen/ausspucken',
-    
+
     // Shop items - Characters
     characters: 'Charaktere',
     yellowSquare: 'Gelbes Quadrat',
@@ -246,7 +248,7 @@ export const translations: Record<string, TranslationData> = {
     revolvingHearts: 'Rotierende Herzen',
     alien: 'Außerirdischer',
     koala: 'Koala',
-    
+
     // Shop items - Gameplay upgrades
     gameplay: 'Gameplay',
     extraLife: 'Mit Extra Leben starten',
@@ -259,19 +261,19 @@ export const translations: Record<string, TranslationData> = {
     coinValueDesc: 'Münzen sind je 2 Punkte wert',
     megaLife: 'Mit Mega Leben starten',
     megaLifeDesc: 'Jedes Spiel mit 5 Leben anstatt 3 starten',
-    
+
     // Shop status text
     selected: 'Ausgewählt',
     owned: 'Besitzt',
     points: 'Pkt',
-    
+
     // Game UI
     installGame: 'Spiel Installieren',
-    
+
     // Common words
     close: 'Schließen',
   },
-  
+
   es: {
     // Settings modal
     settings: 'Configuración',
@@ -285,14 +287,14 @@ export const translations: Record<string, TranslationData> = {
     verticalMode: 'Modo vertical (manual)',
     playerName: 'Nombre del jugador:',
     language: 'Idioma:',
-    
+
     // Keyboard controls
     keyboardControls: 'Controles de teclado:',
     pressT: '• Presiona T para alternar velocidad',
     arrowKeys: '• Flechas o WASD para mover',
     spaceJump: '• Espacio o flecha arriba para saltar',
     pressE: '• Presiona E para comer/escupir enemigos circulares',
-    
+
     // Shop items - Characters
     characters: 'Personajes',
     yellowSquare: 'Cuadrado Amarillo',
@@ -314,7 +316,7 @@ export const translations: Record<string, TranslationData> = {
     revolvingHearts: 'Corazones Giratorios',
     alien: 'Alienígena',
     koala: 'Koala',
-    
+
     // Shop items - Gameplay upgrades
     gameplay: 'Jugabilidad',
     extraLife: 'Comenzar con Vida Extra',
@@ -327,40 +329,40 @@ export const translations: Record<string, TranslationData> = {
     coinValueDesc: 'Las monedas valen 2 puntos cada una',
     megaLife: 'Comenzar con Mega Vida',
     megaLifeDesc: 'Comenzar cada juego con 5 vidas en lugar de 3',
-    
+
     // Shop status text
     selected: 'Seleccionado',
     owned: 'Poseído',
     points: 'pts',
-    
+
     // Game UI
     installGame: 'Instalar Juego',
-    
+
     // Common words
     close: 'Cerrar',
   },
-  
+
   fr: {
     // Settings modal
     settings: 'Paramètres',
-    fixedGradient: 'Dégradé d\'arrière-plan fixe',
-    scrollGradient: 'Dégradé d\'arrière-plan défilant',
+    fixedGradient: "Dégradé d'arrière-plan fixe",
+    scrollGradient: "Dégradé d'arrière-plan défilant",
     randomLandscape: 'Arrière-plan paysage aléatoire (défile avec le joueur)',
     unlockSpeed: 'Débloquer la vitesse maximale (2x vitesse de mouvement)',
     showFPS: 'Afficher le compteur FPS',
-    teslaMode: 'Mode Tesla (toujours afficher les contrôles à l\'écran)',
+    teslaMode: "Mode Tesla (toujours afficher les contrôles à l'écran)",
     enableMultiplayer: 'Activer le multijoueur (optionnel)',
     verticalMode: 'Mode vertical (manuel)',
     playerName: 'Nom du joueur:',
     language: 'Langue:',
-    
+
     // Keyboard controls
     keyboardControls: 'Contrôles clavier:',
     pressT: '• Appuyez sur T pour basculer la vitesse',
     arrowKeys: '• Flèches ou WASD pour se déplacer',
     spaceJump: '• Espace ou flèche haut pour sauter',
     pressE: '• Appuyez sur E pour manger/cracher les ennemis circulaires',
-    
+
     // Shop items - Characters
     characters: 'Personnages',
     yellowSquare: 'Carré Jaune',
@@ -382,28 +384,29 @@ export const translations: Record<string, TranslationData> = {
     revolvingHearts: 'Cœurs Tournoyants',
     alien: 'Alien',
     koala: 'Koala',
-    
+
     // Shop items - Gameplay upgrades
     gameplay: 'Gameplay',
     extraLife: 'Commencer avec Vie Supplémentaire',
     extraLifeDesc: 'Commencer chaque jeu avec 4 vies au lieu de 3',
     doubleJumpStart: 'Commencer avec Double Saut',
-    doubleJumpStartDesc: 'Commencer chaque niveau avec la capacité de double saut',
+    doubleJumpStartDesc:
+      'Commencer chaque niveau avec la capacité de double saut',
     speedBoost: 'Boost de Vitesse Permanent',
     speedBoostDesc: '1.5x vitesse de mouvement en permanence',
     coinValue: 'Valeur Double des Pièces',
     coinValueDesc: 'Les pièces valent 2 points chacune',
     megaLife: 'Commencer avec Méga Vie',
     megaLifeDesc: 'Commencer chaque jeu avec 5 vies au lieu de 3',
-    
+
     // Shop status text
     selected: 'Sélectionné',
     owned: 'Possédé',
     points: 'pts',
-    
+
     // Game UI
     installGame: 'Installer le Jeu',
-    
+
     // Common words
     close: 'Fermer',
   },
@@ -431,7 +434,7 @@ export function getCurrentLanguage(): string {
 }
 
 // Get available languages
-export function getAvailableLanguages(): Array<{code: string, name: string}> {
+export function getAvailableLanguages(): Array<{ code: string; name: string }> {
   return [
     { code: 'en', name: 'English' },
     { code: 'nl', name: 'Nederlands' },

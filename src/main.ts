@@ -1,4 +1,5 @@
 import { multiplayerManager } from './multiplayer.js';
+import { t, setLanguage, getCurrentLanguage, type TranslationData } from './translations.js';
 
 const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
@@ -852,9 +853,9 @@ function updateShopDisplay() {
 
       charDiv.innerHTML = `
         <div style="font-size:2em;margin-bottom:8px;">${char.emoji === 'SQUARE' ? '🟨' : char.emoji}</div>
-        <div style="font-size:0.9em;text-align:center;margin-bottom:4px;">${char.name}</div>
+        <div style="font-size:0.9em;text-align:center;margin-bottom:4px;">${getCharacterName(char.id)}</div>
         <div style="font-size:0.8em;color:${isOwned ? '#0cf' : canAfford ? '#ffd700' : '#999'};">
-          ${isOwned ? (isSelected ? 'Selected' : 'Owned') : `${char.cost} pts`}
+          ${isOwned ? (isSelected ? t('selected') : t('owned')) : `${char.cost} ${t('points')}`}
         </div>
       `;
 
@@ -903,8 +904,8 @@ function updateShopDisplay() {
         // Show toggle switch for owned upgrades
         upgradeDiv.innerHTML = `
           <div>
-            <div style="font-weight:bold;margin-bottom:4px;">${upgrade.name}</div>
-            <div style="font-size:0.9em;color:#ccc;">${upgrade.description}</div>
+            <div style="font-weight:bold;margin-bottom:4px;">${getUpgradeName(upgrade.id)}</div>
+            <div style="font-size:0.9em;color:#ccc;">${getUpgradeDescription(upgrade.id)}</div>
           </div>
           <div style="text-align:right;display:flex;align-items:center;gap:8px;">
             <span style="font-size:0.9em;color:${isEnabled ? '#0cf' : '#999'};">
@@ -931,12 +932,12 @@ function updateShopDisplay() {
         // Show purchase option for unowned upgrades
         upgradeDiv.innerHTML = `
           <div>
-            <div style="font-weight:bold;margin-bottom:4px;">${upgrade.name}</div>
-            <div style="font-size:0.9em;color:#ccc;">${upgrade.description}</div>
+            <div style="font-weight:bold;margin-bottom:4px;">${getUpgradeName(upgrade.id)}</div>
+            <div style="font-size:0.9em;color:#ccc;">${getUpgradeDescription(upgrade.id)}</div>
           </div>
           <div style="text-align:right;">
             <div style="font-size:1.2em;color:${canAfford ? '#ffd700' : '#999'};">
-              ${upgrade.cost} pts
+              ${upgrade.cost} ${t('points')}
             </div>
           </div>
         `;
@@ -2936,6 +2937,80 @@ const GITTAG = typeof __GITTAG__ !== 'undefined' ? __GITTAG__ : 'none';
 const BUILDDATE =
   typeof __BUILDDATE__ !== 'undefined' ? __BUILDDATE__ : 'unknown';
 
+// --- Translation Helper Functions ---
+function updateUITranslations() {
+  // Update all elements with data-i18n attributes
+  document.querySelectorAll('[data-i18n]').forEach((element) => {
+    const key = element.getAttribute('data-i18n');
+    if (key) {
+      if (element.innerHTML.includes('<strong>')) {
+        // Handle special cases with HTML tags like keyboard controls
+        const translation = t(key as keyof TranslationData);
+        if (translation.includes('<strong>')) {
+          element.innerHTML = translation;
+        } else {
+          element.textContent = translation;
+        }
+      } else {
+        element.textContent = t(key as keyof TranslationData);
+      }
+    }
+  });
+  
+  // Update shop if it's open
+  updateShopDisplay();
+}
+
+// Helper function to get translated character name
+function getCharacterName(charId: string): string {
+  const mapping: Record<string, keyof TranslationData> = {
+    'yellow_square': 'yellowSquare',
+    'yellow_circle': 'yellowCircle',
+    'red_circle': 'redCircle',
+    'blue_circle': 'blueCircle',
+    'green_circle': 'greenCircle',
+    'smiley': 'smileyFace',
+    'grinning': 'grinningFace',
+    'cool': 'coolFace',
+    'beaming': 'beamingFace',
+    'star': 'star',
+    'rofl': 'roflFace',
+    'crown': 'crown',
+    'hugging': 'huggingFace',
+    'party': 'partyFace',
+    'rocket': 'rocket',
+    'cherry_blossom': 'cherryBlossom',
+    'hearts': 'revolvingHearts',
+    'alien': 'alien',
+    'koala': 'koala',
+  };
+  return t(mapping[charId] || 'yellowSquare');
+}
+
+// Helper function to get translated upgrade name
+function getUpgradeName(upgradeId: string): string {
+  const mapping: Record<string, keyof TranslationData> = {
+    'extra_life': 'extraLife',
+    'double_jump_start': 'doubleJumpStart',
+    'speed_boost': 'speedBoost',
+    'lucky_coins': 'coinValue',
+    'tough_skin': 'megaLife',
+  };
+  return t(mapping[upgradeId] || 'extraLife');
+}
+
+// Helper function to get translated upgrade description
+function getUpgradeDescription(upgradeId: string): string {
+  const mapping: Record<string, keyof TranslationData> = {
+    'extra_life': 'extraLifeDesc',
+    'double_jump_start': 'doubleJumpStartDesc',
+    'speed_boost': 'speedBoostDesc',
+    'lucky_coins': 'coinValueDesc',
+    'tough_skin': 'megaLifeDesc',
+  };
+  return t(mapping[upgradeId] || 'extraLifeDesc');
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   const settingsBtn = document.getElementById('settings-btn');
   const settingsModal = document.getElementById('settings-modal');
@@ -2967,6 +3042,9 @@ window.addEventListener('DOMContentLoaded', () => {
   levelTypeToggle = document.getElementById(
     'level-type-toggle'
   ) as HTMLInputElement;
+  const languageSelect = document.getElementById(
+    'language-select'
+  ) as HTMLSelectElement;
   if (
     settingsBtn &&
     settingsModal &&
@@ -2979,7 +3057,8 @@ window.addEventListener('DOMContentLoaded', () => {
     teslaModeToggle &&
     multiplayerToggle &&
     playerNameInput &&
-    levelTypeToggle
+    levelTypeToggle &&
+    languageSelect
   ) {
     settingsBtn.addEventListener('click', () => {
       settingsModal.style.display = 'flex';
@@ -2999,6 +3078,8 @@ window.addEventListener('DOMContentLoaded', () => {
       if (levelTypeToggle)
         levelTypeToggle.checked =
           manualLevelType && manualLevelTypeValue === 'vertical';
+      // Set the language selector state
+      if (languageSelect) languageSelect.value = getCurrentLanguage();
     });
     closeSettings.addEventListener('click', () => {
       settingsModal.style.display = 'none';
@@ -3085,6 +3166,14 @@ window.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('playerName', playerName);
       });
     }
+    
+    // Language selector handler
+    if (languageSelect) {
+      languageSelect.addEventListener('change', () => {
+        setLanguage(languageSelect.value);
+        updateUITranslations();
+      });
+    }
   }
 
   // Shop modal handling
@@ -3113,6 +3202,9 @@ window.addEventListener('DOMContentLoaded', () => {
     versionEl.textContent = `Version: ${VERSION} (tag: ${GITTAG}, ${BRANCH}, ${COMMITHASH}, built: ${BUILDDATE})`;
   }
   updateOnscreenControlsVisibility();
+  
+  // Initialize translations
+  updateUITranslations();
 });
 
 function updateOnscreenControlsVisibility() {

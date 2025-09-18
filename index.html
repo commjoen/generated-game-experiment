@@ -484,7 +484,9 @@
             >
               ✖️
             </button>
-            <h2 style="margin: 0; font-size: 1.3em">Settings</h2>
+            <h2 style="margin: 0; font-size: 1.3em" data-i18n="settings">
+              Settings
+            </h2>
           </div>
           <div
             style="
@@ -504,7 +506,7 @@
               "
             >
               <input type="checkbox" id="fixed-gradient-toggle" />
-              Fixed background gradient
+              <span data-i18n="fixedGradient">Fixed background gradient</span>
             </label>
             <label
               style="
@@ -515,7 +517,9 @@
               "
             >
               <input type="checkbox" id="scroll-gradient-toggle" />
-              Scrolling background gradient
+              <span data-i18n="scrollGradient"
+                >Scrolling background gradient</span
+              >
             </label>
             <label
               style="
@@ -526,7 +530,9 @@
               "
             >
               <input type="checkbox" id="image-bg-toggle" />
-              Random landscape background (scrolls with player)
+              <span data-i18n="randomLandscape"
+                >Random landscape background (scrolls with player)</span
+              >
             </label>
             <label
               style="
@@ -537,7 +543,9 @@
               "
             >
               <input type="checkbox" id="speed-unlock-toggle" />
-              Unlock maximum speed (2x movement speed)
+              <span data-i18n="unlockSpeed"
+                >Unlock maximum speed (2x movement speed)</span
+              >
             </label>
             <label
               style="
@@ -548,7 +556,7 @@
               "
             >
               <input type="checkbox" id="fps-counter-toggle" />
-              Show FPS counter
+              <span data-i18n="showFPS">Show FPS counter</span>
             </label>
             <label
               style="
@@ -559,7 +567,9 @@
               "
             >
               <input type="checkbox" id="tesla-mode-toggle" />
-              Tesla Mode (always show onscreen controls)
+              <span data-i18n="teslaMode"
+                >Tesla Mode (always show onscreen controls)</span
+              >
             </label>
             <label
               style="
@@ -570,7 +580,9 @@
               "
             >
               <input type="checkbox" id="multiplayer-toggle" />
-              Enable Multiplayer (optional)
+              <span data-i18n="enableMultiplayer"
+                >Enable Multiplayer (optional)</span
+              >
             </label>
             <label
               style="
@@ -581,7 +593,7 @@
               "
             >
               <input type="checkbox" id="level-type-toggle" />
-              Vertical Mode (manual)
+              <span data-i18n="verticalMode">Vertical Mode (manual)</span>
             </label>
             <label
               style="
@@ -591,7 +603,9 @@
                 margin: 16px 0;
               "
             >
-              <span style="min-width: 90px">Player Name:</span>
+              <span style="min-width: 90px" data-i18n="playerName"
+                >Player Name:</span
+              >
               <input
                 type="text"
                 id="player-name-input"
@@ -609,6 +623,37 @@
                 placeholder="Player"
               />
             </label>
+            <label
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin: 16px 0;
+              "
+            >
+              <span style="min-width: 90px" data-i18n="language"
+                >Language:</span
+              >
+              <select
+                id="language-select"
+                style="
+                  flex: 1;
+                  min-width: 0;
+                  max-width: 160px;
+                  padding: 4px 8px;
+                  border-radius: 6px;
+                  border: 1px solid #444;
+                  background: #111;
+                  color: #fff;
+                "
+              >
+                <option value="en">English</option>
+                <option value="nl">Nederlands</option>
+                <option value="de">Deutsch</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+              </select>
+            </label>
             <div
               style="
                 margin-top: 24px;
@@ -619,12 +664,16 @@
               "
             >
               <div style="margin-bottom: 8px">
-                <strong>Keyboard Controls:</strong>
+                <strong data-i18n="keyboardControls">Keyboard Controls:</strong>
               </div>
-              <div>• Press <strong>T</strong> to toggle speed</div>
-              <div>• Arrow keys or WASD to move</div>
-              <div>• Space or Up arrow to jump</div>
-              <div>• Press <strong>E</strong> to eat/spit circle enemies</div>
+              <div data-i18n="pressT">
+                • Press <strong>T</strong> to toggle speed
+              </div>
+              <div data-i18n="arrowKeys">• Arrow keys or WASD to move</div>
+              <div data-i18n="spaceJump">• Space or Up arrow to jump</div>
+              <div data-i18n="pressE">
+                • Press <strong>E</strong> to eat/spit circle enemies
+              </div>
             </div>
           </div>
           <div
@@ -723,7 +772,10 @@
             "
             class="modal-content"
           >
-            <h3 style="color: #0cf; margin: 20px 0 16px 0">
+            <h3
+              style="color: #0cf; margin: 20px 0 16px 0"
+              data-i18n="characters"
+            >
               Player Characters
             </h3>
             <div
@@ -738,7 +790,7 @@
               <!-- Character options will be populated by JavaScript -->
             </div>
 
-            <h3 style="color: #0cf; margin: 20px 0 16px 0">
+            <h3 style="color: #0cf; margin: 20px 0 16px 0" data-i18n="gameplay">
               Gameplay Upgrades
             </h3>
             <div
@@ -774,7 +826,7 @@
           cursor: pointer;
         "
       >
-        Install Game
+        <span data-i18n="installGame">Install Game</span>
       </button>
       <script type="module" src="src/main.ts"></script>
       <script>

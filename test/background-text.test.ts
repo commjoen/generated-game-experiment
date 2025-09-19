@@ -104,7 +104,7 @@ describe('Background Text URL Parameter', () => {
       ctx.strokeStyle = '#000000';
       ctx.lineWidth = 2;
 
-      const centerX = canvasWidth / 2;
+      const centerX = 50; // Text starts 50px from level start (cameraX = 0)
       const centerY = canvasHeight / 2;
 
       ctx.strokeText(backgroundText, centerX, centerY);
@@ -114,8 +114,8 @@ describe('Background Text URL Parameter', () => {
     }
 
     expect(ctx.save).toHaveBeenCalled();
-    expect(ctx.fillText).toHaveBeenCalledWith(backgroundText, 400, 225);
-    expect(ctx.strokeText).toHaveBeenCalledWith(backgroundText, 400, 225);
+    expect(ctx.fillText).toHaveBeenCalledWith(backgroundText, 50, 225);
+    expect(ctx.strokeText).toHaveBeenCalledWith(backgroundText, 50, 225);
     expect(ctx.restore).toHaveBeenCalled();
   });
 
@@ -138,8 +138,8 @@ describe('Background Text URL Parameter', () => {
       ctx.strokeStyle = '#000000';
       ctx.lineWidth = 2;
 
-      // Position text with parallax scrolling effect
-      const centerX = canvasWidth / 2 - cameraX * parallaxFactor;
+      // Position text with parallax scrolling effect, starting 50px from level start
+      const centerX = 50 + cameraX * parallaxFactor;
       const centerY = canvasHeight / 2;
 
       ctx.strokeText(backgroundText, centerX, centerY);
@@ -148,10 +148,10 @@ describe('Background Text URL Parameter', () => {
       ctx.restore();
     }
 
-    // Expected X position with parallax: 400 - (200 * 0.5) = 300
+    // Expected X position with parallax: 50 + (200 * 0.5) = 150
     expect(ctx.save).toHaveBeenCalled();
-    expect(ctx.fillText).toHaveBeenCalledWith(backgroundText, 300, 225);
-    expect(ctx.strokeText).toHaveBeenCalledWith(backgroundText, 300, 225);
+    expect(ctx.fillText).toHaveBeenCalledWith(backgroundText, 150, 225);
+    expect(ctx.strokeText).toHaveBeenCalledWith(backgroundText, 150, 225);
     expect(ctx.restore).toHaveBeenCalled();
   });
 

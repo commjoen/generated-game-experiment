@@ -3638,7 +3638,7 @@ function draw() {
     ctx.fillStyle = '#87ceeb';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
-  
+
   // Draw background text from URL parameter
   if (backgroundText) {
     ctx.save();
@@ -3646,24 +3646,24 @@ function draw() {
     ctx.font = `bold ${fontSize}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    
+
     // Create semi-transparent text with outline for better visibility
     ctx.globalAlpha = 0.3;
     ctx.fillStyle = '#ffffff';
     ctx.strokeStyle = '#000000';
     ctx.lineWidth = 2;
-    
+
     // Position text in center of screen
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    
+
     // Draw text with stroke (outline) and fill
     ctx.strokeText(backgroundText, centerX, centerY);
     ctx.fillText(backgroundText, centerX, centerY);
-    
+
     ctx.restore();
   }
-  
+
   ctx.save();
   let scale = 1;
   if (levelType === 'vertical') {

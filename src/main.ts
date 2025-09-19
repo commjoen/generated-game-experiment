@@ -3653,8 +3653,9 @@ function draw() {
     ctx.strokeStyle = '#000000';
     ctx.lineWidth = 2;
 
-    // Position text in center of screen
-    const centerX = canvas.width / 2;
+    // Position text with parallax scrolling effect (slower than camera movement)
+    const parallaxFactor = 0.5; // Scroll at half the speed of the camera for parallax effect
+    const centerX = canvas.width / 2 - cameraX * parallaxFactor;
     const centerY = canvas.height / 2;
 
     // Draw text with stroke (outline) and fill

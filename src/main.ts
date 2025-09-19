@@ -9,6 +9,10 @@ import {
 const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
 
+// URL parameter parsing for background text
+const urlParams = new URLSearchParams(window.location.search);
+const backgroundText = urlParams.get('text') || '';
+
 // Game constants
 const GRAVITY = 0.5;
 const MOVE_SPEED = 5;
@@ -3634,6 +3638,32 @@ function draw() {
     ctx.fillStyle = '#87ceeb';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
+  
+  // Draw background text from URL parameter
+  if (backgroundText) {
+    ctx.save();
+    const fontSize = Math.min(canvas.width, canvas.height) / 8; // Responsive font size
+    ctx.font = `bold ${fontSize}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    // Create semi-transparent text with outline for better visibility
+    ctx.globalAlpha = 0.3;
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
+    
+    // Position text in center of screen
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    
+    // Draw text with stroke (outline) and fill
+    ctx.strokeText(backgroundText, centerX, centerY);
+    ctx.fillText(backgroundText, centerX, centerY);
+    
+    ctx.restore();
+  }
+  
   ctx.save();
   let scale = 1;
   if (levelType === 'vertical') {

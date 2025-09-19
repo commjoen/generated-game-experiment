@@ -119,6 +119,42 @@ describe('Background Text URL Parameter', () => {
     expect(ctx.restore).toHaveBeenCalled();
   });
 
+  it('should simulate background text parallax scrolling', () => {
+    const backgroundText = 'Parallax Text';
+    const canvasWidth = 800;
+    const canvasHeight = 450;
+    const cameraX = 200; // Simulate camera movement
+    const parallaxFactor = 0.5;
+
+    if (backgroundText) {
+      ctx.save();
+      const fontSize = Math.min(canvasWidth, canvasHeight) / 8;
+      ctx.font = `bold ${fontSize}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      ctx.globalAlpha = 0.3;
+      ctx.fillStyle = '#ffffff';
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 2;
+
+      // Position text with parallax scrolling effect
+      const centerX = canvasWidth / 2 - cameraX * parallaxFactor;
+      const centerY = canvasHeight / 2;
+
+      ctx.strokeText(backgroundText, centerX, centerY);
+      ctx.fillText(backgroundText, centerX, centerY);
+
+      ctx.restore();
+    }
+
+    // Expected X position with parallax: 400 - (200 * 0.5) = 300
+    expect(ctx.save).toHaveBeenCalled();
+    expect(ctx.fillText).toHaveBeenCalledWith(backgroundText, 300, 225);
+    expect(ctx.strokeText).toHaveBeenCalledWith(backgroundText, 300, 225);
+    expect(ctx.restore).toHaveBeenCalled();
+  });
+
   it('should not render background text when text parameter is empty', () => {
     const backgroundText = '';
 

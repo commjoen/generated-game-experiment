@@ -3653,9 +3653,8 @@ function draw() {
     ctx.strokeStyle = '#000000';
     ctx.lineWidth = 2;
 
-    // Position text with parallax scrolling effect, starting 50px from level start
-    const parallaxFactor = 0.5; // Scroll at half the speed of the camera for parallax effect
-    const centerX = 50 + cameraX * parallaxFactor; // Start 50px from level start, move with parallax
+    // Position text in the middle of the level for players to pass by
+    const centerX = LEVEL_WIDTH / 2; // Position text in center of level (1600px)
     const centerY = canvas.height / 2;
 
     // Draw text with stroke (outline) and fill

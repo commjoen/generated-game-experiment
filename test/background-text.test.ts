@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { JSDOM } from 'jsdom';
 
+// Match the LEVEL_WIDTH constant from main.ts
+const LEVEL_WIDTH = 3200;
+
 describe('Background Text URL Parameter', () => {
   let dom: JSDOM;
   let window: Window & typeof globalThis;
@@ -104,7 +107,7 @@ describe('Background Text URL Parameter', () => {
       ctx.strokeStyle = '#000000';
       ctx.lineWidth = 2;
 
-      const centerX = 50; // Text starts 50px from level start (cameraX = 0)
+      const centerX = LEVEL_WIDTH / 2; // Text positioned in center of level (1600px)
       const centerY = canvasHeight / 2;
 
       ctx.strokeText(backgroundText, centerX, centerY);
@@ -114,17 +117,16 @@ describe('Background Text URL Parameter', () => {
     }
 
     expect(ctx.save).toHaveBeenCalled();
-    expect(ctx.fillText).toHaveBeenCalledWith(backgroundText, 50, 225);
-    expect(ctx.strokeText).toHaveBeenCalledWith(backgroundText, 50, 225);
+    expect(ctx.fillText).toHaveBeenCalledWith(backgroundText, 1600, 225);
+    expect(ctx.strokeText).toHaveBeenCalledWith(backgroundText, 1600, 225);
     expect(ctx.restore).toHaveBeenCalled();
   });
 
-  it('should simulate background text parallax scrolling', () => {
-    const backgroundText = 'Parallax Text';
+  it('should position background text in middle of level regardless of camera position', () => {
+    const backgroundText = 'Centered Text';
     const canvasWidth = 800;
     const canvasHeight = 450;
-    const cameraX = 200; // Simulate camera movement
-    const parallaxFactor = 0.5;
+    // Camera position no longer affects text positioning
 
     if (backgroundText) {
       ctx.save();
@@ -138,8 +140,8 @@ describe('Background Text URL Parameter', () => {
       ctx.strokeStyle = '#000000';
       ctx.lineWidth = 2;
 
-      // Position text with parallax scrolling effect, starting 50px from level start
-      const centerX = 50 + cameraX * parallaxFactor;
+      // Position text in the middle of the level, independent of camera
+      const centerX = LEVEL_WIDTH / 2;
       const centerY = canvasHeight / 2;
 
       ctx.strokeText(backgroundText, centerX, centerY);
@@ -148,10 +150,10 @@ describe('Background Text URL Parameter', () => {
       ctx.restore();
     }
 
-    // Expected X position with parallax: 50 + (200 * 0.5) = 150
+    // Text should always be at center of level (1600px) regardless of camera position
     expect(ctx.save).toHaveBeenCalled();
-    expect(ctx.fillText).toHaveBeenCalledWith(backgroundText, 150, 225);
-    expect(ctx.strokeText).toHaveBeenCalledWith(backgroundText, 150, 225);
+    expect(ctx.fillText).toHaveBeenCalledWith(backgroundText, 1600, 225);
+    expect(ctx.strokeText).toHaveBeenCalledWith(backgroundText, 1600, 225);
     expect(ctx.restore).toHaveBeenCalled();
   });
 

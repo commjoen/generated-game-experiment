@@ -171,19 +171,19 @@ describe('Background Text URL Parameter', () => {
     // Test mobile viewport dimensions
     const mobileWidth = 375;
     const mobileHeight = 667;
-    
+
     // Simulate mobile canvas size
     canvas.width = mobileWidth;
     canvas.height = mobileHeight;
-    
+
     const backgroundText = 'Mobile Test';
-    
+
     // Simulate the camera transform process (like in the fixed draw function)
     if (backgroundText) {
       // Simulate camera transforms being applied first
-      const cameraX = 100; // Player has moved some distance
-      const cameraY = 0;
-      
+      const _cameraX = 100; // Player has moved some distance
+      const _cameraY = 0;
+
       // Then background text is drawn in world coordinates (after camera transforms)
       ctx.save();
       const fontSize = Math.min(mobileWidth, mobileHeight) / 8;
@@ -208,10 +208,18 @@ describe('Background Text URL Parameter', () => {
 
     // Verify text rendering was called with correct mobile dimensions
     expect(ctx.save).toHaveBeenCalled();
-    expect(ctx.fillText).toHaveBeenCalledWith(backgroundText, 1600, mobileHeight / 2);
-    expect(ctx.strokeText).toHaveBeenCalledWith(backgroundText, 1600, mobileHeight / 2);
+    expect(ctx.fillText).toHaveBeenCalledWith(
+      backgroundText,
+      1600,
+      mobileHeight / 2
+    );
+    expect(ctx.strokeText).toHaveBeenCalledWith(
+      backgroundText,
+      1600,
+      mobileHeight / 2
+    );
     expect(ctx.restore).toHaveBeenCalled();
-    
+
     // Verify mobile-appropriate font size was set
     const expectedFontSize = Math.min(mobileWidth, mobileHeight) / 8; // 46.875px for 375x667
     expect(ctx.font).toBe(`bold ${expectedFontSize}px sans-serif`);

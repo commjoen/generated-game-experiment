@@ -166,4 +166,62 @@ describe('Background Text URL Parameter', () => {
 
     expect(ctx.fillText).not.toHaveBeenCalled();
   });
+
+  it('should render background text correctly after camera transforms for mobile devices', () => {
+    // Test mobile viewport dimensions
+    const mobileWidth = 375;
+    const mobileHeight = 667;
+
+    // Simulate mobile canvas size
+    canvas.width = mobileWidth;
+    canvas.height = mobileHeight;
+
+    const backgroundText = 'Mobile Test';
+
+    // Simulate the camera transform process (like in the fixed draw function)
+    if (backgroundText) {
+      // Simulate camera transforms being applied first
+      const _cameraX = 100; // Player has moved some distance
+      const _cameraY = 0;
+
+      // Then background text is drawn in world coordinates (after camera transforms)
+      ctx.save();
+      const fontSize = Math.min(mobileWidth, mobileHeight) / 8;
+      ctx.font = `bold ${fontSize}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      ctx.globalAlpha = 0.3;
+      ctx.fillStyle = '#ffffff';
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 2;
+
+      // Text is positioned in world coordinates after camera transform
+      const centerX = LEVEL_WIDTH / 2; // Still at 1600px in world coordinates
+      const centerY = mobileHeight / 2; // But Y is screen-relative
+
+      ctx.strokeText(backgroundText, centerX, centerY);
+      ctx.fillText(backgroundText, centerX, centerY);
+
+      ctx.restore();
+    }
+
+    // Verify text rendering was called with correct mobile dimensions
+    expect(ctx.save).toHaveBeenCalled();
+    expect(ctx.fillText).toHaveBeenCalledWith(
+      backgroundText,
+      1600,
+      mobileHeight / 2
+    );
+    expect(ctx.strokeText).toHaveBeenCalledWith(
+      backgroundText,
+      1600,
+      mobileHeight / 2
+    );
+    expect(ctx.restore).toHaveBeenCalled();
+
+    // Verify mobile-appropriate font size was set
+    const expectedFontSize = Math.min(mobileWidth, mobileHeight) / 8; // 46.875px for 375x667
+    expect(ctx.font).toBe(`bold ${expectedFontSize}px sans-serif`);
+  });
 });

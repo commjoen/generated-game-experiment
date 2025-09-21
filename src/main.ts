@@ -3639,31 +3639,6 @@ function draw() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
-  // Draw background text from URL parameter
-  if (backgroundText) {
-    ctx.save();
-    const fontSize = Math.min(canvas.width, canvas.height) / 8; // Responsive font size
-    ctx.font = `bold ${fontSize}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    // Create semi-transparent text with outline for better visibility
-    ctx.globalAlpha = 0.3;
-    ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 2;
-
-    // Position text in the middle of the level for players to pass by
-    const centerX = LEVEL_WIDTH / 2; // Position text in center of level (1600px)
-    const centerY = canvas.height / 2;
-
-    // Draw text with stroke (outline) and fill
-    ctx.strokeText(backgroundText, centerX, centerY);
-    ctx.fillText(backgroundText, centerX, centerY);
-
-    ctx.restore();
-  }
-
   ctx.save();
   let scale = 1;
   if (levelType === 'vertical') {
@@ -3690,6 +3665,32 @@ function draw() {
     ctx.scale(scale, scale);
   }
   ctx.translate(-cameraX, -cameraY);
+
+  // Draw background text from URL parameter (after camera transforms for proper positioning)
+  if (backgroundText) {
+    ctx.save();
+    const fontSize = Math.min(canvas.width, canvas.height) / 8; // Responsive font size
+    ctx.font = `bold ${fontSize}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Create semi-transparent text with outline for better visibility
+    ctx.globalAlpha = 0.3;
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
+
+    // Position text in the middle of the level for players to pass by
+    const centerX = LEVEL_WIDTH / 2; // Position text in center of level (1600px)
+    const centerY = canvas.height / 2;
+
+    // Draw text with stroke (outline) and fill
+    ctx.strokeText(backgroundText, centerX, centerY);
+    ctx.fillText(backgroundText, centerX, centerY);
+
+    ctx.restore();
+  }
+
   // Draw platforms with 3D effect
   let lowestPlatformIndex = -1;
   if (levelType === 'vertical' && platforms.length > 0) {

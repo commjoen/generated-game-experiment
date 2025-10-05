@@ -96,7 +96,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Update Docker Hub description for platformer-game
-        uses: peter-evans/dockerhub-description@v4
+        uses: peter-evans/dockerhub-description@v5
         if: github.event_name == 'release' && env.DOCKER_HUB_AVAILABLE == 'true'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -106,7 +106,7 @@ jobs:
           readme-filepath: ./README.md
 
       - name: Update Docker Hub description for platformer-game-1
-        uses: peter-evans/dockerhub-description@v4
+        uses: peter-evans/dockerhub-description@v5
         if: github.event_name == 'release' && env.DOCKER_HUB_AVAILABLE == 'true'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}

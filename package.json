@@ -36,7 +36,7 @@
     "@types/jsdom": "^27.0.0",
     "@types/node": "^24.6.2",
     "@types/ws": "^8.18.1",
-    "@typescript-eslint/eslint-plugin": "^8.45.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.0",
     "@typescript-eslint/parser": "^8.38.0",
     "eslint": "^9.37.0",
     "jsdom": "^27.0.0",

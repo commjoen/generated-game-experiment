@@ -1,5 +1,5 @@
 # Stage 1: Build the game client
-FROM node:24-alpine AS builder
+FROM node:25-alpine AS builder
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY vite.config.ts ./

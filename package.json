@@ -34,7 +34,7 @@
   "devDependencies": {
     "@eslint/js": "^9.38.0",
     "@types/jsdom": "^27.0.0",
-    "@types/node": "^24.8.1",
+    "@types/node": "^24.9.1",
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.38.0",
@@ -43,9 +43,9 @@
     "node-fetch": "^3.3.2",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3",
-    "vite": "^7.1.11",
+    "vite": "^7.1.12",
     "vite-plugin-sri": "^0.0.2",
-    "vitest": "^3.2.4"
+    "vitest": "^4.0.3"
   },
   "dependencies": {
     "cors": "^2.8.5",

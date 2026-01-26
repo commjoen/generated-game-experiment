@@ -48,11 +48,11 @@
     "vitest": "^4.0.17"
   },
   "dependencies": {
-    "cors": "^2.8.5",
+    "cors": "^2.8.6",
     "express": "^5.2.1",
     "github-mcp-server": "^1.8.7",
     "install": "^0.13.0",
     "npm": "^11.7.0",
-    "ws": "^8.18.3"
+    "ws": "^8.19.0"
   }
 }

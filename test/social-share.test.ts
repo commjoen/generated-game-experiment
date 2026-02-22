@@ -310,7 +310,6 @@ describe('Social Share Functionality', () => {
     };
 
     // Test Twitter sharing
-    downloadCalled = false;
     shareToTwitterWithDownload();
     expect(downloadCalled).toBe(true);
     expect(mockWindowOpen).toHaveBeenCalledWith(

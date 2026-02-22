@@ -2578,16 +2578,12 @@ function update(deltaTime: number) {
   for (const tube of tubes) {
     if (!tube.hasSpawnedEnemy) {
       // Check if tube is visible on screen
-      let tubeVisible = false;
-      if (levelType === 'horizontal') {
-        // Tube is visible if it's within the camera view horizontally
-        tubeVisible =
-          tube.x + tube.width > cameraX && tube.x < cameraX + canvas.width;
-      } else {
-        // For vertical levels, check if tube is within camera view vertically
-        tubeVisible =
-          tube.y + tube.height > cameraY && tube.y < cameraY + canvas.height;
-      }
+      const tubeVisible =
+        levelType === 'horizontal'
+          ? // Tube is visible if it's within the camera view horizontally
+            tube.x + tube.width > cameraX && tube.x < cameraX + canvas.width
+          : // For vertical levels, check if tube is within camera view vertically
+            tube.y + tube.height > cameraY && tube.y < cameraY + canvas.height;
 
       if (tubeVisible) {
         // Find the platform that contains this tube
@@ -3640,12 +3636,11 @@ function draw() {
   }
 
   ctx.save();
-  let scale = 1;
   if (levelType === 'vertical') {
     // Zoom out to fit the full horizontal level
     const widest = Math.max(...platforms.map((p) => p.width));
     const levelW = Math.max(canvas.width, widest);
-    scale = canvas.width / levelW;
+    const scale = canvas.width / levelW;
     // Center cameraX on player, but clamp so player stays visible
     cameraX = Math.max(
       0,
@@ -4256,7 +4251,6 @@ function draw() {
       ctx.stroke();
     }
     ctx.restore();
-    iconX += 36;
   }
   ctx.restore();
   if (gameOver) {

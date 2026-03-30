@@ -32,8 +32,14 @@ export class MultiplayerManager {
   private maxReconnectAttempts = 3;
   private reconnectDelay = 1000;
 
+  // WebRTC peer-to-peer support
+  private webRTCEnabled = false;
+  private peerConnections = new Map<string, RTCPeerConnection>();
+  private dataChannels = new Map<string, RTCDataChannel>();
+
   constructor() {
     this.playerId = this.generatePlayerId();
+    this.webRTCEnabled = typeof RTCPeerConnection !== 'undefined';
   }
 
   private generatePlayerId(): string {
@@ -210,12 +216,18 @@ export class MultiplayerManager {
       case 'playerJoined':
         if (data.playerId === this.playerId) {
           this.isHost = data.isHost || false;
+        } else if (this.webRTCEnabled) {
+          // Another player joined – we are the initiator of the WebRTC connection
+          this.initWebRTCConnection(data.playerId, true);
         }
         if (this.onPlayerJoin) {
           this.onPlayerJoin(data.playerId);
         }
         break;
       case 'playerLeft':
+        if (this.webRTCEnabled) {
+          this.cleanupPeerConnection(data.playerId);
+        }
         if (this.onPlayerLeave) {
           this.onPlayerLeave(data.playerId);
         }
@@ -233,6 +245,11 @@ export class MultiplayerManager {
       case 'itemCollected':
         if (this._onPlayerUpdate) {
           this._onPlayerUpdate(data.playerId, {}, data.score, data.name);
+        }
+        break;
+      case 'rtcSignal':
+        if (this.webRTCEnabled) {
+          this.handleRTCSignal(data.fromId, data.signal);
         }
         break;
       case 'pong':
@@ -262,12 +279,30 @@ export class MultiplayerManager {
   ) {
     if (!this.isConnected) return;
 
-    this.send({
+    const message = {
       type: 'playerUpdate',
       playerId: this.playerId,
       position: { x, y, width, height, growLevel },
       timestamp: Date.now(),
+    };
+
+    // Prefer direct peer DataChannels for lower-latency position updates
+    let sentViaPeer = false;
+    this.dataChannels.forEach((dc) => {
+      if (dc.readyState === 'open') {
+        try {
+          dc.send(JSON.stringify(message));
+          sentViaPeer = true;
+        } catch (_e) {
+          // DataChannel may have closed unexpectedly; fall through to WS
+        }
+      }
     });
+
+    // Fall back to WebSocket relay when no DataChannels are open yet
+    if (!sentViaPeer) {
+      this.send(message);
+    }
   }
 
   // Send collectible pickup
@@ -328,8 +363,144 @@ export class MultiplayerManager {
     return this.isHost;
   }
 
+  // WebRTC peer-to-peer connection management
+
+  private async initWebRTCConnection(
+    peerId: string,
+    isInitiator: boolean
+  ): Promise<void> {
+    if (this.peerConnections.has(peerId)) return; // Already connected
+
+    try {
+      const pc = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      });
+      this.peerConnections.set(peerId, pc);
+
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          this.send({
+            type: 'rtcSignal',
+            targetId: peerId,
+            signal: { type: 'ice-candidate', candidate: event.candidate },
+          });
+        }
+      };
+
+      pc.onconnectionstatechange = () => {
+        if (
+          pc.connectionState === 'failed' ||
+          pc.connectionState === 'disconnected' ||
+          pc.connectionState === 'closed'
+        ) {
+          this.cleanupPeerConnection(peerId);
+        }
+      };
+
+      if (isInitiator) {
+        const dc = pc.createDataChannel('game', { ordered: true });
+        this.setupDataChannel(dc, peerId);
+
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        this.send({
+          type: 'rtcSignal',
+          targetId: peerId,
+          signal: { type: 'offer', sdp: pc.localDescription },
+        });
+      } else {
+        pc.ondatachannel = (event) => {
+          this.setupDataChannel(event.channel, peerId);
+        };
+      }
+    } catch (error) {
+      console.error(`WebRTC connection to ${peerId} failed:`, error);
+      this.cleanupPeerConnection(peerId);
+    }
+  }
+
+  private setupDataChannel(dc: RTCDataChannel, peerId: string): void {
+    this.dataChannels.set(peerId, dc);
+
+    dc.onopen = () => {
+      console.log(`WebRTC DataChannel opened with peer ${peerId}`);
+    };
+
+    dc.onclose = () => {
+      this.dataChannels.delete(peerId);
+    };
+
+    dc.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data as string);
+        // Only handle position updates via DataChannel to avoid duplicate
+        // processing of authoritative server messages (scores, item collection, etc.)
+        if (data.type === 'playerUpdate') {
+          this.handleMessage(data);
+        }
+      } catch (_e) {
+        // Ignore malformed messages
+      }
+    };
+  }
+
+  private async handleRTCSignal(fromId: string, signal: any): Promise<void> {
+    try {
+      if (signal.type === 'offer') {
+        await this.initWebRTCConnection(fromId, false);
+        const pc = this.peerConnections.get(fromId);
+        if (!pc) return;
+        await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        this.send({
+          type: 'rtcSignal',
+          targetId: fromId,
+          signal: { type: 'answer', sdp: pc.localDescription },
+        });
+      } else if (signal.type === 'answer') {
+        const pc = this.peerConnections.get(fromId);
+        if (pc) {
+          await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+        }
+      } else if (signal.type === 'ice-candidate') {
+        const pc = this.peerConnections.get(fromId);
+        if (pc) {
+          await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+        }
+      }
+    } catch (error) {
+      console.error(`WebRTC signaling error from ${fromId}:`, error);
+    }
+  }
+
+  private cleanupPeerConnection(peerId: string): void {
+    const pc = this.peerConnections.get(peerId);
+    if (pc) {
+      pc.close();
+      this.peerConnections.delete(peerId);
+    }
+    const dc = this.dataChannels.get(peerId);
+    if (dc) {
+      dc.close();
+      this.dataChannels.delete(peerId);
+    }
+  }
+
+  // Returns true when at least one WebRTC DataChannel is open
+  get webRTCConnected(): boolean {
+    for (const dc of this.dataChannels.values()) {
+      if (dc.readyState === 'open') return true;
+    }
+    return false;
+  }
+
   // Disconnect
   disconnect() {
+    // Close all WebRTC peer connections
+    this.peerConnections.forEach((_pc, peerId) => {
+      this.cleanupPeerConnection(peerId);
+    });
     if (this.ws) {
       this.ws.close();
       this.ws = null;

@@ -151,10 +151,7 @@ export class WebRTCDirect {
     this.pc = pc;
 
     pc.onconnectionstatechange = () => {
-      if (
-        pc.connectionState === 'failed' ||
-        pc.connectionState === 'closed'
-      ) {
+      if (pc.connectionState === 'failed' || pc.connectionState === 'closed') {
         if (this._state === 'connected') {
           this._state = 'idle';
           this.callbacks.onDisconnected();
@@ -211,7 +208,9 @@ export class WebRTCDirect {
         if (desc) {
           resolve({ type: desc.type, sdp: desc.sdp });
         } else {
-          reject(new Error('No local description available after ICE gathering'));
+          reject(
+            new Error('No local description available after ICE gathering')
+          );
         }
       };
 

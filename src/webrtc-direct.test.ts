@@ -34,7 +34,9 @@ class MockDataChannel extends EventTarget {
     this.onclose?.(new Event('close'));
   }
   simulateMessage(data: unknown) {
-    this.onmessage?.(new MessageEvent('message', { data: JSON.stringify(data) }));
+    this.onmessage?.(
+      new MessageEvent('message', { data: JSON.stringify(data) })
+    );
   }
 }
 
@@ -48,7 +50,10 @@ class MockPeerConnection {
 
   private _dc: MockDataChannel | null = null;
 
-  createDataChannel(_label: string, _opts?: RTCDataChannelInit): MockDataChannel {
+  createDataChannel(
+    _label: string,
+    _opts?: RTCDataChannelInit
+  ): MockDataChannel {
     this._dc = new MockDataChannel();
     return this._dc;
   }
@@ -86,7 +91,7 @@ class MockPeerConnection {
   simulateRemoteDataChannel() {
     const dc = new MockDataChannel();
     this._dc = dc;
-    this.ondatachannel?.({ channel: dc } as RTCDataChannelEvent);
+    this.ondatachannel?.({ channel: dc } as unknown as RTCDataChannelEvent);
     return dc;
   }
 
@@ -114,12 +119,20 @@ beforeEach(() => {
   // Stub the global RTCPeerConnection with our mock.
   // We need a real constructor function (not an arrow fn) so that `new` works;
   // returning an object from a constructor causes `new expr` to yield that object.
-  vi.stubGlobal('RTCPeerConnection', function MockRTC(this: RTCPeerConnection) { return mockPc; });
+  vi.stubGlobal('RTCPeerConnection', function MockRTC(this: RTCPeerConnection) {
+    return mockPc;
+  });
 
   // RTCSessionDescription just passes through the init dict in tests
-  vi.stubGlobal('RTCSessionDescription', function MockRTCSD(this: RTCSessionDescriptionInit, init: RTCSessionDescriptionInit) {
-    return init;
-  });
+  vi.stubGlobal(
+    'RTCSessionDescription',
+    function MockRTCSD(
+      this: RTCSessionDescriptionInit,
+      init: RTCSessionDescriptionInit
+    ) {
+      return init;
+    }
+  );
 });
 
 afterEach(() => {
@@ -182,7 +195,10 @@ describe('WebRTCDirect', () => {
       const cb = makeCallbacks();
       const wd = new WebRTCDirect(cb);
 
-      const offerSDP: RTCSessionDescriptionInit = { type: 'offer', sdp: 'offer-sdp' };
+      const offerSDP: RTCSessionDescriptionInit = {
+        type: 'offer',
+        sdp: 'offer-sdp',
+      };
       const offerCode = btoa(JSON.stringify(offerSDP));
 
       // simulateRemoteDataChannel must fire ondatachannel BEFORE ICE complete
@@ -224,7 +240,10 @@ describe('WebRTCDirect', () => {
       await p;
 
       const spy = vi.spyOn(mockPc, 'setRemoteDescription');
-      const answerSDP: RTCSessionDescriptionInit = { type: 'answer', sdp: 'answer-sdp' };
+      const answerSDP: RTCSessionDescriptionInit = {
+        type: 'answer',
+        sdp: 'answer-sdp',
+      };
       const answerCode = btoa(JSON.stringify(answerSDP));
 
       await wd.acceptAnswer(answerCode);
@@ -333,7 +352,9 @@ describe('WebRTCDirect', () => {
       wd.send({ type: 'ping' });
 
       expect(spy).toHaveBeenCalledOnce();
-      expect(JSON.parse(spy.mock.calls[0][0] as string)).toEqual({ type: 'ping' });
+      expect(JSON.parse(spy.mock.calls[0][0] as string)).toEqual({
+        type: 'ping',
+      });
     });
 
     it('does nothing when not connected', () => {

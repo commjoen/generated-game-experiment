@@ -189,6 +189,7 @@ Available features:
 - GitHub Pages is static hosting, so this page surfaces the controls and settings, but live multiplayer sessions require the Render deployment: https://generated-game-experiment.onrender.com/
 
 ## Testing
+
 - Run all tests:
 
 ```sh

@@ -212,7 +212,8 @@ function updateP2PUI(): void {
   ) as HTMLButtonElement | null;
 
   if (!webrtcDirect) {
-    if (statusEl) statusEl.textContent = 'WebRTC not supported in this browser.';
+    if (statusEl)
+      statusEl.textContent = 'WebRTC not supported in this browser.';
     return;
   }
 
@@ -240,7 +241,8 @@ function updateP2PUI(): void {
   }
 
   const connected = state === 'connected';
-  if (disconnectBtn) disconnectBtn.style.display = connected ? 'inline-block' : 'none';
+  if (disconnectBtn)
+    disconnectBtn.style.display = connected ? 'inline-block' : 'none';
   if (createBtn) createBtn.style.display = connected ? 'none' : 'inline-block';
   if (joinBtn) joinBtn.style.display = connected ? 'none' : 'inline-block';
 
@@ -3132,47 +3134,82 @@ function updateWebRTCHelpText(helpEl: HTMLElement | null): void {
  */
 function setupDirectP2PUI(): void {
   // If WebRTC is not supported we leave the section visible but disable the buttons.
-  const createBtn = document.getElementById('p2p-create-btn') as HTMLButtonElement | null;
-  const joinBtn = document.getElementById('p2p-join-btn') as HTMLButtonElement | null;
-  const disconnectBtn = document.getElementById('p2p-disconnect-btn') as HTMLButtonElement | null;
+  const createBtn = document.getElementById(
+    'p2p-create-btn'
+  ) as HTMLButtonElement | null;
+  const joinBtn = document.getElementById(
+    'p2p-join-btn'
+  ) as HTMLButtonElement | null;
+  const disconnectBtn = document.getElementById(
+    'p2p-disconnect-btn'
+  ) as HTMLButtonElement | null;
   const offerPanel = document.getElementById('p2p-offer-panel');
   const joinPanel = document.getElementById('p2p-join-panel');
-  const offerCodeEl = document.getElementById('p2p-offer-code') as HTMLTextAreaElement | null;
-  const answerInput = document.getElementById('p2p-answer-input') as HTMLTextAreaElement | null;
-  const acceptAnswerBtn = document.getElementById('p2p-accept-answer-btn') as HTMLButtonElement | null;
-  const offerInput = document.getElementById('p2p-offer-input') as HTMLTextAreaElement | null;
-  const processOfferBtn = document.getElementById('p2p-process-offer-btn') as HTMLButtonElement | null;
+  const offerCodeEl = document.getElementById(
+    'p2p-offer-code'
+  ) as HTMLTextAreaElement | null;
+  const answerInput = document.getElementById(
+    'p2p-answer-input'
+  ) as HTMLTextAreaElement | null;
+  const acceptAnswerBtn = document.getElementById(
+    'p2p-accept-answer-btn'
+  ) as HTMLButtonElement | null;
+  const offerInput = document.getElementById(
+    'p2p-offer-input'
+  ) as HTMLTextAreaElement | null;
+  const processOfferBtn = document.getElementById(
+    'p2p-process-offer-btn'
+  ) as HTMLButtonElement | null;
   const answerPanel = document.getElementById('p2p-answer-panel');
-  const answerCodeEl = document.getElementById('p2p-answer-code') as HTMLTextAreaElement | null;
-  const copyOfferBtn = document.getElementById('p2p-copy-offer-btn') as HTMLButtonElement | null;
-  const copyAnswerBtn = document.getElementById('p2p-copy-answer-btn') as HTMLButtonElement | null;
+  const answerCodeEl = document.getElementById(
+    'p2p-answer-code'
+  ) as HTMLTextAreaElement | null;
+  const copyOfferBtn = document.getElementById(
+    'p2p-copy-offer-btn'
+  ) as HTMLButtonElement | null;
+  const copyAnswerBtn = document.getElementById(
+    'p2p-copy-answer-btn'
+  ) as HTMLButtonElement | null;
 
   if (!webrtcDirect) {
     // Hide controls when WebRTC is unavailable
-    if (createBtn) { createBtn.disabled = true; createBtn.title = 'WebRTC not supported'; }
-    if (joinBtn) { joinBtn.disabled = true; joinBtn.title = 'WebRTC not supported'; }
+    if (createBtn) {
+      createBtn.disabled = true;
+      createBtn.title = 'WebRTC not supported';
+    }
+    if (joinBtn) {
+      joinBtn.disabled = true;
+      joinBtn.title = 'WebRTC not supported';
+    }
     return;
   }
 
   // Helper: copy text to clipboard with visual feedback
   function copyToClipboard(text: string, btn: HTMLButtonElement) {
-    navigator.clipboard.writeText(text).then(() => {
-      const orig = btn.textContent;
-      btn.textContent = t('p2pCopied');
-      setTimeout(() => { btn.textContent = orig; }, 1500);
-    }).catch(() => {
-      // Fallback for browsers without the Clipboard API (e.g. older Safari, HTTP origins).
-      // document.execCommand('copy') is deprecated but still widely supported as a fallback.
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy'); // intentional deprecated fallback
-      document.body.removeChild(ta);
-      const orig = btn.textContent;
-      btn.textContent = t('p2pCopied');
-      setTimeout(() => { btn.textContent = orig; }, 1500);
-    });
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        const orig = btn.textContent;
+        btn.textContent = t('p2pCopied');
+        setTimeout(() => {
+          btn.textContent = orig;
+        }, 1500);
+      })
+      .catch(() => {
+        // Fallback for browsers without the Clipboard API (e.g. older Safari, HTTP origins).
+        // document.execCommand('copy') is deprecated but still widely supported as a fallback.
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy'); // intentional deprecated fallback
+        document.body.removeChild(ta);
+        const orig = btn.textContent;
+        btn.textContent = t('p2pCopied');
+        setTimeout(() => {
+          btn.textContent = orig;
+        }, 1500);
+      });
   }
 
   // ── Create Room ─────────────────────────────────────────────────────────────
@@ -3193,7 +3230,8 @@ function setupDirectP2PUI(): void {
       console.error('Failed to create P2P offer:', err);
       const statusEl = document.getElementById('p2p-status');
       if (statusEl) {
-        statusEl.textContent = 'Failed to create offer. Check browser permissions.';
+        statusEl.textContent =
+          'Failed to create offer. Check browser permissions.';
         statusEl.style.color = '#f44';
       }
     }
@@ -3209,7 +3247,8 @@ function setupDirectP2PUI(): void {
     } catch (err) {
       const statusEl = document.getElementById('p2p-status');
       if (statusEl) {
-        statusEl.textContent = err instanceof Error ? err.message : 'Invalid answer code.';
+        statusEl.textContent =
+          err instanceof Error ? err.message : 'Invalid answer code.';
         statusEl.style.color = '#f44';
       }
     }
@@ -3244,7 +3283,8 @@ function setupDirectP2PUI(): void {
     } catch (err) {
       const statusEl = document.getElementById('p2p-status');
       if (statusEl) {
-        statusEl.textContent = err instanceof Error ? err.message : 'Invalid offer code.';
+        statusEl.textContent =
+          err instanceof Error ? err.message : 'Invalid offer code.';
         statusEl.style.color = '#f44';
       }
     }
@@ -3259,10 +3299,12 @@ function setupDirectP2PUI(): void {
 
   // ── Copy buttons ─────────────────────────────────────────────────────────────
   copyOfferBtn?.addEventListener('click', () => {
-    if (offerCodeEl && copyOfferBtn) copyToClipboard(offerCodeEl.value, copyOfferBtn);
+    if (offerCodeEl && copyOfferBtn)
+      copyToClipboard(offerCodeEl.value, copyOfferBtn);
   });
   copyAnswerBtn?.addEventListener('click', () => {
-    if (answerCodeEl && copyAnswerBtn) copyToClipboard(answerCodeEl.value, copyAnswerBtn);
+    if (answerCodeEl && copyAnswerBtn)
+      copyToClipboard(answerCodeEl.value, copyAnswerBtn);
   });
 
   // Set initial UI state
@@ -4387,7 +4429,11 @@ function draw() {
       other.height
     );
     // Draw name and crown above player only in multiplayer mode
-    if ((multiplayerEnabled || webrtcDirect?.isConnected) && otherPlayers.size > 0 && other.name) {
+    if (
+      (multiplayerEnabled || webrtcDirect?.isConnected) &&
+      otherPlayers.size > 0 &&
+      other.name
+    ) {
       ctx.save();
       ctx.font = '16px sans-serif';
       if (highestPlayerIds.includes(other.id)) {
@@ -4407,7 +4453,10 @@ function draw() {
   }
   ctx.restore();
   // Draw your own name
-  if ((multiplayerEnabled || webrtcDirect?.isConnected) && otherPlayers.size > 0) {
+  if (
+    (multiplayerEnabled || webrtcDirect?.isConnected) &&
+    otherPlayers.size > 0
+  ) {
     ctx.save();
     ctx.font = '16px sans-serif';
     if (highestPlayerIds.includes('self')) {
@@ -4446,7 +4495,10 @@ function draw() {
     ctx.fillStyle = '#fff';
   }
   // Draw leaderboard (top-right) only in multiplayer mode with >1 player
-  if ((multiplayerEnabled || webrtcDirect?.isConnected) && otherPlayers.size > 0) {
+  if (
+    (multiplayerEnabled || webrtcDirect?.isConnected) &&
+    otherPlayers.size > 0
+  ) {
     // --- Leaderboard ---
     // Deduplicate by player id (self and others)
     const selfPlayerId = webrtcDirect?.isConnected

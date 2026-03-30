@@ -264,6 +264,17 @@ class GameSession {
     }
   }
 
+  // Forward a WebRTC signaling message from one player to another
+  forwardRTCSignal(fromId, targetId, signal) {
+    const target = this.players.get(targetId);
+    if (!target || !target.ws) return;
+    this.send(target.ws, {
+      type: 'rtcSignal',
+      fromId: fromId,
+      signal: signal,
+    });
+  }
+
   // Clean up inactive players
   cleanupInactivePlayers() {
     const now = Date.now();
@@ -315,6 +326,13 @@ wss.on('connection', (ws) => {
         case 'ping':
           // Respond with pong
           gameSession.send(ws, { type: 'pong', timestamp: Date.now() });
+          break;
+
+        case 'rtcSignal':
+          // Forward WebRTC signaling message (offer/answer/ICE candidate) to the target peer
+          if (playerId && message.targetId && message.signal) {
+            gameSession.forwardRTCSignal(playerId, message.targetId, message.signal);
+          }
           break;
 
         default:

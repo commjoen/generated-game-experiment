@@ -64,8 +64,11 @@ describe('WebRTC signaling relay', () => {
 
     await wait(100);
 
-    // P1 sends an offer to P2
-    const fakeOffer = { type: 'offer', sdp: 'fake-sdp-offer' };
+    // P1 sends an offer to P2 – sdp is an RTCSessionDescription-shaped object
+    const fakeOffer = {
+      type: 'offer',
+      sdp: { type: 'offer', sdp: 'fake-sdp-offer' },
+    };
     ws1.send(
       JSON.stringify({
         type: 'rtcSignal',
@@ -82,7 +85,7 @@ describe('WebRTC signaling relay', () => {
     );
     expect(signalMsg).toBeDefined();
     expect(signalMsg.signal.type).toBe('offer');
-    expect(signalMsg.signal.sdp).toBe('fake-sdp-offer');
+    expect(signalMsg.signal.sdp.sdp).toBe('fake-sdp-offer');
 
     // P1 should NOT receive its own signal
     const selfSignal = msgs1.find(
@@ -106,8 +109,11 @@ describe('WebRTC signaling relay', () => {
 
     await wait(100);
 
-    // P2 sends an answer back to P1
-    const fakeAnswer = { type: 'answer', sdp: 'fake-sdp-answer' };
+    // P2 sends an answer back to P1 – sdp is an RTCSessionDescription-shaped object
+    const fakeAnswer = {
+      type: 'answer',
+      sdp: { type: 'answer', sdp: 'fake-sdp-answer' },
+    };
     ws2.send(
       JSON.stringify({
         type: 'rtcSignal',
@@ -123,7 +129,7 @@ describe('WebRTC signaling relay', () => {
     );
     expect(answerMsg).toBeDefined();
     expect(answerMsg.signal.type).toBe('answer');
-    expect(answerMsg.signal.sdp).toBe('fake-sdp-answer');
+    expect(answerMsg.signal.sdp.sdp).toBe('fake-sdp-answer');
 
     ws1.close();
     ws2.close();
@@ -176,7 +182,7 @@ describe('WebRTC signaling relay', () => {
       JSON.stringify({
         type: 'rtcSignal',
         targetId: 'nonexistent-player',
-        signal: { type: 'offer', sdp: 'fake' },
+        signal: { type: 'offer', sdp: { type: 'offer', sdp: 'fake' } },
       })
     );
 

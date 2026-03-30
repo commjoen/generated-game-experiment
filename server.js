@@ -264,14 +264,62 @@ class GameSession {
     }
   }
 
-  // Forward a WebRTC signaling message from one player to another
+  // Forward a WebRTC signaling message from one player to another.
+  // Only known signal types with fully validated properties are forwarded to
+  // prevent prototype pollution and type-confusion attacks.
   forwardRTCSignal(fromId, targetId, signal) {
+    if (
+      typeof signal !== 'object' ||
+      signal === null ||
+      Array.isArray(signal)
+    ) {
+      return;
+    }
+
     const target = this.players.get(targetId);
     if (!target || !target.ws) return;
+
+    let safeSignal;
+    if (signal.type === 'offer' || signal.type === 'answer') {
+      const sdp = signal.sdp;
+      if (typeof sdp !== 'object' || sdp === null || Array.isArray(sdp)) {
+        return;
+      }
+      // sdp.type must match the outer signal type exactly
+      if (sdp.type !== signal.type) return;
+      if (typeof sdp.sdp !== 'string') return;
+      safeSignal = {
+        type: signal.type,
+        sdp: { type: sdp.type, sdp: sdp.sdp },
+      };
+    } else if (signal.type === 'ice-candidate') {
+      const cand = signal.candidate;
+      if (typeof cand !== 'object' || cand === null || Array.isArray(cand)) {
+        return;
+      }
+      // `candidate` is required; sdpMid and sdpMLineIndex are optional
+      if (typeof cand.candidate !== 'string') return;
+      safeSignal = {
+        type: 'ice-candidate',
+        candidate: {
+          candidate: cand.candidate,
+          sdpMid: typeof cand.sdpMid === 'string' ? cand.sdpMid : null,
+          sdpMLineIndex:
+            typeof cand.sdpMLineIndex === 'number' ? cand.sdpMLineIndex : null,
+          usernameFragment:
+            typeof cand.usernameFragment === 'string'
+              ? cand.usernameFragment
+              : null,
+        },
+      };
+    } else {
+      return; // Reject unknown signal types
+    }
+
     this.send(target.ws, {
       type: 'rtcSignal',
       fromId: fromId,
-      signal: signal,
+      signal: safeSignal,
     });
   }
 
@@ -330,7 +378,12 @@ wss.on('connection', (ws) => {
 
         case 'rtcSignal':
           // Forward WebRTC signaling message (offer/answer/ICE candidate) to the target peer
-          if (playerId && message.targetId && message.signal) {
+          if (
+            playerId &&
+            typeof message.targetId === 'string' &&
+            typeof message.signal === 'object' &&
+            message.signal !== null
+          ) {
             gameSession.forwardRTCSignal(
               playerId,
               message.targetId,

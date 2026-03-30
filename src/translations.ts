@@ -9,6 +9,9 @@ export interface TranslationData {
   showFPS: string;
   teslaMode: string;
   enableMultiplayer: string;
+  enableWebRTC: string;
+  webrtcHelpGeneral: string;
+  webrtcHelpGithubPages: string;
   verticalMode: string;
   playerName: string;
   language: string;
@@ -78,6 +81,11 @@ export const translations: Record<string, TranslationData> = {
     showFPS: 'Show FPS counter',
     teslaMode: 'Tesla Mode (always show onscreen controls)',
     enableMultiplayer: 'Enable Multiplayer (optional)',
+      enableWebRTC: 'Prefer WebRTC data channel (experimental)',
+      webrtcHelpGeneral:
+        'WebRTC improves movement latency after multiplayer connects via the server.',
+      webrtcHelpGithubPages:
+        'On GitHub Pages, these controls are available in Settings, but live multiplayer requires the Render deployment.',
     verticalMode: 'Vertical Mode (manual)',
     playerName: 'Player Name:',
     language: 'Language:',
@@ -147,6 +155,11 @@ export const translations: Record<string, TranslationData> = {
     showFPS: 'Toon FPS-teller',
     teslaMode: 'Tesla-modus (toon altijd schermknoppen)',
     enableMultiplayer: 'Multiplayer inschakelen (optioneel)',
+      enableWebRTC: 'Gebruik WebRTC datakanaal (experimenteel)',
+      webrtcHelpGeneral:
+        'WebRTC verlaagt de bewegingsvertraging zodra multiplayer via de server is verbonden.',
+      webrtcHelpGithubPages:
+        'Op GitHub Pages staan deze opties in Instellingen, maar live multiplayer werkt via de Render deployment.',
     verticalMode: 'Verticale modus (handmatig)',
     playerName: 'Spelersnaam:',
     language: 'Taal:',
@@ -216,6 +229,11 @@ export const translations: Record<string, TranslationData> = {
     showFPS: 'FPS-Zähler anzeigen',
     teslaMode: 'Tesla-Modus (immer Bildschirmsteuerung anzeigen)',
     enableMultiplayer: 'Mehrspieler aktivieren (optional)',
+      enableWebRTC: 'WebRTC-Datenkanal bevorzugen (experimentell)',
+      webrtcHelpGeneral:
+        'WebRTC reduziert die Bewegungsverzogerung, nachdem die Mehrspieler-Verbindung uber den Server steht.',
+      webrtcHelpGithubPages:
+        'Auf GitHub Pages sind diese Optionen in den Einstellungen sichtbar, aber Live-Mehrspieler braucht die Render-Bereitstellung.',
     verticalMode: 'Vertikaler Modus (manuell)',
     playerName: 'Spielername:',
     language: 'Sprache:',
@@ -284,6 +302,11 @@ export const translations: Record<string, TranslationData> = {
     showFPS: 'Mostrar contador FPS',
     teslaMode: 'Modo Tesla (siempre mostrar controles en pantalla)',
     enableMultiplayer: 'Habilitar multijugador (opcional)',
+      enableWebRTC: 'Preferir canal de datos WebRTC (experimental)',
+      webrtcHelpGeneral:
+        'WebRTC mejora la latencia de movimiento despues de conectar multijugador por el servidor.',
+      webrtcHelpGithubPages:
+        'En GitHub Pages, estos controles estan en Configuracion, pero el multijugador en vivo requiere el despliegue de Render.',
     verticalMode: 'Modo vertical (manual)',
     playerName: 'Nombre del jugador:',
     language: 'Idioma:',
@@ -352,6 +375,11 @@ export const translations: Record<string, TranslationData> = {
     showFPS: 'Afficher le compteur FPS',
     teslaMode: "Mode Tesla (toujours afficher les contrôles à l'écran)",
     enableMultiplayer: 'Activer le multijoueur (optionnel)',
+      enableWebRTC: 'Preferer le canal de donnees WebRTC (experimental)',
+      webrtcHelpGeneral:
+        'WebRTC reduit la latence des mouvements apres la connexion multijoueur via le serveur.',
+      webrtcHelpGithubPages:
+        'Sur GitHub Pages, ces controles sont visibles dans les Parametres, mais le multijoueur en direct requiert le deploiement Render.',
     verticalMode: 'Mode vertical (manuel)',
     playerName: 'Nom du joueur:',
     language: 'Langue:',

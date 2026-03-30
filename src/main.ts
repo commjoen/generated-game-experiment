@@ -128,6 +128,7 @@ const ropeAnimation: RopeAnimation = {
 // Multiplayer state
 let otherPlayers: Map<string, any> = new Map();
 let multiplayerEnabled = localStorage.getItem('multiplayerEnabled') === 'true';
+let webRTCEnabled = localStorage.getItem('webRTCEnabled') !== 'false';
 let lastPositionUpdate = 0;
 let playerName = localStorage.getItem('playerName') || '';
 let playerNameInput: HTMLInputElement | null = null;
@@ -2966,6 +2967,14 @@ function updateUITranslations() {
   updateShopDisplay();
 }
 
+function updateWebRTCHelpText(helpEl: HTMLElement | null): void {
+  if (!helpEl) return;
+  const isGitHubPages = window.location.hostname.endsWith('github.io');
+  helpEl.textContent = isGitHubPages
+    ? t('webrtcHelpGithubPages')
+    : t('webrtcHelpGeneral');
+}
+
 // Helper function to get translated character name
 function getCharacterName(charId: string): string {
   const mapping: Record<string, keyof TranslationData> = {
@@ -3041,6 +3050,10 @@ window.addEventListener('DOMContentLoaded', () => {
   const multiplayerToggle = document.getElementById(
     'multiplayer-toggle'
   ) as HTMLInputElement;
+  const webRTCToggle = document.getElementById(
+    'webrtc-toggle'
+  ) as HTMLInputElement;
+  const webRTCHelp = document.getElementById('webrtc-help') as HTMLElement;
   playerNameInput = document.getElementById(
     'player-name-input'
   ) as HTMLInputElement;
@@ -3061,6 +3074,7 @@ window.addEventListener('DOMContentLoaded', () => {
     fpsCounterToggle &&
     teslaModeToggle &&
     multiplayerToggle &&
+    webRTCToggle &&
     playerNameInput &&
     levelTypeToggle &&
     languageSelect
@@ -3078,6 +3092,9 @@ window.addEventListener('DOMContentLoaded', () => {
       fpsCounterToggle.checked = showFpsCounter;
       teslaModeToggle.checked = teslaMode;
       multiplayerToggle.checked = multiplayerEnabled;
+      webRTCToggle.checked = webRTCEnabled;
+      webRTCToggle.disabled = !multiplayerManager.webRTCSupported;
+      updateWebRTCHelpText(webRTCHelp);
       if (playerNameInput) playerNameInput.value = playerName;
       // Set the level type toggle state
       if (levelTypeToggle)
@@ -3150,6 +3167,11 @@ window.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('multiplayerEnabled', String(multiplayerEnabled));
       window.location.reload(); // Reload to re-init multiplayer
     });
+    webRTCToggle.addEventListener('change', () => {
+      webRTCEnabled = webRTCToggle.checked;
+      localStorage.setItem('webRTCEnabled', String(webRTCEnabled));
+      window.location.reload(); // Reload to re-init transport strategy
+    });
     levelTypeToggle.addEventListener('change', () => {
       manualLevelType = levelTypeToggle!.checked;
       if (manualLevelType) {
@@ -3177,6 +3199,7 @@ window.addEventListener('DOMContentLoaded', () => {
       languageSelect.addEventListener('change', () => {
         setLanguage(languageSelect.value);
         updateUITranslations();
+        updateWebRTCHelpText(webRTCHelp);
       });
     }
   }
@@ -4370,6 +4393,7 @@ window.addEventListener('keyup', (e) => {
 // setupMobileControls();
 
 // Initialize multiplayer (optional)
+multiplayerManager.setWebRTCEnabled(webRTCEnabled);
 if (multiplayerEnabled) {
   (async () => {
     try {

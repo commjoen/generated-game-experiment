@@ -42,6 +42,16 @@ export class MultiplayerManager {
     this.webRTCEnabled = typeof RTCPeerConnection !== 'undefined';
   }
 
+  setWebRTCEnabled(enabled: boolean): void {
+    const supported = typeof RTCPeerConnection !== 'undefined';
+    this.webRTCEnabled = enabled && supported;
+    if (!this.webRTCEnabled) {
+      this.peerConnections.forEach((_pc, peerId) => {
+        this.cleanupPeerConnection(peerId);
+      });
+    }
+  }
+
   private generatePlayerId(): string {
     return 'player_' + Math.random().toString(36).substr(2, 9);
   }
@@ -493,6 +503,10 @@ export class MultiplayerManager {
       if (dc.readyState === 'open') return true;
     }
     return false;
+  }
+
+  get webRTCSupported(): boolean {
+    return typeof RTCPeerConnection !== 'undefined';
   }
 
   // Disconnect

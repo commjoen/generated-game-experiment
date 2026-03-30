@@ -56,8 +56,8 @@ A browser-based, side-scrolling platformer game built with TypeScript, Vite, and
 
 - **Procedural Levels**: Each run generates a new level with platforms, spikes, moving platforms, and boxes.
 - **Collectibles & Power-Ups**: Coins (score), hearts (lives), double jump (feather), and grow (mushroom, up to 3x size per life).
-- **Responsive UI**: Onscreen controls for mobile/Tesla, Tesla Mode toggle, and a settings modal for backgrounds, speed, FPS, multiplayer, and player name.
-- **Multiplayer**: Toggle on/off in the UI. Real-time sync of player state (position, name, score) via WebSocket. Optional, with auto-fallback to singleplayer.
+- **Responsive UI**: Onscreen controls for mobile/Tesla, Tesla Mode toggle, and a settings modal for backgrounds, speed, FPS, multiplayer, WebRTC transport preference, and player name.
+- **Multiplayer**: Toggle on/off in Settings. Real-time sync of player state (position, name, score) via WebSocket with optional WebRTC data-channel acceleration for movement updates.
 - **Leaderboard**: Real-time, deduplicated leaderboard (top 5) in multiplayer, with crown and gold color for the leader.
 - **Robust Sync**: Player names and scores are always updated from the server. Collectibles are registered only once per level.
 - **Testing & CI**: Unit and integration tests for singleplayer and multiplayer (Vitest, ws, node-fetch). CI/CD with GitHub Actions and Docker.
@@ -181,8 +181,14 @@ Available features:
 - **PR Previews**: Each pull request gets its own preview deployment at `https://commjoen.github.io/generated-game-experiment/pr-{number}/`
 - Preview deployments are automatically cleaned up when PRs are closed or merged
 
-## Testing
+### Multiplayer/WebRTC Controls on GitHub Pages
 
+- Open the game, then click the gear icon (Settings) in the top-right corner.
+- Use **Enable Multiplayer (optional)** to turn multiplayer mode on/off.
+- Use **Prefer WebRTC data channel (experimental)** to control the WebRTC transport preference.
+- GitHub Pages is static hosting, so this page surfaces the controls and settings, but live multiplayer sessions require the Render deployment: https://generated-game-experiment.onrender.com/
+
+## Testing
 - Run all tests:
 
 ```sh

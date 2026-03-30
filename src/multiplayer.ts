@@ -461,9 +461,7 @@ export class MultiplayerManager {
       } else if (signal.type === 'answer') {
         const pc = this.peerConnections.get(fromId);
         if (pc) {
-          await pc.setRemoteDescription(
-            new RTCSessionDescription(signal.sdp)
-          );
+          await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
         }
       } else if (signal.type === 'ice-candidate') {
         const pc = this.peerConnections.get(fromId);

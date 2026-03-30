@@ -331,7 +331,11 @@ wss.on('connection', (ws) => {
         case 'rtcSignal':
           // Forward WebRTC signaling message (offer/answer/ICE candidate) to the target peer
           if (playerId && message.targetId && message.signal) {
-            gameSession.forwardRTCSignal(playerId, message.targetId, message.signal);
+            gameSession.forwardRTCSignal(
+              playerId,
+              message.targetId,
+              message.signal
+            );
           }
           break;
 

@@ -34,6 +34,13 @@ export default [
         clearTimeout: 'readonly',
         setInterval: 'readonly',
         clearInterval: 'readonly',
+        btoa: 'readonly',
+        atob: 'readonly',
+        RTCPeerConnection: 'readonly',
+        RTCSessionDescription: 'readonly',
+        RTCIceCandidate: 'readonly',
+        MessageEvent: 'readonly',
+        EventTarget: 'readonly',
         // Vite build-time globals
         __VERSION__: 'readonly',
         __COMMITHASH__: 'readonly',

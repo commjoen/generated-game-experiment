@@ -12,6 +12,20 @@ export interface TranslationData {
   enableWebRTC: string;
   webrtcHelpGeneral: string;
   webrtcHelpGithubPages: string;
+  directP2PTitle: string;
+  directP2PDesc: string;
+  p2pCreateRoom: string;
+  p2pJoinRoom: string;
+  p2pOfferCode: string;
+  p2pEnterOffer: string;
+  p2pYourAnswer: string;
+  p2pEnterAnswer: string;
+  p2pGathering: string;
+  p2pWaitingAnswer: string;
+  p2pConnected: string;
+  p2pDisconnect: string;
+  p2pCopy: string;
+  p2pCopied: string;
   verticalMode: string;
   playerName: string;
   language: string;
@@ -81,11 +95,26 @@ export const translations: Record<string, TranslationData> = {
     showFPS: 'Show FPS counter',
     teslaMode: 'Tesla Mode (always show onscreen controls)',
     enableMultiplayer: 'Enable Multiplayer (optional)',
-      enableWebRTC: 'Prefer WebRTC data channel (experimental)',
-      webrtcHelpGeneral:
-        'WebRTC improves movement latency after multiplayer connects via the server.',
-      webrtcHelpGithubPages:
-        'On GitHub Pages, these controls are available in Settings, but live multiplayer requires the Render deployment.',
+    enableWebRTC: 'Prefer WebRTC data channel (experimental)',
+    webrtcHelpGeneral:
+      'WebRTC improves movement latency after multiplayer connects via the server.',
+    webrtcHelpGithubPages:
+      'On GitHub Pages, use Direct P2P below to play without any server.',
+    directP2PTitle: 'Direct P2P (no server required)',
+    directP2PDesc:
+      'Play with a friend without any server — works on GitHub Pages. Exchange codes via chat or copy-paste.',
+    p2pCreateRoom: 'Create Room',
+    p2pJoinRoom: 'Join Room',
+    p2pOfferCode: 'Your offer code (share with friend):',
+    p2pEnterOffer: 'Paste offer code from friend:',
+    p2pYourAnswer: 'Your answer code (send back to friend):',
+    p2pEnterAnswer: 'Paste answer code from friend:',
+    p2pGathering: 'Gathering connection info…',
+    p2pWaitingAnswer: "Waiting for friend's answer code…",
+    p2pConnected: '✓ Connected via direct P2P!',
+    p2pDisconnect: 'Disconnect',
+    p2pCopy: 'Copy',
+    p2pCopied: 'Copied!',
     verticalMode: 'Vertical Mode (manual)',
     playerName: 'Player Name:',
     language: 'Language:',
@@ -155,11 +184,26 @@ export const translations: Record<string, TranslationData> = {
     showFPS: 'Toon FPS-teller',
     teslaMode: 'Tesla-modus (toon altijd schermknoppen)',
     enableMultiplayer: 'Multiplayer inschakelen (optioneel)',
-      enableWebRTC: 'Gebruik WebRTC datakanaal (experimenteel)',
-      webrtcHelpGeneral:
-        'WebRTC verlaagt de bewegingsvertraging zodra multiplayer via de server is verbonden.',
-      webrtcHelpGithubPages:
-        'Op GitHub Pages staan deze opties in Instellingen, maar live multiplayer werkt via de Render deployment.',
+    enableWebRTC: 'Gebruik WebRTC datakanaal (experimenteel)',
+    webrtcHelpGeneral:
+      'WebRTC verlaagt de bewegingsvertraging zodra multiplayer via de server is verbonden.',
+    webrtcHelpGithubPages:
+      'Op GitHub Pages gebruik je Directe P2P hieronder om zonder server te spelen.',
+    directP2PTitle: 'Directe P2P (geen server nodig)',
+    directP2PDesc:
+      'Speel met een vriend zonder server — werkt op GitHub Pages. Wissel codes uit via chat of kopieer-plak.',
+    p2pCreateRoom: 'Kamer Aanmaken',
+    p2pJoinRoom: 'Kamer Joinen',
+    p2pOfferCode: 'Jouw aanbiedings-code (deel met vriend):',
+    p2pEnterOffer: 'Plak aanbiedings-code van vriend:',
+    p2pYourAnswer: 'Jouw antwoord-code (stuur terug naar vriend):',
+    p2pEnterAnswer: 'Plak antwoord-code van vriend:',
+    p2pGathering: 'Verbindingsinfo verzamelen…',
+    p2pWaitingAnswer: 'Wachten op antwoord-code van vriend…',
+    p2pConnected: '✓ Verbonden via directe P2P!',
+    p2pDisconnect: 'Verbinding verbreken',
+    p2pCopy: 'Kopiëren',
+    p2pCopied: 'Gekopieerd!',
     verticalMode: 'Verticale modus (handmatig)',
     playerName: 'Spelersnaam:',
     language: 'Taal:',
@@ -229,11 +273,26 @@ export const translations: Record<string, TranslationData> = {
     showFPS: 'FPS-Zähler anzeigen',
     teslaMode: 'Tesla-Modus (immer Bildschirmsteuerung anzeigen)',
     enableMultiplayer: 'Mehrspieler aktivieren (optional)',
-      enableWebRTC: 'WebRTC-Datenkanal bevorzugen (experimentell)',
-      webrtcHelpGeneral:
-        'WebRTC reduziert die Bewegungsverzogerung, nachdem die Mehrspieler-Verbindung uber den Server steht.',
-      webrtcHelpGithubPages:
-        'Auf GitHub Pages sind diese Optionen in den Einstellungen sichtbar, aber Live-Mehrspieler braucht die Render-Bereitstellung.',
+    enableWebRTC: 'WebRTC-Datenkanal bevorzugen (experimentell)',
+    webrtcHelpGeneral:
+      'WebRTC reduziert die Bewegungsverzogerung, nachdem die Mehrspieler-Verbindung uber den Server steht.',
+    webrtcHelpGithubPages:
+      'Auf GitHub Pages nutze Direkt-P2P unten, um ohne Server zu spielen.',
+    directP2PTitle: 'Direkt-P2P (kein Server erforderlich)',
+    directP2PDesc:
+      'Spiele mit einem Freund ohne Server — funktioniert auf GitHub Pages. Tausche Codes per Chat oder Kopieren-Einfügen aus.',
+    p2pCreateRoom: 'Raum erstellen',
+    p2pJoinRoom: 'Raum beitreten',
+    p2pOfferCode: 'Dein Angebotscode (mit Freund teilen):',
+    p2pEnterOffer: 'Angebotscode vom Freund einfügen:',
+    p2pYourAnswer: 'Dein Antwortcode (zurück an Freund senden):',
+    p2pEnterAnswer: 'Antwortcode vom Freund einfügen:',
+    p2pGathering: 'Verbindungsinfos werden gesammelt…',
+    p2pWaitingAnswer: 'Warte auf Antwortcode vom Freund…',
+    p2pConnected: '✓ Verbunden via Direkt-P2P!',
+    p2pDisconnect: 'Trennen',
+    p2pCopy: 'Kopieren',
+    p2pCopied: 'Kopiert!',
     verticalMode: 'Vertikaler Modus (manuell)',
     playerName: 'Spielername:',
     language: 'Sprache:',
@@ -302,11 +361,26 @@ export const translations: Record<string, TranslationData> = {
     showFPS: 'Mostrar contador FPS',
     teslaMode: 'Modo Tesla (siempre mostrar controles en pantalla)',
     enableMultiplayer: 'Habilitar multijugador (opcional)',
-      enableWebRTC: 'Preferir canal de datos WebRTC (experimental)',
-      webrtcHelpGeneral:
-        'WebRTC mejora la latencia de movimiento despues de conectar multijugador por el servidor.',
-      webrtcHelpGithubPages:
-        'En GitHub Pages, estos controles estan en Configuracion, pero el multijugador en vivo requiere el despliegue de Render.',
+    enableWebRTC: 'Preferir canal de datos WebRTC (experimental)',
+    webrtcHelpGeneral:
+      'WebRTC mejora la latencia de movimiento despues de conectar multijugador por el servidor.',
+    webrtcHelpGithubPages:
+      'En GitHub Pages, usa P2P Directo abajo para jugar sin ningun servidor.',
+    directP2PTitle: 'P2P Directo (sin servidor)',
+    directP2PDesc:
+      'Juega con un amigo sin servidor — funciona en GitHub Pages. Intercambia códigos por chat o copia y pega.',
+    p2pCreateRoom: 'Crear Sala',
+    p2pJoinRoom: 'Unirse a Sala',
+    p2pOfferCode: 'Tu código de oferta (comparte con amigo):',
+    p2pEnterOffer: 'Pega el código de oferta de tu amigo:',
+    p2pYourAnswer: 'Tu código de respuesta (envía de vuelta al amigo):',
+    p2pEnterAnswer: 'Pega el código de respuesta de tu amigo:',
+    p2pGathering: 'Recopilando información de conexión…',
+    p2pWaitingAnswer: 'Esperando código de respuesta del amigo…',
+    p2pConnected: '✓ ¡Conectado vía P2P directo!',
+    p2pDisconnect: 'Desconectar',
+    p2pCopy: 'Copiar',
+    p2pCopied: '¡Copiado!',
     verticalMode: 'Modo vertical (manual)',
     playerName: 'Nombre del jugador:',
     language: 'Idioma:',
@@ -375,11 +449,26 @@ export const translations: Record<string, TranslationData> = {
     showFPS: 'Afficher le compteur FPS',
     teslaMode: "Mode Tesla (toujours afficher les contrôles à l'écran)",
     enableMultiplayer: 'Activer le multijoueur (optionnel)',
-      enableWebRTC: 'Preferer le canal de donnees WebRTC (experimental)',
-      webrtcHelpGeneral:
-        'WebRTC reduit la latence des mouvements apres la connexion multijoueur via le serveur.',
-      webrtcHelpGithubPages:
-        'Sur GitHub Pages, ces controles sont visibles dans les Parametres, mais le multijoueur en direct requiert le deploiement Render.',
+    enableWebRTC: 'Preferer le canal de donnees WebRTC (experimental)',
+    webrtcHelpGeneral:
+      'WebRTC reduit la latence des mouvements apres la connexion multijoueur via le serveur.',
+    webrtcHelpGithubPages:
+      'Sur GitHub Pages, utilisez P2P Direct ci-dessous pour jouer sans serveur.',
+    directP2PTitle: 'P2P Direct (sans serveur)',
+    directP2PDesc:
+      'Jouez avec un ami sans serveur — fonctionne sur GitHub Pages. Échangez des codes par chat ou copier-coller.',
+    p2pCreateRoom: 'Créer une Salle',
+    p2pJoinRoom: 'Rejoindre une Salle',
+    p2pOfferCode: "Votre code d'offre (partagez avec l'ami):",
+    p2pEnterOffer: "Collez le code d'offre de votre ami:",
+    p2pYourAnswer: "Votre code de réponse (renvoyez à l'ami):",
+    p2pEnterAnswer: 'Collez le code de réponse de votre ami:',
+    p2pGathering: 'Collecte des informations de connexion…',
+    p2pWaitingAnswer: "En attente du code de réponse de l'ami…",
+    p2pConnected: '✓ Connecté via P2P direct!',
+    p2pDisconnect: 'Déconnecter',
+    p2pCopy: 'Copier',
+    p2pCopied: 'Copié!',
     verticalMode: 'Mode vertical (manuel)',
     playerName: 'Nom du joueur:',
     language: 'Langue:',

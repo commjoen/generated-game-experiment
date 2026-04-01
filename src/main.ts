@@ -1,4 +1,5 @@
 import { multiplayerManager } from './multiplayer.js';
+import { WebRTCDirect } from './webrtc-direct.js';
 import {
   t,
   setLanguage,
@@ -130,8 +131,129 @@ let otherPlayers: Map<string, any> = new Map();
 let multiplayerEnabled = localStorage.getItem('multiplayerEnabled') === 'true';
 let webRTCEnabled = localStorage.getItem('webRTCEnabled') !== 'false';
 let lastPositionUpdate = 0;
+/** Separate throttle timestamp for the Direct P2P position updates. */
+let lastP2PPositionUpdate = 0;
 let playerName = localStorage.getItem('playerName') || '';
 let playerNameInput: HTMLInputElement | null = null;
+
+// Direct P2P state (serverless WebRTC — works on GitHub Pages)
+const webrtcDirect = WebRTCDirect.isSupported()
+  ? new WebRTCDirect({
+      onMessage: (data: unknown) => handleP2PMessage(data),
+      onConnected: () => {
+        console.log('Direct P2P connected!');
+        updateP2PUI();
+      },
+      onDisconnected: () => {
+        console.log('Direct P2P disconnected');
+        otherPlayers.clear();
+        updateP2PUI();
+      },
+      onError: (err: Error) => {
+        console.warn('Direct P2P error:', err.message);
+        updateP2PUI();
+      },
+    })
+  : null;
+
+/** Generate a stable player ID for direct P2P mode. */
+const p2pLocalPlayerId = (() => {
+  let id = localStorage.getItem('p2pPlayerId');
+  if (!id) {
+    id = 'p2p_' + Math.random().toString(36).slice(2, 11);
+    localStorage.setItem('p2pPlayerId', id);
+  }
+  return id;
+})();
+
+/** Handle a message received from the P2P peer. */
+function handleP2PMessage(data: unknown): void {
+  if (!data || typeof data !== 'object') return;
+  const msg = data as Record<string, unknown>;
+  if (msg.type === 'playerUpdate') {
+    const pid = msg.playerId as string;
+    const position = msg.position as Record<string, number> | undefined;
+    if (!pid || pid === p2pLocalPlayerId) return;
+    if (otherPlayers.has(pid)) {
+      const player = otherPlayers.get(pid);
+      if (position) Object.assign(player, position);
+      if (typeof msg.score === 'number') player.score = msg.score;
+      if (typeof msg.name === 'string') player.name = msg.name;
+    } else {
+      otherPlayers.set(pid, {
+        id: pid,
+        ...(position ?? {}),
+        score: msg.score,
+        name: msg.name,
+      });
+    }
+  } else if (msg.type === 'itemCollected') {
+    // In P2P mode each player manages their own score locally — no server authority.
+    // We still reflect the peer's score if they send it.
+    const pid = msg.playerId as string;
+    if (pid && pid !== p2pLocalPlayerId && otherPlayers.has(pid)) {
+      const player = otherPlayers.get(pid);
+      if (typeof msg.score === 'number') player.score = msg.score;
+    }
+  }
+}
+
+/** Update the Direct P2P UI panels to reflect the current connection state. */
+function updateP2PUI(): void {
+  const statusEl = document.getElementById('p2p-status');
+  const disconnectBtn = document.getElementById(
+    'p2p-disconnect-btn'
+  ) as HTMLButtonElement | null;
+  const createBtn = document.getElementById(
+    'p2p-create-btn'
+  ) as HTMLButtonElement | null;
+  const joinBtn = document.getElementById(
+    'p2p-join-btn'
+  ) as HTMLButtonElement | null;
+
+  if (!webrtcDirect) {
+    if (statusEl)
+      statusEl.textContent = 'WebRTC not supported in this browser.';
+    return;
+  }
+
+  const state = webrtcDirect.state;
+  if (statusEl) {
+    if (state === 'connected') {
+      statusEl.textContent = t('p2pConnected');
+      statusEl.style.color = '#4f4';
+    } else if (state === 'gathering') {
+      statusEl.textContent = t('p2pGathering');
+      statusEl.style.color = '#fa0';
+    } else if (state === 'waiting-for-answer') {
+      statusEl.textContent = t('p2pWaitingAnswer');
+      statusEl.style.color = '#fa0';
+    } else if (state === 'waiting-for-connection') {
+      statusEl.textContent = t('p2pGathering');
+      statusEl.style.color = '#fa0';
+    } else if (state === 'failed') {
+      statusEl.textContent = 'Connection failed. Please try again.';
+      statusEl.style.color = '#f44';
+    } else {
+      statusEl.textContent = '';
+      statusEl.style.color = '#aaa';
+    }
+  }
+
+  const connected = state === 'connected';
+  if (disconnectBtn)
+    disconnectBtn.style.display = connected ? 'inline-block' : 'none';
+  if (createBtn) createBtn.style.display = connected ? 'none' : 'inline-block';
+  if (joinBtn) joinBtn.style.display = connected ? 'none' : 'inline-block';
+
+  // Hide offer/join panels once connected
+  if (connected) {
+    const offerPanel = document.getElementById('p2p-offer-panel');
+    const joinPanel = document.getElementById('p2p-join-panel');
+    if (offerPanel) offerPanel.style.display = 'none';
+    if (joinPanel) joinPanel.style.display = 'none';
+  }
+}
 
 // Platform types
 interface Rect {
@@ -2687,10 +2809,20 @@ function update(deltaTime: number) {
           // Score will be updated by the server through multiplayer events.
           addTotalPoints(coinValue);
         } else {
-          // In single-player mode, update both score and total points locally.
+          // In single-player mode (or Direct P2P), update both score and total points locally.
           score += coinValue;
           addTotalPoints(coinValue);
           setTopScore(score);
+        }
+        // Notify P2P peer about item collection so they can update our score
+        if (webrtcDirect?.isConnected) {
+          webrtcDirect.send({
+            type: 'itemCollected',
+            playerId: p2pLocalPlayerId,
+            collectibleId: (c as any).id,
+            score,
+            timestamp: Date.now(),
+          });
         }
       } else if (c.type === 'heart') {
         if (lives < 5) lives++;
@@ -2838,6 +2970,25 @@ function update(deltaTime: number) {
     );
     lastPositionUpdate = Date.now();
   }
+
+  // Send Direct P2P position update (throttled, independent of server multiplayer)
+  if (webrtcDirect?.isConnected && Date.now() - lastP2PPositionUpdate > 50) {
+    webrtcDirect.send({
+      type: 'playerUpdate',
+      playerId: p2pLocalPlayerId,
+      position: {
+        x: player.x,
+        y: player.y,
+        width: player.width,
+        height: player.height,
+        growLevel: player.growLevel,
+      },
+      score,
+      name: playerName,
+      timestamp: Date.now(),
+    });
+    lastP2PPositionUpdate = Date.now();
+  }
 }
 
 // --- Tesla Detection and Onscreen Controls Logic ---
@@ -2973,6 +3124,191 @@ function updateWebRTCHelpText(helpEl: HTMLElement | null): void {
   helpEl.textContent = isGitHubPages
     ? t('webrtcHelpGithubPages')
     : t('webrtcHelpGeneral');
+}
+
+/**
+ * Wire up all the Direct P2P UI elements in the settings modal.
+ * This sets up the "Create Room" / "Join Room" button flow that lets
+ * two players establish a server-free WebRTC connection by exchanging
+ * base64-encoded SDP codes via any out-of-band channel.
+ */
+function setupDirectP2PUI(): void {
+  // If WebRTC is not supported we leave the section visible but disable the buttons.
+  const createBtn = document.getElementById(
+    'p2p-create-btn'
+  ) as HTMLButtonElement | null;
+  const joinBtn = document.getElementById(
+    'p2p-join-btn'
+  ) as HTMLButtonElement | null;
+  const disconnectBtn = document.getElementById(
+    'p2p-disconnect-btn'
+  ) as HTMLButtonElement | null;
+  const offerPanel = document.getElementById('p2p-offer-panel');
+  const joinPanel = document.getElementById('p2p-join-panel');
+  const offerCodeEl = document.getElementById(
+    'p2p-offer-code'
+  ) as HTMLTextAreaElement | null;
+  const answerInput = document.getElementById(
+    'p2p-answer-input'
+  ) as HTMLTextAreaElement | null;
+  const acceptAnswerBtn = document.getElementById(
+    'p2p-accept-answer-btn'
+  ) as HTMLButtonElement | null;
+  const offerInput = document.getElementById(
+    'p2p-offer-input'
+  ) as HTMLTextAreaElement | null;
+  const processOfferBtn = document.getElementById(
+    'p2p-process-offer-btn'
+  ) as HTMLButtonElement | null;
+  const answerPanel = document.getElementById('p2p-answer-panel');
+  const answerCodeEl = document.getElementById(
+    'p2p-answer-code'
+  ) as HTMLTextAreaElement | null;
+  const copyOfferBtn = document.getElementById(
+    'p2p-copy-offer-btn'
+  ) as HTMLButtonElement | null;
+  const copyAnswerBtn = document.getElementById(
+    'p2p-copy-answer-btn'
+  ) as HTMLButtonElement | null;
+
+  if (!webrtcDirect) {
+    // Hide controls when WebRTC is unavailable
+    if (createBtn) {
+      createBtn.disabled = true;
+      createBtn.title = 'WebRTC not supported';
+    }
+    if (joinBtn) {
+      joinBtn.disabled = true;
+      joinBtn.title = 'WebRTC not supported';
+    }
+    return;
+  }
+
+  // Helper: copy text to clipboard with visual feedback
+  function copyToClipboard(text: string, btn: HTMLButtonElement) {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        const orig = btn.textContent;
+        btn.textContent = t('p2pCopied');
+        setTimeout(() => {
+          btn.textContent = orig;
+        }, 1500);
+      })
+      .catch(() => {
+        // Fallback for browsers without the Clipboard API (e.g. older Safari, HTTP origins).
+        // document.execCommand('copy') is deprecated but still widely supported as a fallback.
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy'); // intentional deprecated fallback
+        document.body.removeChild(ta);
+        const orig = btn.textContent;
+        btn.textContent = t('p2pCopied');
+        setTimeout(() => {
+          btn.textContent = orig;
+        }, 1500);
+      });
+  }
+
+  // ── Create Room ─────────────────────────────────────────────────────────────
+  createBtn?.addEventListener('click', async () => {
+    if (!offerPanel || !offerCodeEl) return;
+    // Hide join panel, reset state
+    if (joinPanel) joinPanel.style.display = 'none';
+    if (answerInput) answerInput.value = '';
+    offerCodeEl.value = '';
+    offerPanel.style.display = 'block';
+    updateP2PUI();
+
+    try {
+      const offerCode = await webrtcDirect.createOffer();
+      offerCodeEl.value = offerCode;
+      updateP2PUI();
+    } catch (err) {
+      console.error('Failed to create P2P offer:', err);
+      const statusEl = document.getElementById('p2p-status');
+      if (statusEl) {
+        statusEl.textContent =
+          'Failed to create offer. Check browser permissions.';
+        statusEl.style.color = '#f44';
+      }
+    }
+  });
+
+  // ── Accept Answer (initiator step 3) ────────────────────────────────────────
+  acceptAnswerBtn?.addEventListener('click', async () => {
+    const code = answerInput?.value.trim();
+    if (!code) return;
+    try {
+      await webrtcDirect.acceptAnswer(code);
+      updateP2PUI();
+    } catch (err) {
+      const statusEl = document.getElementById('p2p-status');
+      if (statusEl) {
+        statusEl.textContent =
+          err instanceof Error ? err.message : 'Invalid answer code.';
+        statusEl.style.color = '#f44';
+      }
+    }
+  });
+
+  // ── Join Room ───────────────────────────────────────────────────────────────
+  joinBtn?.addEventListener('click', () => {
+    if (!joinPanel) return;
+    // Hide offer panel, reset state
+    if (offerPanel) offerPanel.style.display = 'none';
+    joinPanel.style.display = 'block';
+    if (answerPanel) answerPanel.style.display = 'none';
+    if (offerInput) offerInput.value = '';
+    updateP2PUI();
+  });
+
+  // ── Process Offer (responder step 2) ────────────────────────────────────────
+  processOfferBtn?.addEventListener('click', async () => {
+    const code = offerInput?.value.trim();
+    if (!code) return;
+    if (!answerPanel || !answerCodeEl) return;
+
+    answerPanel.style.display = 'none';
+    answerCodeEl.value = '';
+    updateP2PUI();
+
+    try {
+      const answerCode = await webrtcDirect.acceptOffer(code);
+      answerCodeEl.value = answerCode;
+      answerPanel.style.display = 'block';
+      updateP2PUI();
+    } catch (err) {
+      const statusEl = document.getElementById('p2p-status');
+      if (statusEl) {
+        statusEl.textContent =
+          err instanceof Error ? err.message : 'Invalid offer code.';
+        statusEl.style.color = '#f44';
+      }
+    }
+  });
+
+  // ── Disconnect ───────────────────────────────────────────────────────────────
+  disconnectBtn?.addEventListener('click', () => {
+    webrtcDirect.cleanup();
+    otherPlayers.clear();
+    updateP2PUI();
+  });
+
+  // ── Copy buttons ─────────────────────────────────────────────────────────────
+  copyOfferBtn?.addEventListener('click', () => {
+    if (offerCodeEl && copyOfferBtn)
+      copyToClipboard(offerCodeEl.value, copyOfferBtn);
+  });
+  copyAnswerBtn?.addEventListener('click', () => {
+    if (answerCodeEl && copyAnswerBtn)
+      copyToClipboard(answerCodeEl.value, copyAnswerBtn);
+  });
+
+  // Set initial UI state
+  updateP2PUI();
 }
 
 // Helper function to get translated character name
@@ -3203,6 +3539,9 @@ window.addEventListener('DOMContentLoaded', () => {
       });
     }
   }
+
+  // ── Direct P2P UI handlers ──────────────────────────────────────────────────
+  setupDirectP2PUI();
 
   // Shop modal handling
   const shopBtn = document.getElementById('shop-btn');
@@ -4090,7 +4429,11 @@ function draw() {
       other.height
     );
     // Draw name and crown above player only in multiplayer mode
-    if (multiplayerEnabled && otherPlayers.size > 0 && other.name) {
+    if (
+      (multiplayerEnabled || webrtcDirect?.isConnected) &&
+      otherPlayers.size > 0 &&
+      other.name
+    ) {
       ctx.save();
       ctx.font = '16px sans-serif';
       if (highestPlayerIds.includes(other.id)) {
@@ -4110,7 +4453,10 @@ function draw() {
   }
   ctx.restore();
   // Draw your own name
-  if (multiplayerEnabled && otherPlayers.size > 0) {
+  if (
+    (multiplayerEnabled || webrtcDirect?.isConnected) &&
+    otherPlayers.size > 0
+  ) {
     ctx.save();
     ctx.font = '16px sans-serif';
     if (highestPlayerIds.includes('self')) {
@@ -4149,20 +4495,26 @@ function draw() {
     ctx.fillStyle = '#fff';
   }
   // Draw leaderboard (top-right) only in multiplayer mode with >1 player
-  if (multiplayerEnabled && otherPlayers.size > 0) {
+  if (
+    (multiplayerEnabled || webrtcDirect?.isConnected) &&
+    otherPlayers.size > 0
+  ) {
     // --- Leaderboard ---
     // Deduplicate by player id (self and others)
+    const selfPlayerId = webrtcDirect?.isConnected
+      ? p2pLocalPlayerId
+      : multiplayerManager.currentPlayerId;
     const leaderboardMap = new Map();
     // Add self
-    leaderboardMap.set(multiplayerManager.currentPlayerId, {
-      id: multiplayerManager.currentPlayerId,
+    leaderboardMap.set(selfPlayerId, {
+      id: selfPlayerId,
       name: playerName || 'Player',
       score,
       isSelf: true,
     });
     // Add others, but skip if id matches self
     for (const p of otherPlayers.values()) {
-      if (p.id !== multiplayerManager.currentPlayerId) {
+      if (p.id !== selfPlayerId) {
         leaderboardMap.set(p.id, {
           id: p.id,
           name: p.name || 'Player',

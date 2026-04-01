@@ -154,7 +154,7 @@
         pointer-events: auto;
       }
     </style>
-    <script type="module" crossorigin="" src="/generated-game-experiment/assets/index-DVDG4z-f.js" integrity="sha384-AkhWHt/4STZPn6xxvIjLCkWsT1Z10ZDyhGvBsCczqN+SqdygIE4zfZIgpsWU0y80"></script>
+    <script type="module" crossorigin="" src="/generated-game-experiment/assets/index-Lal7jQqS.js" integrity="sha384-AxvTd7zK7BooHWbfzl2QpXeO2+SFq544ateyNVjUM8YIEkWnnR4+uGqQkc+FAas0"></script>
   </head>
   <body>
     <main id="main-content" role="main" tabindex="-1">
@@ -486,6 +486,179 @@
               <span data-i18n="enableWebRTC">Prefer WebRTC data channel (experimental)</span>
             </label>
             <div id="webrtc-help" style="margin: -6px 0 16px 24px; color: #aaa; font-size: 13px"></div>
+            <!-- Direct P2P section — works on GitHub Pages without any server -->
+            <div id="direct-p2p-section" style="
+                margin: 16px 0;
+                padding: 12px 14px;
+                background: #1a1a2e;
+                border: 1px solid #334;
+                border-radius: 8px;
+              ">
+              <div style="font-weight: bold; margin-bottom: 6px; color: #bbd" data-i18n="directP2PTitle">
+                Direct P2P (no server required)
+              </div>
+              <div id="p2p-desc" style="font-size: 12px; color: #aaa; margin-bottom: 10px" data-i18n="directP2PDesc">
+                Play with a friend without any server — works on GitHub Pages.
+              </div>
+              <div id="p2p-controls" style="display: flex; gap: 8px; flex-wrap: wrap">
+                <button id="p2p-create-btn" style="
+                    padding: 6px 12px;
+                    background: #1a472a;
+                    color: #fff;
+                    border: 1px solid #2d6a4f;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 13px;
+                  " data-i18n="p2pCreateRoom">
+                  Create Room
+                </button>
+                <button id="p2p-join-btn" style="
+                    padding: 6px 12px;
+                    background: #1a1a47;
+                    color: #fff;
+                    border: 1px solid #2d2d8f;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 13px;
+                  " data-i18n="p2pJoinRoom">
+                  Join Room
+                </button>
+                <button id="p2p-disconnect-btn" style="
+                    padding: 6px 12px;
+                    background: #471a1a;
+                    color: #fff;
+                    border: 1px solid #8f2d2d;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 13px;
+                    display: none;
+                  " data-i18n="p2pDisconnect">
+                  Disconnect
+                </button>
+              </div>
+              <div id="p2p-status" style="margin-top: 8px; font-size: 13px; color: #aaa"></div>
+              <!-- Step panels (shown/hidden by JS) -->
+              <div id="p2p-offer-panel" style="display: none; margin-top: 10px">
+                <div style="font-size: 12px; color: #ccc; margin-bottom: 4px" data-i18n="p2pOfferCode">
+                  Your offer code (share with friend):
+                </div>
+                <div style="display: flex; gap: 6px; align-items: flex-start">
+                  <textarea id="p2p-offer-code" readonly="" rows="3" style="
+                      flex: 1;
+                      font-size: 10px;
+                      font-family: monospace;
+                      background: #111;
+                      color: #8f8;
+                      border: 1px solid #444;
+                      border-radius: 4px;
+                      padding: 4px;
+                      resize: none;
+                      word-break: break-all;
+                    "></textarea>
+                  <button id="p2p-copy-offer-btn" style="
+                      padding: 4px 8px;
+                      background: #333;
+                      color: #fff;
+                      border: 1px solid #555;
+                      border-radius: 4px;
+                      cursor: pointer;
+                      font-size: 12px;
+                      white-space: nowrap;
+                    " data-i18n="p2pCopy">
+                    Copy
+                  </button>
+                </div>
+                <div style="font-size: 12px; color: #ccc; margin: 8px 0 4px" data-i18n="p2pEnterAnswer">
+                  Paste answer code from friend:
+                </div>
+                <div style="display: flex; gap: 6px">
+                  <textarea id="p2p-answer-input" rows="3" placeholder="Paste answer code here…" style="
+                      flex: 1;
+                      font-size: 10px;
+                      font-family: monospace;
+                      background: #111;
+                      color: #ff8;
+                      border: 1px solid #444;
+                      border-radius: 4px;
+                      padding: 4px;
+                      resize: none;
+                      word-break: break-all;
+                    "></textarea>
+                  <button id="p2p-accept-answer-btn" style="
+                      padding: 4px 8px;
+                      background: #1a472a;
+                      color: #fff;
+                      border: 1px solid #2d6a4f;
+                      border-radius: 4px;
+                      cursor: pointer;
+                      font-size: 12px;
+                    ">
+                    OK
+                  </button>
+                </div>
+              </div>
+              <div id="p2p-join-panel" style="display: none; margin-top: 10px">
+                <div style="font-size: 12px; color: #ccc; margin-bottom: 4px" data-i18n="p2pEnterOffer">
+                  Paste offer code from friend:
+                </div>
+                <div style="display: flex; gap: 6px">
+                  <textarea id="p2p-offer-input" rows="3" placeholder="Paste offer code here…" style="
+                      flex: 1;
+                      font-size: 10px;
+                      font-family: monospace;
+                      background: #111;
+                      color: #ff8;
+                      border: 1px solid #444;
+                      border-radius: 4px;
+                      padding: 4px;
+                      resize: none;
+                      word-break: break-all;
+                    "></textarea>
+                  <button id="p2p-process-offer-btn" style="
+                      padding: 4px 8px;
+                      background: #1a1a47;
+                      color: #fff;
+                      border: 1px solid #2d2d8f;
+                      border-radius: 4px;
+                      cursor: pointer;
+                      font-size: 12px;
+                    ">
+                    OK
+                  </button>
+                </div>
+                <div id="p2p-answer-panel" style="display: none; margin-top: 8px">
+                  <div style="font-size: 12px; color: #ccc; margin-bottom: 4px" data-i18n="p2pYourAnswer">
+                    Your answer code (send back to friend):
+                  </div>
+                  <div style="display: flex; gap: 6px; align-items: flex-start">
+                    <textarea id="p2p-answer-code" readonly="" rows="3" style="
+                        flex: 1;
+                        font-size: 10px;
+                        font-family: monospace;
+                        background: #111;
+                        color: #8f8;
+                        border: 1px solid #444;
+                        border-radius: 4px;
+                        padding: 4px;
+                        resize: none;
+                        word-break: break-all;
+                      "></textarea>
+                    <button id="p2p-copy-answer-btn" style="
+                        padding: 4px 8px;
+                        background: #333;
+                        color: #fff;
+                        border: 1px solid #555;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 12px;
+                        white-space: nowrap;
+                      " data-i18n="p2pCopy">
+                      Copy
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
             <label style="
                 display: flex;
                 align-items: center;

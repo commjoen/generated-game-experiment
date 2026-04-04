@@ -33,7 +33,7 @@
   "homepage": "https://github.com/commjoen/generated-game-experiment#readme",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/jsdom": "^28.0.0",
+    "@types/jsdom": "^28.0.1",
     "@types/node": "^25.5.0",
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.57.2",
@@ -42,10 +42,10 @@
     "jsdom": "^29.0.1",
     "node-fetch": "^3.3.2",
     "prettier": "^3.8.1",
-    "typescript": "^5.9.3",
-    "vite": "^8.0.1",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.3",
     "vite-plugin-sri": "^0.0.2",
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.2"
   },
   "dependencies": {
     "cors": "^2.8.6",

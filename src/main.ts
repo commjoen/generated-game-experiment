@@ -4764,7 +4764,10 @@ if (multiplayerEnabled) {
         multiplayerManager.onGameStateUpdate((gameState) => {
           // Update other players' positions
           otherPlayers.clear();
-          gameState.players.forEach((playerData) => {
+          const players = Array.isArray(gameState.players)
+            ? gameState.players
+            : Array.from(gameState.players.values());
+          players.forEach((playerData) => {
             if (playerData.id !== multiplayerManager.currentPlayerId) {
               otherPlayers.set(playerData.id, playerData);
             } else {

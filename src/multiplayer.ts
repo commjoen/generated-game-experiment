@@ -48,7 +48,7 @@ function isRTCSignalData(signal: unknown): signal is RTCSignalData {
 }
 
 interface GameState {
-  players: PlayerState[];
+  players: PlayerState[] | Map<string, PlayerState>;
   collectibles: Array<{
     x: number;
     y: number;
@@ -521,6 +521,7 @@ export class MultiplayerManager {
       const rtcSignal = signal;
 
       if (rtcSignal.type === 'offer') {
+        if (!rtcSignal.sdp) return;
         await this.initWebRTCConnection(fromId, false);
         const pc = this.peerConnections.get(fromId);
         if (!pc) return;
@@ -533,6 +534,7 @@ export class MultiplayerManager {
           signal: { type: 'answer', sdp: pc.localDescription },
         });
       } else if (rtcSignal.type === 'answer') {
+        if (!rtcSignal.sdp) return;
         const pc = this.peerConnections.get(fromId);
         if (pc) {
           await pc.setRemoteDescription(

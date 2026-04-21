@@ -12,10 +12,14 @@ if ! command -v pre-commit &> /dev/null; then
     pip install pre-commit
 fi
 
-# Install pre-commit hooks if not installed
+# Install pre-commit hooks if not installed (skip when hooksPath is managed externally)
 if [ ! -f .git/hooks/pre-commit ]; then
-    echo "⚙️  Installing pre-commit hooks..."
-    pre-commit install
+    if git config --get core.hooksPath >/dev/null; then
+        echo "ℹ️  Skipping pre-commit hook install because core.hooksPath is set"
+    else
+        echo "⚙️  Installing pre-commit hooks..."
+        pre-commit install
+    fi
 fi
 
 # Ensure dependencies are installed

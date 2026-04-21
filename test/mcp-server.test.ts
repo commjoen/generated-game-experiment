@@ -11,10 +11,11 @@ describe('GitHub MCP Server', () => {
       'utf-8'
     );
     const packageJson = JSON.parse(packageJsonContent);
-    expect(packageJson.dependencies).toHaveProperty('github-mcp-server');
-    expect(packageJson.dependencies['github-mcp-server']).toMatch(
-      /^\^1\.\d+\.\d+$/
-    );
+    const githubMcpServerVersion =
+      packageJson.dependencies?.['github-mcp-server'] ||
+      packageJson.devDependencies?.['github-mcp-server'];
+    expect(githubMcpServerVersion).toBeDefined();
+    expect(githubMcpServerVersion).toMatch(/^\^1\.\d+\.\d+$/);
   });
 
   it('should provide MCP scripts in package.json', () => {

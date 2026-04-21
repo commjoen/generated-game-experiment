@@ -177,29 +177,55 @@ function handleP2PMessage(data: unknown): void {
   if (!data || typeof data !== 'object') return;
   const msg = data as Record<string, unknown>;
   if (msg.type === 'playerUpdate') {
-    const pid = msg.playerId as string;
-    const position = msg.position as Record<string, number> | undefined;
+    const pid = typeof msg.playerId === 'string' ? msg.playerId : '';
+    const rawPosition =
+      msg.position && typeof msg.position === 'object'
+        ? (msg.position as Record<string, unknown>)
+        : undefined;
+    const position: Partial<RemotePlayerState> | undefined = rawPosition
+      ? {
+          x: typeof rawPosition.x === 'number' ? rawPosition.x : undefined,
+          y: typeof rawPosition.y === 'number' ? rawPosition.y : undefined,
+          width:
+            typeof rawPosition.width === 'number'
+              ? rawPosition.width
+              : undefined,
+          height:
+            typeof rawPosition.height === 'number'
+              ? rawPosition.height
+              : undefined,
+          growLevel:
+            typeof rawPosition.growLevel === 'number'
+              ? rawPosition.growLevel
+              : undefined,
+        }
+      : undefined;
     if (!pid || pid === p2pLocalPlayerId) return;
     if (otherPlayers.has(pid)) {
       const player = otherPlayers.get(pid);
+      if (!player) return;
       if (position) Object.assign(player, position);
       if (typeof msg.score === 'number') player.score = msg.score;
       if (typeof msg.name === 'string') player.name = msg.name;
     } else {
       otherPlayers.set(pid, {
         id: pid,
-        ...(position ?? {}),
-        score: msg.score,
-        name: msg.name,
+        x: position?.x ?? 0,
+        y: position?.y ?? 0,
+        width: position?.width ?? 40,
+        height: position?.height ?? 50,
+        growLevel: position?.growLevel,
+        score: typeof msg.score === 'number' ? msg.score : undefined,
+        name: typeof msg.name === 'string' ? msg.name : undefined,
       });
     }
   } else if (msg.type === 'itemCollected') {
     // In P2P mode each player manages their own score locally — no server authority.
     // We still reflect the peer's score if they send it.
-    const pid = msg.playerId as string;
+    const pid = typeof msg.playerId === 'string' ? msg.playerId : '';
     if (pid && pid !== p2pLocalPlayerId && otherPlayers.has(pid)) {
       const player = otherPlayers.get(pid);
-      if (typeof msg.score === 'number') player.score = msg.score;
+      if (player && typeof msg.score === 'number') player.score = msg.score;
     }
   }
 }
@@ -4792,6 +4818,7 @@ if (multiplayerEnabled) {
           (playerId, position, scoreFromServer, nameFromServer) => {
             if (otherPlayers.has(playerId)) {
               const player = otherPlayers.get(playerId);
+              if (!player) return;
               Object.assign(player, position);
               if (typeof scoreFromServer === 'number')
                 player.score = scoreFromServer;
@@ -4800,7 +4827,11 @@ if (multiplayerEnabled) {
             } else {
               otherPlayers.set(playerId, {
                 id: playerId,
-                ...position,
+                x: position.x ?? 0,
+                y: position.y ?? 0,
+                width: position.width ?? 40,
+                height: position.height ?? 50,
+                growLevel: position.growLevel,
                 score: scoreFromServer,
                 name: nameFromServer,
               });

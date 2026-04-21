@@ -48,7 +48,7 @@ function isRTCSignalData(signal: unknown): signal is RTCSignalData {
 }
 
 interface GameState {
-  players: PlayerState[] | Map<string, PlayerState>;
+  players: PlayerState[];
   collectibles: Array<{
     x: number;
     y: number;

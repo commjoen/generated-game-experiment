@@ -5,11 +5,26 @@ interface PlayerState {
   width: number;
   height: number;
   growLevel: number;
+  name?: string;
+  score?: number;
   isHost?: boolean;
 }
 
+interface PlayerPosition {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  growLevel: number;
+}
+
+type RTCSignalData =
+  | { type: 'offer'; sdp: RTCSessionDescriptionInit | null }
+  | { type: 'answer'; sdp: RTCSessionDescriptionInit | null }
+  | { type: 'ice-candidate'; candidate: RTCIceCandidateInit };
+
 interface GameState {
-  players: Map<string, PlayerState>;
+  players: PlayerState[];
   collectibles: Array<{
     x: number;
     y: number;
@@ -216,50 +231,69 @@ export class MultiplayerManager {
     }
   }
 
-  private handleMessage(data: any) {
-    switch (data.type) {
+  private handleMessage(data: unknown) {
+    if (!data || typeof data !== 'object') return;
+    const message = data as Record<string, unknown>;
+    if (typeof message.type !== 'string') return;
+
+    switch (message.type) {
       case 'gameState':
-        if (this.onStateUpdate) {
-          this.onStateUpdate(data.gameState);
+        if (
+          this.onStateUpdate &&
+          message.gameState &&
+          typeof message.gameState === 'object'
+        ) {
+          this.onStateUpdate(message.gameState as GameState);
         }
         break;
       case 'playerJoined':
-        if (data.playerId === this.playerId) {
-          this.isHost = data.isHost || false;
+        if (typeof message.playerId !== 'string') break;
+        if (message.playerId === this.playerId) {
+          this.isHost = Boolean(message.isHost);
         } else if (this.webRTCEnabled) {
           // Another player joined – we are the initiator of the WebRTC connection
-          this.initWebRTCConnection(data.playerId, true);
+          this.initWebRTCConnection(message.playerId, true);
         }
         if (this.onPlayerJoin) {
-          this.onPlayerJoin(data.playerId);
+          this.onPlayerJoin(message.playerId);
         }
         break;
       case 'playerLeft':
+        if (typeof message.playerId !== 'string') break;
         if (this.webRTCEnabled) {
-          this.cleanupPeerConnection(data.playerId);
+          this.cleanupPeerConnection(message.playerId);
         }
         if (this.onPlayerLeave) {
-          this.onPlayerLeave(data.playerId);
+          this.onPlayerLeave(message.playerId);
         }
         break;
       case 'playerUpdate':
-        if (this._onPlayerUpdate) {
+        if (this._onPlayerUpdate && typeof message.playerId === 'string') {
           this._onPlayerUpdate(
-            data.playerId,
-            data.position,
-            data.score,
-            data.name
+            message.playerId,
+            (message.position as Partial<PlayerPosition>) ?? {},
+            typeof message.score === 'number' ? message.score : undefined,
+            typeof message.name === 'string' ? message.name : undefined
           );
         }
         break;
       case 'itemCollected':
-        if (this._onPlayerUpdate) {
-          this._onPlayerUpdate(data.playerId, {}, data.score, data.name);
+        if (this._onPlayerUpdate && typeof message.playerId === 'string') {
+          this._onPlayerUpdate(
+            message.playerId,
+            {},
+            typeof message.score === 'number' ? message.score : undefined,
+            typeof message.name === 'string' ? message.name : undefined
+          );
         }
         break;
       case 'rtcSignal':
-        if (this.webRTCEnabled) {
-          this.handleRTCSignal(data.fromId, data.signal);
+        if (
+          this.webRTCEnabled &&
+          typeof message.fromId === 'string' &&
+          message.signal
+        ) {
+          this.handleRTCSignal(message.fromId, message.signal);
         }
         break;
       case 'pong':
@@ -268,7 +302,7 @@ export class MultiplayerManager {
     }
   }
 
-  private send(data: any) {
+  private send(data: unknown) {
     if (this.ws && this.isConnected) {
       try {
         this.ws.send(JSON.stringify(data));
@@ -341,7 +375,7 @@ export class MultiplayerManager {
 
   private _onPlayerUpdate?: (
     playerId: string,
-    position: any,
+    position: Partial<PlayerPosition>,
     score?: number,
     name?: string
   ) => void;
@@ -352,7 +386,7 @@ export class MultiplayerManager {
   onPlayerUpdate(
     callback: (
       playerId: string,
-      position: any,
+      position: Partial<PlayerPosition>,
       score?: number,
       name?: string
     ) => void
@@ -454,13 +488,21 @@ export class MultiplayerManager {
     };
   }
 
-  private async handleRTCSignal(fromId: string, signal: any): Promise<void> {
+  private async handleRTCSignal(
+    fromId: string,
+    signal: unknown
+  ): Promise<void> {
     try {
-      if (signal.type === 'offer') {
+      if (!signal || typeof signal !== 'object') return;
+      const rtcSignal = signal as RTCSignalData;
+
+      if (rtcSignal.type === 'offer') {
         await this.initWebRTCConnection(fromId, false);
         const pc = this.peerConnections.get(fromId);
         if (!pc) return;
-        await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+        await pc.setRemoteDescription(
+          new RTCSessionDescription(rtcSignal.sdp ?? undefined)
+        );
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         this.send({
@@ -468,15 +510,17 @@ export class MultiplayerManager {
           targetId: fromId,
           signal: { type: 'answer', sdp: pc.localDescription },
         });
-      } else if (signal.type === 'answer') {
+      } else if (rtcSignal.type === 'answer') {
         const pc = this.peerConnections.get(fromId);
         if (pc) {
-          await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+          await pc.setRemoteDescription(
+            new RTCSessionDescription(rtcSignal.sdp ?? undefined)
+          );
         }
-      } else if (signal.type === 'ice-candidate') {
+      } else if (rtcSignal.type === 'ice-candidate') {
         const pc = this.peerConnections.get(fromId);
         if (pc) {
-          await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+          await pc.addIceCandidate(new RTCIceCandidate(rtcSignal.candidate));
         }
       }
     } catch (error) {

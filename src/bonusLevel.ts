@@ -1,10 +1,29 @@
 export interface BonusLevel {
-  platforms: any[];
-  boxes: any[];
-  collectibles: any[];
-  spikes: any[];
-  movingPlatforms: any[];
+  platforms: BonusRect[];
+  boxes: BonusRect[];
+  collectibles: BonusCollectible[];
+  spikes: BonusRect[];
+  movingPlatforms: BonusMovingPlatform[];
   finishFlag: { x: number; y: number; width: number; height: number };
+}
+
+interface BonusRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+interface BonusCollectible extends BonusRect {
+  collected: boolean;
+  type: 'coin';
+  id: string;
+}
+
+interface BonusMovingPlatform extends BonusRect {
+  dx: number;
+  range: number;
+  startX: number;
 }
 
 export function generateBonusVerticalLevelForTest(
@@ -12,10 +31,10 @@ export function generateBonusVerticalLevelForTest(
 ): BonusLevel {
   const LEVEL_HEIGHT = 3200;
   const platforms = [{ x: 0, y: LEVEL_HEIGHT, width: canvasWidth, height: 50 }];
-  const boxes: any[] = [];
-  const spikes: any[] = [];
-  const movingPlatforms: any[] = [];
-  const collectibles: any[] = [];
+  const boxes: BonusRect[] = [];
+  const spikes: BonusRect[] = [];
+  const movingPlatforms: BonusMovingPlatform[] = [];
+  const collectibles: BonusCollectible[] = [];
   // Fill the level with coins (grid)
   const coinSpacingX = 60;
   const coinSpacingY = 60;

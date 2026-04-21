@@ -58,6 +58,12 @@ interface Tube extends Rect {
   id: string;
   hasSpawnedEnemy: boolean;
 }
+interface RemotePlayerState extends Rect {
+  id: string;
+  growLevel?: number;
+  name?: string;
+  score?: number;
+}
 
 // Unique collectible id generator
 let collectibleIdCounter = 0;
@@ -127,7 +133,7 @@ const ropeAnimation: RopeAnimation = {
 };
 
 // Multiplayer state
-let otherPlayers: Map<string, any> = new Map();
+let otherPlayers: Map<string, RemotePlayerState> = new Map();
 let multiplayerEnabled = localStorage.getItem('multiplayerEnabled') === 'true';
 let webRTCEnabled = localStorage.getItem('webRTCEnabled') !== 'false';
 let lastPositionUpdate = 0;
@@ -280,8 +286,9 @@ const platforms: Platform[] = [];
 const boxes: Rect[] = [];
 
 // --- Level Type Toggle ---
+const storedLevelType = localStorage.getItem('levelType');
 let levelType: 'horizontal' | 'vertical' =
-  (localStorage.getItem('levelType') as any) || 'horizontal';
+  storedLevelType === 'vertical' ? 'vertical' : 'horizontal';
 let manualLevelType: boolean =
   localStorage.getItem('manualLevelType') === 'true';
 let manualLevelTypeValue: 'horizontal' | 'vertical' =
@@ -485,7 +492,7 @@ async function generateVerticalLevel() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           collectibles: collectibles.map((c) => ({
-            id: (c as any).id,
+            id: c.id,
             type: c.type,
           })),
         }),
@@ -732,7 +739,7 @@ async function generateLevel() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           collectibles: collectibles.map((c) => ({
-            id: (c as any).id,
+            id: c.id,
             type: c.type,
           })),
         }),
@@ -2800,7 +2807,7 @@ function update(deltaTime: number) {
       if (c.type === 'grow' && player.growLevel >= 3) continue; // can't collect more than 3
       c.collected = true;
       if (multiplayerEnabled) {
-        multiplayerManager.collectItem((c as any).id);
+        multiplayerManager.collectItem(c.id);
       }
       if (c.type === 'coin') {
         const coinValue = isUpgradeActive('lucky_coins') ? 2 : 1;
@@ -2819,7 +2826,7 @@ function update(deltaTime: number) {
           webrtcDirect.send({
             type: 'itemCollected',
             playerId: p2pLocalPlayerId,
-            collectibleId: (c as any).id,
+            collectibleId: c.id,
             score,
             timestamp: Date.now(),
           });
@@ -4757,7 +4764,7 @@ if (multiplayerEnabled) {
         multiplayerManager.onGameStateUpdate((gameState) => {
           // Update other players' positions
           otherPlayers.clear();
-          gameState.players.forEach((playerData: any) => {
+          gameState.players.forEach((playerData) => {
             if (playerData.id !== multiplayerManager.currentPlayerId) {
               otherPlayers.set(playerData.id, playerData);
             } else {
@@ -4936,7 +4943,7 @@ function generateBonusVerticalLevel() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           collectibles: collectibles.map((c) => ({
-            id: (c as any).id,
+            id: c.id,
             type: c.type,
           })),
         }),
@@ -4960,10 +4967,10 @@ function generateBonusVerticalLevel() {
 export function generateBonusVerticalLevelForTest(canvasWidth: number) {
   const LEVEL_HEIGHT = 3200;
   const platforms = [{ x: 0, y: LEVEL_HEIGHT, width: canvasWidth, height: 50 }];
-  const boxes: any[] = [];
-  const spikes: any[] = [];
-  const movingPlatforms: any[] = [];
-  const collectibles: any[] = [];
+  const boxes: Rect[] = [];
+  const spikes: Rect[] = [];
+  const movingPlatforms: MovingPlatform[] = [];
+  const collectibles: Collectible[] = [];
   // Fill the level with coins (grid)
   const coinSpacingX = 60;
   const coinSpacingY = 60;

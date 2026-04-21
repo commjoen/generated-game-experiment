@@ -23,6 +23,30 @@ type RTCSignalData =
   | { type: 'answer'; sdp: RTCSessionDescriptionInit | null }
   | { type: 'ice-candidate'; candidate: RTCIceCandidateInit };
 
+function toPartialPlayerPosition(data: unknown): Partial<PlayerPosition> {
+  if (!data || typeof data !== 'object') return {};
+  const raw = data as Record<string, unknown>;
+  const position: Partial<PlayerPosition> = {};
+  if (typeof raw.x === 'number') position.x = raw.x;
+  if (typeof raw.y === 'number') position.y = raw.y;
+  if (typeof raw.width === 'number') position.width = raw.width;
+  if (typeof raw.height === 'number') position.height = raw.height;
+  if (typeof raw.growLevel === 'number') position.growLevel = raw.growLevel;
+  return position;
+}
+
+function isRTCSignalData(signal: unknown): signal is RTCSignalData {
+  if (!signal || typeof signal !== 'object') return false;
+  const parsed = signal as Record<string, unknown>;
+  if (parsed.type === 'offer' || parsed.type === 'answer') {
+    return parsed.sdp === null || typeof parsed.sdp === 'object';
+  }
+  if (parsed.type === 'ice-candidate') {
+    return typeof parsed.candidate === 'object' && parsed.candidate !== null;
+  }
+  return false;
+}
+
 interface GameState {
   players: PlayerState[];
   collectibles: Array<{
@@ -271,7 +295,7 @@ export class MultiplayerManager {
         if (this._onPlayerUpdate && typeof message.playerId === 'string') {
           this._onPlayerUpdate(
             message.playerId,
-            (message.position as Partial<PlayerPosition>) ?? {},
+            toPartialPlayerPosition(message.position),
             typeof message.score === 'number' ? message.score : undefined,
             typeof message.name === 'string' ? message.name : undefined
           );
@@ -493,16 +517,14 @@ export class MultiplayerManager {
     signal: unknown
   ): Promise<void> {
     try {
-      if (!signal || typeof signal !== 'object') return;
-      const rtcSignal = signal as RTCSignalData;
+      if (!isRTCSignalData(signal)) return;
+      const rtcSignal = signal;
 
       if (rtcSignal.type === 'offer') {
         await this.initWebRTCConnection(fromId, false);
         const pc = this.peerConnections.get(fromId);
         if (!pc) return;
-        await pc.setRemoteDescription(
-          new RTCSessionDescription(rtcSignal.sdp ?? undefined)
-        );
+        await pc.setRemoteDescription(new RTCSessionDescription(rtcSignal.sdp));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         this.send({
@@ -514,7 +536,7 @@ export class MultiplayerManager {
         const pc = this.peerConnections.get(fromId);
         if (pc) {
           await pc.setRemoteDescription(
-            new RTCSessionDescription(rtcSignal.sdp ?? undefined)
+            new RTCSessionDescription(rtcSignal.sdp)
           );
         }
       } else if (rtcSignal.type === 'ice-candidate') {

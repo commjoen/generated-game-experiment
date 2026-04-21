@@ -15,9 +15,7 @@ describe('GitHub MCP Server', () => {
       packageJson.dependencies?.['github-mcp-server'] ||
       packageJson.devDependencies?.['github-mcp-server'];
     expect(githubMcpServerVersion).toBeDefined();
-    expect(githubMcpServerVersion).toMatch(
-      /^\^1\.\d+\.\d+$/
-    );
+    expect(githubMcpServerVersion).toMatch(/^\^1\.\d+\.\d+$/);
   });
 
   it('should provide MCP scripts in package.json', () => {

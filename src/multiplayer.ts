@@ -19,8 +19,8 @@ interface PlayerPosition {
 }
 
 type RTCSignalData =
-  | { type: 'offer'; sdp: RTCSessionDescriptionInit | null }
-  | { type: 'answer'; sdp: RTCSessionDescriptionInit | null }
+  | { type: 'offer'; sdp: RTCSessionDescriptionInit }
+  | { type: 'answer'; sdp: RTCSessionDescriptionInit }
   | { type: 'ice-candidate'; candidate: RTCIceCandidateInit };
 
 function toPartialPlayerPosition(data: unknown): Partial<PlayerPosition> {
@@ -39,7 +39,7 @@ function isRTCSignalData(signal: unknown): signal is RTCSignalData {
   if (!signal || typeof signal !== 'object') return false;
   const parsed = signal as Record<string, unknown>;
   if (parsed.type === 'offer' || parsed.type === 'answer') {
-    return parsed.sdp === null || typeof parsed.sdp === 'object';
+    return typeof parsed.sdp === 'object' && parsed.sdp !== null;
   }
   if (parsed.type === 'ice-candidate') {
     return typeof parsed.candidate === 'object' && parsed.candidate !== null;
@@ -521,7 +521,6 @@ export class MultiplayerManager {
       const rtcSignal = signal;
 
       if (rtcSignal.type === 'offer') {
-        if (!rtcSignal.sdp) return;
         await this.initWebRTCConnection(fromId, false);
         const pc = this.peerConnections.get(fromId);
         if (!pc) return;
@@ -534,7 +533,6 @@ export class MultiplayerManager {
           signal: { type: 'answer', sdp: pc.localDescription },
         });
       } else if (rtcSignal.type === 'answer') {
-        if (!rtcSignal.sdp) return;
         const pc = this.peerConnections.get(fromId);
         if (pc) {
           await pc.setRemoteDescription(

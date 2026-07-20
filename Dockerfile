@@ -24,7 +24,7 @@ ENV PORT=$PORT
 RUN npm install && npm run build
 
 # Stage 2: Final container with nginx + Node.js server
-FROM nginx:1.31.2-alpine
+FROM nginx:1.31.3-alpine
 
 # Install Node.js and curl for healthcheck
 # Using Alpine Linux for smaller image size
